@@ -15,6 +15,10 @@
 #include <iostream>
 #include <sys/Socket.h>
 #include <netinet/in.h>
+#include <string.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 #define PORT 8080
 
@@ -24,39 +28,39 @@ class SocketServer
 		struct sockaddr_in	_address;
 		int					_addressLen;
 		int					_server_fd;
+		int					_new_socket;
 
 		//Canonical Form
 		SocketServer(SocketServer const &src);
 		SocketServer &operator=(SocketServer const &src);
 
-	public:
-		SocketServer(int domain, int type, int protocol);
-		~SocketServer(void);
-
-		//Getters and Setters
-		int	const			&getServerFd(void) const;
-		sockaddr_in const	&getSocketServerAddress(void) const;
-
-		//Methods
+		//Private Methods
+		void				createSocket(void);
 		void				initSocketServerAdress(void);
 		void				listenSocketServer(void);
 		void				bindSocketServer(void);
 		void				handleConnection(void);
 
+	public:
+		SocketServer(void);
+		~SocketServer(void);
+
+		//Getters
+		int	const			&getServerFd(void) const;
+		int	const			&getNewSocket(void) const;
+		sockaddr_in const	&getSocketServerAddress(void) const;
+
+		//Method
+		void	startServer(void);
+
 		//Exceptions
-		class FdException : public std::exception
+		class InitializationException : public std::exception
 		{
 			public:
 				virtual const char *what() const throw();
 		};
 
-		class SocketServerBindException : public std::exception
-		{
-			public:
-				virtual const char *what() const throw();
-		};
-
-		class SocketServerListenException : public std::exception
+		class ConnectionException : public std::exception
 		{
 			public:
 				virtual const char *what() const throw();

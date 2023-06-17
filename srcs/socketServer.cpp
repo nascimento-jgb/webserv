@@ -1,30 +1,20 @@
 /* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   SocketServer.cpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/06/16 07:46:46 by jonascim          #+#    #+#             */
-/*   Updated: 2023/06/16 15:32:26 by jonascim         ###   ########.fr       */
-/*                                                                            */
+/**/
+/*:::  ::::::::   */
+/*   SocketServer.cpp :+:  :+::+:   */
+/*+:+ +:+ +:+ */
+/*   By: jonascim <jonascim@student.42.fr>  +#+  +:+   +#+*/
+/*+#+#+#+#+#+   +#+   */
+/*   Created: 2023/06/16 07:46:46 by jonascim  #+##+# */
+/*   Updated: 2023/06/16 15:32:26 by jonascim ###   ########.fr   */
+/**/
 /* ************************************************************************** */
 
 #include "../includes/SocketServer.hpp"
 
 //Canonical Form
-SocketServer::SocketServer(int domain, int type, int protocol)
+SocketServer::SocketServer(void) : _server_fd(0), _new_socket(0)
 {
-	try
-	{
-		if ((this->_server_fd = socket(domain, type, protocol)) < 0)
-			throw FdException();
-	}
-	catch(SocketServer::FdException &e)
-	{
-		std::perror(e.what());
-		std::exit(EXIT_FAILURE);
-	}
 	return ;
 }
 
@@ -33,7 +23,7 @@ SocketServer::~SocketServer(void)
 	return ;
 }
 
-//Getters and Setters
+//Getters
 int	const &SocketServer::getServerFd(void) const
 {
 	return (this->_server_fd);
@@ -44,7 +34,37 @@ sockaddr_in const	&SocketServer::getSocketServerAddress(void) const
 	return (this->_address);
 }
 
-//Methods
+int	const	&SocketServer::getNewSocket(void) const
+{
+	return (this->_new_socket);
+}
+
+//Main Method
+void	SocketServer::startServer(void)
+{
+	try
+	{
+		createSocket();
+		initSocketServerAdress();
+		bindSocketServer();
+		listenSocketServer();
+		handleConnection();
+	}
+	catch (SocketServer::InitializationException &e)
+	{
+		std::cerr << e.what() << std::endl;
+		exit(EXIT_FAILURE);
+	}
+}
+
+//Private Methods
+void SocketServer::createSocket(void)
+{
+	if ((this->_server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
+		throw std::runtime_error("Error creating socket");
+	return;
+}
+
 void	SocketServer::initSocketServerAdress(void)
 {
 	this->_address.sin_family = AF_INET;
@@ -57,44 +77,53 @@ void	SocketServer::initSocketServerAdress(void)
 
 void	SocketServer::bindSocketServer(void)
 {
-	try
-	{
-		if (bind(_server_fd, reinterpret_cast<struct sockaddr*>(&_address), sizeof(_address)) < 0)
-			throw std::runtime_error("Error in bind");
-	}
-	catch (SocketServer::SocketServerBindException &e)
-	{
-		std::perror(e.what());
-		std::exit(EXIT_FAILURE);
-	}
+	if (bind(_server_fd, reinterpret_cast<struct sockaddr*>(&_address), sizeof(_address)) < 0)
+		throw std::runtime_error("Error in bind");
+	return ;
 }
 
 void	SocketServer::listenSocketServer(void)
 {
-	try
+	if (listen(_server_fd, 10) < 0)
+		throw std::runtime_error("Error in listen");
+	return ;
+}
+
+void	SocketServer::handleConnection(void)
+{
+	while (true)
 	{
-		if (listen(_server_fd, 10) < 0)
-			throw std::runtime_error("Error in listen");
-	}
-	catch (SocketServer::SocketServerListenException &e)
-	{
-		std::perror(e.what());
-		std::exit(EXIT_FAILURE);
+		std::cout << "\n+++++++ Waiting for new connection ++++++++\n" << std::endl;
+		try
+		{
+			if ((_new_socket = accept(_server_fd, reinterpret_cast<struct sockaddr*>(&_address),
+				reinterpret_cast<socklen_t*>(&_addressLen))) < 0)
+					throw std::runtime_error("Error accepting connection");
+			char buffer[30000] = {0};
+			ssize_t valread = read(_new_socket, buffer, 30000);
+			std::cout << buffer << std::endl;
+			const char* hello = "Hello from server";
+			write(_new_socket, hello, strlen(hello));
+			std::cout << "------------------Hello message sent-------------------\n";
+			close(_new_socket);
+		}
+		catch(SocketServer::InitializationException &e)
+		{
+			std::cerr << e.what() << std::endl;
+			close(_new_socket);
+			exit(EXIT_FAILURE);
+		}
+
 	}
 }
 
 //Execptions
-const char *SocketServer::FdException::what(void) const throw()
+const char *SocketServer::InitializationException::what(void) const throw()
 {
-	return ("Unable to create SocketServer file descriptor.");
+	return ("Unable to create initialize the server socket.");
 }
 
-const char *SocketServer::SocketServerBindException::what(void) const throw()
+const char *SocketServer::InitializationException::what(void) const throw()
 {
-	return ("Unable to bind the SocketServer.");
-}
-
-const char *SocketServer::SocketServerListenException::what(void) const throw()
-{
-	return ("Unable to listen to the SocketServer.");
+	return ("Unable to stablish connection in the server.");
 }
