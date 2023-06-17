@@ -1,16 +1,17 @@
 /* ************************************************************************** */
-/**/
-/*:::  ::::::::   */
-/*   SocketServer.cpp :+:  :+::+:   */
-/*+:+ +:+ +:+ */
-/*   By: jonascim <jonascim@student.42.fr>  +#+  +:+   +#+*/
-/*+#+#+#+#+#+   +#+   */
-/*   Created: 2023/06/16 07:46:46 by jonascim  #+##+# */
-/*   Updated: 2023/06/16 15:32:26 by jonascim ###   ########.fr   */
-/**/
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   socketServer.cpp                                   :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jonascim <jonascim@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/06/17 14:56:47 by jonascim          #+#    #+#             */
+/*   Updated: 2023/06/17 15:31:19 by jonascim         ###   ########.fr       */
+/*                                                                            */
 /* ************************************************************************** */
 
-#include "../includes/SocketServer.hpp"
+
+#include "../includes/socketServer.hpp"
 
 //Canonical Form
 SocketServer::SocketServer(void) : _server_fd(0), _new_socket(0)
@@ -101,7 +102,7 @@ void	SocketServer::handleConnection(void)
 					throw std::runtime_error("Error accepting connection");
 			char buffer[30000] = {0};
 			ssize_t valread = read(_new_socket, buffer, 30000);
-			std::cout << buffer << std::endl;
+			std::cout << buffer <<  " - " << valread << std::endl;
 			const char* hello = "Hello from server";
 			write(_new_socket, hello, strlen(hello));
 			std::cout << "------------------Hello message sent-------------------\n";
@@ -113,7 +114,6 @@ void	SocketServer::handleConnection(void)
 			close(_new_socket);
 			exit(EXIT_FAILURE);
 		}
-
 	}
 }
 
@@ -123,7 +123,7 @@ const char *SocketServer::InitializationException::what(void) const throw()
 	return ("Unable to create initialize the server socket.");
 }
 
-const char *SocketServer::InitializationException::what(void) const throw()
+const char *SocketServer::ConnectionException::what(void) const throw()
 {
 	return ("Unable to stablish connection in the server.");
 }
