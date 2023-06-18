@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/17 15:07:52 by jonascim          #+#    #+#             */
-/*   Updated: 2023/06/17 15:54:06 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/06/18 09:17:05 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,7 @@ void SocketClient::createSocket(void)
 
 void	SocketClient::initSocketClient(void)
 {
-	memset(&_servAddress, '0', sizeof(_servAddress));
+	std::memset(&_servAddress, '0', sizeof(_servAddress));
 	this->_servAddress.sin_family = AF_INET;
 	this->_servAddress.sin_port = htons(PORT);
 	if(inet_pton(AF_INET, "127.0.0.1", &_servAddress.sin_addr) <= 0)
@@ -91,9 +91,10 @@ void	SocketClient::sendMessage(const char *msg)
 
 void	SocketClient::receiveMessage(void)
 {
-	std::string	buffer[1024] = {0};
+	char	buffer[1024];
 	long		valread = read(_clientSocket, buffer, 1024);
 
+	std::memset(buffer, 0, sizeof(buffer));
 	std::cout << "Received message: " << buffer << " - " << valread << std::endl;
 	return ;
 }
