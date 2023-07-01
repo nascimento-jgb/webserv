@@ -10,7 +10,8 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#pragma once
+#ifndef SOCKETSERVER_H
+# define SOCKETSERVER_H
 
 #include <iostream>
 #include <sys/socket.h>
@@ -66,3 +67,5 @@ class SocketServer
 				virtual const char *what() const throw();
 		};
 };
+
+#endif

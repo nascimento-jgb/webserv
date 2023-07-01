@@ -6,11 +6,12 @@
 /*   By: jonascim <jonascim@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/17 15:04:58 by jonascim          #+#    #+#             */
-/*   Updated: 2023/06/17 15:46:55 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/07/01 09:17:12 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#pragma once
+#ifndef SOCKETCLIENT_H
+# define SOCKETCLIENT_H
 
 #include <iostream>
 #include <stdio.h>
@@ -57,3 +58,5 @@ class SocketClient
 				virtual const char *what() const throw();
 		};
 };
+
+#endif
