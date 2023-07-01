@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/17 15:07:52 by jonascim          #+#    #+#             */
-/*   Updated: 2023/06/18 09:17:05 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/06/30 10:12:00 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,6 @@ void	SocketClient::startClient(void)
 		initSocketClient();
 		sendMessage("Hello from client");
 		receiveMessage();
-
 	}
 	catch (SocketClient::InitializationException &e)
 	{

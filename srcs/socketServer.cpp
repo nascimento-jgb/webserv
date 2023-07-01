@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/17 14:56:47 by jonascim          #+#    #+#             */
-/*   Updated: 2023/06/17 15:31:19 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/07/01 08:17:05 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,7 +103,7 @@ void	SocketServer::handleConnection(void)
 			char buffer[30000] = {0};
 			ssize_t valread = read(_new_socket, buffer, 30000);
 			std::cout << buffer <<  " - " << valread << std::endl;
-			const char* hello = "Hello from server";
+			const char *hello = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nWASUUUUUP LUCAS!!";
 			write(_new_socket, hello, strlen(hello));
 			std::cout << "------------------Hello message sent-------------------\n";
 			close(_new_socket);
