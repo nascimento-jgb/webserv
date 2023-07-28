@@ -8,7 +8,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-const int NUM_CLIENTS = 5;
+const int NUM_CLIENTS = 10;
 const int PORT = 8101;
 
 void* clientThreadFunction(void* arg)
