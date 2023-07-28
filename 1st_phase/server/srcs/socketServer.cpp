@@ -1,19 +1,19 @@
 /* ************************************************************************** */
-/*										*/
-/*							:::	  ::::::::   */
-/*   socketServer.cpp				   :+:	  :+:	:+:   */
-/*							+:+ +:+	 +:+	 */
-/*   By: jonascim <jonascim@student.42.fr>	  +#+  +:+	   +#+	*/
-/*						+#+#+#+#+#+   +#+	   */
-/*   Created: 2023/06/17 14:56:47 by jonascim	  #+#	#+#		 */
-/*   Updated: 2023/07/05 15:13:18 by jonascim	 ###   ########.fr	   */
-/*										*/
+/*																			*/
+/*														:::	:::::::: */
+/* socketServer.cpp								 :+:	:+:	:+: */
+/*													+:+ +:+		 +:+	 */
+/* By: jonascim <jonascim@student.42.fr>		+#++:+	 +#+		*/
+/*												+#+#+#+#+#+ +#+		 */
+/* Created: 2023/07/13 08:55:39 by jonascim		#+#	#+#			 */
+/* Updated: 2023/07/13 08:55:43 by jonascim		 ### ########.fr	 */
+/*																			*/
 /* ************************************************************************** */
 
 #include "../includes/socketServer.hpp"
 
 //Canonical Form
-SocketServer::SocketServer(void) : _server_fd(0), _new_socket(0)
+SocketServer::SocketServer(void) : _serverSocket(0)
 {
 	return ;
 }
@@ -26,17 +26,17 @@ SocketServer::~SocketServer(void)
 //Getters
 int	const &SocketServer::getServerFd(void) const
 {
-	return (this->_server_fd);
+	return (_serverSocket);
 }
 
 sockaddr_in const	&SocketServer::getSocketServerAddress(void) const
 {
-	return (this->_address);
+	return (_serverAddress);
 }
 
-int	const	&SocketServer::getNewSocket(void) const
+int	const	&SocketServer::getClientSocket(void) const
 {
-	return (this->_new_socket);
+	return (_clientSocket);
 }
 
 //Main Method
@@ -48,8 +48,8 @@ void	SocketServer::startServer(void)
 		initSocketServerAdress();
 		bindSocketServer();
 		listenSocketServer();
+		printf("#");
 		handleMultiplexing();
-		// handleConnection();
 	}
 	catch (SocketServer::InitializationException &e)
 	{
@@ -61,18 +61,18 @@ void	SocketServer::startServer(void)
 //Private Methods
 void SocketServer::createSocket(void)
 {
-	if ((this->_server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
+	if ((_serverSocket = socket(AF_INET, SOCK_STREAM, 0)) < 0) //remeber to man socket page again
 		throw std::runtime_error("Error creating socket");
-	return;
+	return ;
 }
 
 void	SocketServer::initSocketServerAdress(void)
 {
-	this->_address.sin_family = AF_INET;
-	this->_address.sin_addr.s_addr = INADDR_ANY;
-	this->_address.sin_port = htons(PORT);
-	memset(this->_address.sin_zero, '\0', sizeof(_address.sin_zero));
-	this->_addressLen = sizeof(_address);
+	_serverAddress.sin_family = AF_INET;
+	_serverAddress.sin_addr.s_addr = INADDR_ANY;
+	_serverAddress.sin_port = htons(PORT);
+	memset(_serverAddress.sin_zero, '\0', sizeof(_serverAddress.sin_zero));
+	_servAddressLen = sizeof(_serverAddress);
 	return ;
 }
 
@@ -80,9 +80,11 @@ void	SocketServer::bindSocketServer(void)
 {
 	try
 	{
-		if (bind(_server_fd, reinterpret_cast<struct sockaddr*>(&_address), sizeof(_address)) < 0)
+		if (bind(_serverSocket, reinterpret_cast<struct sockaddr*>(&_serverAddress), sizeof(_serverAddress)) < 0)
+		{
+			std::cerr << "Error in bind: " << errno << " - " << strerror(errno) << std::endl;
 			throw std::runtime_error("Error in bind");
-
+		}
 	}
 	catch(const std::exception &e)
 	{
@@ -94,55 +96,130 @@ void	SocketServer::bindSocketServer(void)
 
 void	SocketServer::listenSocketServer(void)
 {
-	if (listen(_server_fd, 10) < 0)
-		throw std::runtime_error("Error in listen");
-	return ;
+	if (listen(_serverSocket, MAX_CLIENTS) < 0)
+	{
+		perror("listen");
+		exit(EXIT_FAILURE);
+	}
 }
 
-void	SocketServer::handleMultiplexing(void)
+void SocketServer::handleMultiplexing(void)
 {
-	FD_ZERO (&_active_fd_set);
-	FD_SET (_server_fd, &_active_fd_set);
+	const char	*message = "TEST v1.0 \r\n";
+	char		buffer[1025];
+	int			sd, valread, activity;
 
-	while (true)
+	while(1)
 	{
-		_read_fd_set = _active_fd_set;
-		if (select(FD_SETSIZE, &_read_fd_set, NULL, NULL, NULL) < 0)
+		//clear the socket set
+		FD_ZERO(&_readFds);
+
+		//add master socket to set
+		FD_SET(_serverSocket, &_readFds);
+		_maxFd = _serverSocket;
+
+		//add child sockets to set
+		for (int i = 0 ; i < MAX_CLIENTS ; i++)
 		{
-			std::cerr << "error on select" << std::endl;
-			exit(1);
+			//socket descriptor
+			sd = _clientSockets[i];
+
+			//if valid socket descriptor then add to read list
+			if(sd > 0)
+				FD_SET( sd , &_readFds);
+
+			//highest file descriptor number, need it for the select function
+			if(sd > _maxFd)
+				_maxFd = sd;
 		}
-		// Service all the sockets with input pending.
-		for (int i = 0; i < FD_SETSIZE; ++i)
+
+		//wait for an activity on one of the sockets , timeout is NULL ,
+		//so wait indefinitely
+		activity = select( _maxFd + 1 , &_readFds , NULL , NULL , NULL);
+
+		if ((activity < 0) && (errno!=EINTR))
 		{
-			if (FD_ISSET (i, &_active_fd_set))
+			printf("select error");
+		}
+
+		//If something happened on the master socket ,
+		//then its an incoming connection
+		if (FD_ISSET(_serverSocket, &_readFds))
+		{
+			if ((_clientSocket = accept(_serverSocket,
+					(struct sockaddr *)&_serverAddress, (socklen_t*)&_servAddressLen))<0)
 			{
-				if (i == _server_fd)
+				perror("accept");
+				exit(EXIT_FAILURE);
+			}
+
+			//inform user of socket number - used in send and receive commands
+			printf("New connection , socket fd is %d , ip is : %s , port : %d \n" ,
+					_clientSocket , inet_ntoa(_serverAddress.sin_addr) , ntohs(_serverAddress.sin_port));
+
+			//send new connection greeting message
+			if (send(_clientSocket, message, static_cast<ssize_t>(strlen(message)), 0) != static_cast<ssize_t>(strlen(message)))
+			{
+				perror("send");
+			}
+			puts("Welcome message sent successfully");
+
+			//add new socket to array of sockets
+			for (int i = 0; i < MAX_CLIENTS; i++)
+			{
+				//if position is empty
+				if( _clientSockets[i] == 0 )
 				{
-					// Connection request on original socket
-					// Accept the data from client
-					_conn_fd = accept(_server_fd, (struct sockaddr*)NULL, NULL);
-					if (_conn_fd < 0)
-					{
-						std::cerr << "Server accept failed" << std::endl;
-						exit(1);
-					}
-					else
-					{
-						std::cout << "Server accepted the client" << std::endl;
-						FD_SET (_conn_fd, &_active_fd_set);
-					}
+					_clientSockets[i] = _clientSocket;
+					printf("Adding to list of sockets as %d\n" , i);
+
+					break;
+				}
+			}
+		}
+
+		//else its some IO operation on some other socket
+		for (int i = 0; i < MAX_CLIENTS; i++)
+		{
+			sd = _clientSockets[i];
+
+			if (FD_ISSET( sd , &_readFds))
+			{
+				//Check if it was for closing , and also read the
+				//incoming message
+				if ((valread = read(sd, buffer, sizeof(buffer) - 1)) == 0)
+				{
+					//Somebody disconnected , get his details and print
+					getpeername(sd, (struct sockaddr*)&_serverAddress , \
+						(socklen_t*)&_servAddressLen);
+					printf("Host disconnected , ip %s , port %d \n" ,
+						inet_ntoa(_serverAddress.sin_addr) , ntohs(_serverAddress.sin_port));
+
+					//Close the socket and mark as 0 in list for reuse
+					close(sd);
+					_clientSockets[i] = 0;
+				} else if (valread < 0)
+				{
+					// Error occurred during read
+					perror("read");
+					// Handle the error as appropriate for your application
+					// For example, you might close the socket, log the error, etc.
+					// In this case, I'll close the socket and mark it for reuse:
+					close(sd);
+					_clientSockets[i] = 0;
 				}
 				else
 				{
-					// Data arriving on an already-connected socket
-					// ... read and process incoming data
-					// If the client has disconnected, remove it from the active set
-					FD_CLR (i, &_active_fd_set);
+					//Echo back the message that came in and
+					//set the string terminating NULL byte on the end of the data read
+					buffer[valread] = '\0';
+					send(sd, buffer, strlen(buffer), 0 );
 				}
 			}
 		}
 	}
+	close(_serverSocket);
+	delete message;
 }
 
 //Execptions

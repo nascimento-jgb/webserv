@@ -1,7 +1,7 @@
 NAME = server
 
 GCC = c++
-CFLAGS = -Wall -Wextra -Werror -std=c++98
+CFLAGS = -Wall -Wextra -Werror -std=c++98 -fsanitize=address -g -static-libsan
 
 RM = rm
 RMFLAGS = -rf

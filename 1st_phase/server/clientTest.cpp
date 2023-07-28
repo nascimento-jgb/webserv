@@ -3,10 +3,13 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <string.h>
-#define PORT 8081
+
+#define PORT 8101
 
 int main(int argc, char const *argv[])
 {
+	(void)argv;
+	(void)argc;
 	int sock = 0, valread;
 	struct sockaddr_in serv_addr;
 	char hello[] = "Hello from client";

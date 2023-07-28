@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   SocketServer.hpp                                         :+:      :+:    :+:   */
+/*   socketServer.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/16 07:46:51 by jonascim          #+#    #+#             */
-/*   Updated: 2023/06/16 15:42:50 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/07/28 13:12:33 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,23 +18,31 @@
 #include <sstream>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <string.h>
+#include <arpa/inet.h>
+#include <string>
 #include <unistd.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <stdio.h>
+#include <csignal>
 
-#define PORT 8081
+//remember to include only <string> to remove other includes
+
+#define MAX_CLIENTS 10
+#define PORT 8101
 
 class SocketServer
 {
 	private:
-		struct sockaddr_in	_address;
-		int					_addressLen;
-		int					_server_fd;
-		int					_conn_fd;
-		int					_new_socket;
-		fd_set				_active_fd_set;
-		fd_set				_read_fd_set;
+		struct sockaddr_in	_serverAddress;
+		int					_servAddressLen;
+		int					_serverSocket;
+		int					_maxFd;
+		int					_clientSocket;
+		int					_clientSockets[MAX_CLIENTS];
+		fd_set				_readFds;
+
+		//parsing private atributes
+		std::string			_response;
 
 		//Canonical Form
 		SocketServer(SocketServer const &src);
@@ -46,6 +54,12 @@ class SocketServer
 		void				listenSocketServer(void);
 		void				bindSocketServer(void);
 		void				handleMultiplexing(void);
+		// void				serverSocketActivity(void);
+		// void				clientSocketActivity(void);
+
+		//Parsing methods
+		// std::string			buildResponse(void);
+		// void				handleRequest(const std::string &resquest);
 
 	public:
 		SocketServer(void);
@@ -53,11 +67,11 @@ class SocketServer
 
 		//Getters
 		int	const			&getServerFd(void) const;
-		int	const			&getNewSocket(void) const;
+		int	const			&getClientSocket(void) const;
 		sockaddr_in const	&getSocketServerAddress(void) const;
 
 		//Method
-		void	startServer(void);
+		void				startServer(void);
 
 		//Exceptions
 		class InitializationException : public std::exception
