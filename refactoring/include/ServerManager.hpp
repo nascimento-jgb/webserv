@@ -21,15 +21,12 @@ class ServerManager
 {
 	private:
 
-		std::map<int, Server>	_servers_map;
+		std::map<int, Server>		_servers_map;
 		std::map<int, Client>		_clients_map;
-		std::vector<Server>	_servers;
+		std::vector<Server>			_servers;
 
 		fd_set						_fd_pool;
 		int							_biggest_fd;
-
-		ServerManager();
-		~ServerManager();
 
 		//Setup tools
 		void		initializeSets();
@@ -52,8 +49,10 @@ class ServerManager
 		void		removeFromSet(const int i, fd_set &old_set);
 
 	public:
+		ServerManager();
+		~ServerManager();
 
-		void		setupServers();
+		void		setupServers(std::vector<Server>);
 		void		runServers();
 
 };

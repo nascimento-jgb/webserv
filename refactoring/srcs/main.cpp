@@ -6,11 +6,12 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 12:31:35 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/21 13:25:36 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/22 11:20:24 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/Webserver.hpp"
+#include "../include/ServerManager.hpp"
 
 int main (int argc, char **argv)
 {
@@ -18,9 +19,9 @@ int main (int argc, char **argv)
 	{
 		try
 		{
-			ConfigFileParser parser;
-			ServerManager manager;
-			std::string config_file;
+			ConfigFileParser	parser;
+			ServerManager		manager;
+			std::string			config_file;
 
 			config_file = (argc == 1 ? "configs/default.conf" : argv[1]);
 			parser.createServerCluster(config_file);

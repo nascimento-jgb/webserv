@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 09:36:40 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/22 09:12:33 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/22 10:45:47 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,8 @@
 
 #include "Webserver.hpp"
 #include "Server.hpp"
-// #include "Response.hpp"
+#include "Response.hpp"
+#include "Request.hpp"
 
 class Client
 {

@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 08:51:04 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/22 09:22:57 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/22 11:50:21 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@
 #include <cstdlib>
 #include <stdio.h>
 #include <csignal>
+#include <fcntl.h>
 
 //ERROR CLASS
 #include "Error.hpp"

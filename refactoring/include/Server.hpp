@@ -60,7 +60,7 @@ class Server
 		std::string const			&getIndex(void) const;
 		unsigned long const			&getMaxBodySize(void) const;
 		bool const					&getAutoIndex(void) const;
-		int const					&getListenFd(void) const;
+		int							getListenFd(void);
 
 		//Methods
 		void	setupServer();
