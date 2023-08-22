@@ -15,8 +15,8 @@
 
 #include "Webserver.hpp"
 
-class Server {
-
+class Server
+{
 	private:
 		// std::map<short, std::string>	_error_pages;
 		// std::vector<Location> 			_locations;
@@ -41,28 +41,29 @@ class Server {
 		~Server();
 
 		//Setters (needs to wait for Carlo's format)
-			void						setServerAddress();
-			void						setPort();
-			void						setHost();
-			void						setServerName();
-			void						setRoot();
-			void						setIndex();
-			void						setMaxBodySize();
-			void						setAutoIndex();
-			void						setListenFd();
+		void						setServerAddress();
+		void						setPort();
+		void						setHost();
+		void						setServerName();
+		void						setRoot();
+		void						setIndex();
+		void						setMaxBodySize();
+		void						setAutoIndex();
+		void						setListenFd();
+
 		//Getters
-			struct sockaddr_in const	&getServerAddress(void) const;
-			uint16_t const				&getPort(void) const;
-			in_addr_t const				&getHost(void) const;
-			std::string const			&getServerName(void) const;
-			std::string const			&getRoot(void) const;
-			std::string const			&getIndex(void) const;
-			unsigned long const			&getMaxBodySize(void) const;
-			bool const					&getAutoIndex(void) const;
-			int const					&getListenFd(void) const;
+		struct sockaddr_in const	&getServerAddress(void) const;
+		uint16_t const				&getPort(void) const;
+		in_addr_t const				&getHost(void) const;
+		std::string const			&getServerName(void) const;
+		std::string const			&getRoot(void) const;
+		std::string const			&getIndex(void) const;
+		unsigned long const			&getMaxBodySize(void) const;
+		bool const					&getAutoIndex(void) const;
+		int const					&getListenFd(void) const;
 
 		//Methods
-			void	setupServer();
+		void	setupServer();
 };
 
 #endif

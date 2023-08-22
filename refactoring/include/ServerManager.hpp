@@ -17,9 +17,10 @@
 #include "Client.hpp"
 #include "Server.hpp"
 
-class ServerManager {
-
+class ServerManager
+{
 	private:
+
 		std::map<int, Server>	_servers_map;
 		std::map<int, Client>		_clients_map;
 		std::vector<Server>	_servers;

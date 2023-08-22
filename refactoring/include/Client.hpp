@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 09:36:40 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/21 12:30:19 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/22 09:12:33 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,11 +14,11 @@
 # define CLIENT_HPP
 
 #include "Webserver.hpp"
-// #include "Server.hpp"
+#include "Server.hpp"
 // #include "Response.hpp"
-// #include "Server.hpp"
 
-class Client {
+class Client
+{
 
 	private:
 		Request				_request;
