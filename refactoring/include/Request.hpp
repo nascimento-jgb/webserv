@@ -19,28 +19,35 @@ enum HttpMethod
 {
 	GET,
 	POST,
-    DELETE,
+	DELETE,
 	NONE
+};
+
+enum	RequestStatus
+{
+	READ,
+	RESPONSE,
+	WRITE,
+	CLOSE
 };
 
 class Request
 {
 	private:
-		std::string	_body;
-		std::string	_targetfile;
-		std::string	_request_path;
-		std::string	_query;
-		std::string	_filename;
-		HttpMethod	_httpmethod;
-		long int	_header_max_body_len;
-		long int	_we_got_body_len;
-		int			_requestCode;
+		std::string		_body;
+		std::string		_targetfile;
+		std::string		_request_path;
+		std::string		_query;
+		std::string		_filename;
+		HttpMethod		_httpmethod;
+		size_t			_header_max_body_len;
+		size_t			_we_got_body_len;
+		size_t			_maxBodySizeFromConfigFile;
+		int				_requestCode;
+		RequestStatus	_requestStatus;
 
 		std::map<std::string, std::string>	HTTPMap;
 		std::vector<u_int8_t>				_bodys;
-
-		Request(Request const &src);
-		Request &operator=(Request const &src);
 
 		int			_thereIsBody();
 		int			_checkHeaders(std::string &key, std::string &value);
@@ -56,14 +63,19 @@ class Request
 	public:
 		Request();
 		~Request();
+		Request(Request const &other);
+		Request &operator=(Request const &other);
 
-		void parseCreate(std::string buffer, int valread);
+		void			parseCreate(std::string buffer, int valread);
 
-		int			getCode();
-		HttpMethod	getMethod();
-		std::string	getPath();
-		std::string	getQuery();
-		std::string getHeader(std::string header);
+		void			setBodySize(size_t maxBodySizeFromConfigFile);
+
+		int				getCode();
+		HttpMethod		getMethod();
+		std::string		getPath();
+		std::string		getQuery();
+		std::string		getHeader(std::string header);
+		RequestStatus	getStatus();
 
 		class HttpRequestErrorException : public std::exception
 		{

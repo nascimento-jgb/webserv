@@ -1,25 +1,48 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   response.cpp                                       :+:      :+:    :+:   */
+/*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:58:47 by leklund           #+#    #+#             */
-/*   Updated: 2023/08/22 10:16:57 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/23 10:26:48 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/Response.hpp"
 
+//Canonical Form
 Response::Response()
 {
 	_content_length = 0;
 	_responseCode = 0;
 }
 
-Response::~Response()
+Response::~Response() {}
+
+Response::Response(Response const &other)
 {
+	if (this != &other)
+	{
+		_content_length = other._content_length;
+		_content_type = other._content_type;
+		_http_res = other._http_res;
+		_respondeCode = other._respondeCode;
+	}
+	return ;
+}
+
+Response &Response::operator=(Response const &other)
+{
+	if (this != &other)
+	{
+		_content_length = other._content_length;
+		_content_type = other._content_type;
+		_http_res = other._http_res;
+		_responseCode = other._responseCode;
+	}
+	return (*this);
 }
 
 void Response::makeResponse(Request& request, int write_socket)
@@ -28,7 +51,7 @@ void Response::makeResponse(Request& request, int write_socket)
 	std::cout << "_responseCode: " << _responseCode << "Path-2: [" << request.getPath() << "]" << "method = " << request.getMethod() << std::endl;
 	if(_responseCode != 200)
 	{
-		error_msg("yoo this should not be checked here", 418);
+		printResponseErrorMsg("yoo this should not be checked here", 418);
 		return ;
 	}
 	if(request.getMethod() == GET)
@@ -55,7 +78,7 @@ void Response::makeResponse(Request& request, int write_socket)
 			if(!file)
 			{
 				// std::cout << "Failed to open file\n";
-				error_msg("File not found", 404);
+				printResponseErrorMsg("File not found", 404);
 				std::string message = "File not found";
 				std::string error = "HTTP/1.1 404 NOT found\r\nContent-Type: text/plain\r\nContent-Length: "
 				+ request.ft_itoa(message.size()) + "\r\n\r\n" + message;
@@ -94,7 +117,7 @@ void	Response::printResponseErrorMsg(std::string msg, int error_code)
 {
 	Error errors;
 
-	_respondeCode = error_code;
+	_responseCode = error_code;
 	std::cout << "\033[1;31m[" << error_code << "][" << errors.get_error_msg(error_code) << "] " << msg << "\033[0m" << std::endl;
 	// throw(request::HttpRequestErrorException());
 }

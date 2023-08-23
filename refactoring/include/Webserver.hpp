@@ -6,12 +6,15 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 08:51:04 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/22 11:50:21 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/23 10:02:44 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef WEBSERV_HPP
 # define WEBSERV_HPP
+
+#define CONNECTION_TIMEOUT 60
+#define INET_ADDRSTRLEN 16
 
 //STL CONTAINERS
 #include <map>
@@ -34,6 +37,7 @@
 #include <stdio.h>
 #include <csignal>
 #include <fcntl.h>
+#include <utility>
 
 //ERROR CLASS
 #include "Error.hpp"

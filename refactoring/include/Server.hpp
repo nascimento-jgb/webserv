@@ -32,15 +32,14 @@ class Server
 		bool							_autoindex;
 		int								_listen_fd;
 
-		Server(const Server &other);
-		Server &operator=(const Server &other);
-
 	public:
 
 		Server();
 		~Server();
+		Server(const Server &other);
+		Server &operator=(const Server &other);
 
-		//Setters (needs to wait for Carlo's format)
+		//Setters (needs to wait for Carlos format)
 		void						setServerAddress();
 		void						setPort();
 		void						setHost();

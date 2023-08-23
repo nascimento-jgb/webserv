@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 13:06:16 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/22 11:50:27 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/23 09:18:50 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,44 @@ Server::Server()
 }
 
 Server::~Server() {}
+
+Server::Server(const Server &other)
+{
+	if (this != &other)
+	{
+		this->_server_name = other._server_name;
+		this->_root = other._root;
+		this->_host = other._host;
+		this->_port = other._port;
+		this->_max_body_size = other._max_body_size;
+		this->_index = other._index;
+		// this->_error_pages = other._error_pages;
+		// this->_locations = other._locations;
+		this->_listen_fd = other._listen_fd;
+		this->_autoindex = other._autoindex;
+		this->_server_address = other._server_address;
+	}
+	return ;
+}
+
+Server &Server::operator=(const Server &other)
+{
+	if (this != &other)
+	{
+		this->_server_name = other._server_name;
+		this->_root = other._root;
+		this->_host = other._host;
+		this->_port = other._port;
+		this->_max_body_size = other._max_body_size;
+		this->_index = other._index;
+		// this->_error_pages = other._error_pages;
+		// this->_locations = other._locations;
+		this->_listen_fd = other._listen_fd;
+		this->_autoindex = other._autoindex;
+		this->_server_address = other._server_address;
+	}
+	return (*this);
+}
 
 //Setters
 

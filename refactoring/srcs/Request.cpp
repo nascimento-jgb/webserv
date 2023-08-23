@@ -13,13 +13,49 @@
 
 #include "../include/Request.hpp"
 
-Request::Request()
+//Canonical Form
+Request::Request() : _requestStatus(READ) {}
+
+Request::~Request() {}
+
+Request::Request(Request const &other)
 {
+	if (this != &other)
+	{
+		_body = other._body;
+		_targetfile = other._targetfile;
+		_request_path = other._request_path;
+		_query = other._query;
+		_filename = other._filename;
+		_httpmethod = other._httpmethod;
+		_header_max_body_len = other._header_max_body_len;
+		_we_got_body_len = other._we_got_body_len;
+		_maxBodySizeFromConfigFile = other._maxBodySizeFromConfigFile;
+		_requestCode = other._requestCode;
+		_requestStatus = other._requestStatus;
+	}
+	return ;
 }
 
-Request::~Request()
+Request &Request::operator=(Request const &other)
 {
+	if (this != &other)
+	{
+		_body = other._body;
+		_targetfile = other._targetfile;
+		_request_path = other._request_path;
+		_query = other._query;
+		_filename = other._filename;
+		_httpmethod = other._httpmethod;
+		_header_max_body_len = other._header_max_body_len;
+		_we_got_body_len = other._we_got_body_len;
+		_maxBodySizeFromConfigFile = other._maxBodySizeFromConfigFile;
+		_requestCode = other._requestCode;
+		_requestStatus = other._requestStatus;
+	}
+	return (*this);
 }
+
 
 int	Request::_thereIsBody()
 {
@@ -349,6 +385,11 @@ void Request::_clearRequest()
 	_filename.clear();
 }
 
+void	Request::setBodySize(size_t maxBodySizeFromConfigFile)
+{
+	_maxBodySizeFromConfigFile = maxBodySizeFromConfigFile;
+}
+
 int	Request::getCode()
 {
 	return (_requestCode);
@@ -376,6 +417,11 @@ std::string Request::getHeader(std::string header)
 	if(HTTPMap.count(header_lower))
 		return (HTTPMap[header_lower]);
 	return("");
+}
+
+RequestStatus	Request::getStatus(void)
+{
+	return(_requestStatus);
 }
 
 void	Request::_printRequestErrorMsg(std::string msg, int error_code)

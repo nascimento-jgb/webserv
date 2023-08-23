@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 09:36:40 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/22 10:45:47 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/23 10:16:56 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@ class Client
 {
 
 	private:
+
 		Request				_request;
 		Response			_response;
 		Server				_server;
@@ -32,13 +33,17 @@ class Client
 
 		//Canonical Form
 		Client();
-		Client(Client const &src);
-		Client &operator=(Client const &src);
 
 	public:
 
 		Client(Server &server);
 		~Client();
+		Client(Client const &other);
+		Client &operator=(Client const &other);
+
+		Response			response;
+		Request				request;
+		Server				server;
 
 		//Getters
 		int const			&getClientSocket(void) const;
@@ -46,6 +51,7 @@ class Client
 		const Server		&getClientServerInfo(void) const;
 		const Request		&getClientRequest(void) const;
 		const Response		&getClientResponse(void) const;
+		const time_t		&getTimeoutCheck(void) const;
 
 		//Setters
 		void				setSocket(int const &i);

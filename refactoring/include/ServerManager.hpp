@@ -21,12 +21,12 @@ class ServerManager
 {
 	private:
 
-		std::map<int, Server>		_servers_map;
-		std::map<int, Client>		_clients_map;
-		std::vector<Server>			_servers;
+		std::map<int, Server>	_servers_map;
+		std::map<int, Client>	_clients_map;
+		std::vector<Server>		_servers;
 
-		fd_set						_fd_pool;
-		int							_biggest_fd;
+		fd_set					_fd_pool;
+		int						_biggest_fd;
 
 		//Setup tools
 		void		initializeSets();
@@ -34,7 +34,7 @@ class ServerManager
 		void		assignServer(Client &client);
 
 		//Communcation Operations
-		void		readRequest(const int &i, Client &client);
+		void		handleSocket(const int &fd, Client &client);
 		void		handleReqBody(Client &client);
 		// void		sendCgiBody(Client &client, CgiHandler &);
 		// void		readCgiResponse(Client &client, CgiHandler &);
@@ -49,6 +49,7 @@ class ServerManager
 		void		removeFromSet(const int i, fd_set &old_set);
 
 	public:
+
 		ServerManager();
 		~ServerManager();
 
