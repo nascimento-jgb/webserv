@@ -44,6 +44,7 @@ class Request
 		size_t			_we_got_body_len;
 		size_t			_maxBodySizeFromConfigFile;
 		int				_requestCode;
+		int				_parsingCompletionStatus;
 		RequestStatus	_requestStatus;
 
 		std::map<std::string, std::string>	HTTPMap;
@@ -69,6 +70,8 @@ class Request
 		void			parseCreate(std::string buffer, int valread);
 
 		void			setBodySize(size_t maxBodySizeFromConfigFile);
+		void			setRequestStatus(RequestStatus updatedStatus);
+		void			setParsingCompletionStatus(int validation);
 
 		int				getCode();
 		HttpMethod		getMethod();
@@ -76,7 +79,7 @@ class Request
 		std::string		getQuery();
 		std::string		getHeader(std::string header);
 		RequestStatus	getStatus();
-
+		int				getParsingCompletionStatus();
 		class HttpRequestErrorException : public std::exception
 		{
 			public:

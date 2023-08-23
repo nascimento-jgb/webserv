@@ -14,7 +14,7 @@
 #include "../include/Request.hpp"
 
 //Canonical Form
-Request::Request() : _requestStatus(READ) {}
+Request::Request() : _requestStatus(READ), _readingCompletionStatus(0) {}
 
 Request::~Request() {}
 
@@ -33,6 +33,7 @@ Request::Request(Request const &other)
 		_maxBodySizeFromConfigFile = other._maxBodySizeFromConfigFile;
 		_requestCode = other._requestCode;
 		_requestStatus = other._requestStatus;
+		_readingCompletionStatus = other._readingCompletionStatus;
 	}
 	return ;
 }
@@ -52,6 +53,7 @@ Request &Request::operator=(Request const &other)
 		_maxBodySizeFromConfigFile = other._maxBodySizeFromConfigFile;
 		_requestCode = other._requestCode;
 		_requestStatus = other._requestStatus;
+		_readingCompletionStatus = other._readingCompletionStatus;
 	}
 	return (*this);
 }
@@ -369,6 +371,7 @@ void Request::parseCreate(std::string buffer, int size)
 		std::cout << "the is body DONE" << std::endl;
 	}
 	std::cout << "request DONE" << std::endl;
+	setReadingCompletionStatus(1);
 	// std::cout << "body: " << _body << std::endl;
 }
 
@@ -388,6 +391,16 @@ void Request::_clearRequest()
 void	Request::setBodySize(size_t maxBodySizeFromConfigFile)
 {
 	_maxBodySizeFromConfigFile = maxBodySizeFromConfigFile;
+}
+
+void	Request::setRequestStatus(RequestStatus updatedStatus)
+{
+	_requestStatus = updatedStatus;
+}
+
+void	Request::setParsingCompletionStatus(int validation)
+{
+	_parsingCompletionStatus = validation;
 }
 
 int	Request::getCode()

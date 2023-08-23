@@ -35,10 +35,9 @@ class ServerManager
 
 		//Communcation Operations
 		void		handleSocket(const int &fd, Client &client);
-		void		handleReqBody(Client &client);
-		// void		sendCgiBody(Client &client, CgiHandler &);
-		// void		readCgiResponse(Client &client, CgiHandler &);
-		void		sendResponse(const int &i, Client &client);
+		void		readRequest(const int &fd, Client &client);
+		void		buildResponse(const int &fd, Client &client);
+		void		writeToClient(const int &fd, Client &client);
 
 		//Finalizing
 		void		closeConnection(const int i);
