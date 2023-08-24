@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 08:51:04 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/24 08:08:36 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/24 09:53:08 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,8 @@
 //STL CONTAINERS
 #include <map>
 #include <vector>
+#include <list>
+#include <algorithm>
 
 //SOCKET
 #include <sys/socket.h>
@@ -30,15 +32,16 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <string>
 
 //RANDOM INCLUDES
 #include <string>
 #include <unistd.h>
 #include <cstdlib>
-#include <stdio.h>
 #include <csignal>
 #include <fcntl.h>
 #include <utility>
+#include <stdexcept>
 
 //ERROR CLASS
 #include "Error.hpp"
