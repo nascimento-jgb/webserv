@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:58:58 by leklund           #+#    #+#             */
-/*   Updated: 2023/08/23 10:25:54 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/24 09:44:39 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@ class Response
 		long int	_content_length;
 		std::string	_content_type;
 		std::string	_http_res;
+		std::string	_responseString;
 		int			_responseCode;
 
 	public:
@@ -31,8 +32,10 @@ class Response
 		Response(Response const &other);
 		Response &operator=(Response const &other);
 
-		void	printResponseErrorMsg(std::string msg, int error_code);
-		void 	makeResponse(Request& request, int write_socket);
+		void				printResponseErrorMsg(std::string msg, int error_code);
+		void				makeResponse(Request& request, int write_socket);
+
+		std::string const	getResponseString(void) const;
 };
 
 #endif

@@ -14,6 +14,7 @@
 # define REQUEST_HPP
 
 #include "Webserver.hpp"
+#include "Utils.hpp"
 
 enum HttpMethod
 {
@@ -26,7 +27,6 @@ enum HttpMethod
 enum	RequestStatus
 {
 	READ,
-	RESPONSE,
 	WRITE,
 	CLOSE
 };
@@ -79,7 +79,9 @@ class Request
 		std::string		getQuery();
 		std::string		getHeader(std::string header);
 		RequestStatus	getStatus();
-		int				getParsingCompletionStatus();
+
+		std::string		ft_itoa(int integer);
+
 		class HttpRequestErrorException : public std::exception
 		{
 			public:

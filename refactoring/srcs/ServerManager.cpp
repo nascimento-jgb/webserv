@@ -6,11 +6,11 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/22 12:42:37 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/23 12:55:11 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/24 09:41:20 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../include/ServerManager.hpp"
+#include "../includes/ServerManager.hpp"
 
 //CANONICAL FORM
 ServerManager::ServerManager(): _biggest_fd(0) {}
@@ -34,9 +34,9 @@ void	ServerManager::setupServers(std::vector<Server> servers)
 //Run all the servers after initializing the sets
 void	ServerManager::runServers()
 {
-
 	initializeSets();
 	struct timeval timer;
+
 	while(true)
 	{
 		fd_set	io_set = _fd_pool;
@@ -83,8 +83,6 @@ void ServerManager::initializeSets()
 	_biggest_fd = _servers.back().getListenFd();
 }
 
-
-
 //During the first time after the select, we accept the incomming connection to the socket
 void	ServerManager::acceptNewConnection(Server &server)
 {
@@ -94,8 +92,8 @@ void	ServerManager::acceptNewConnection(Server &server)
 	Client				new_client(server);
 	char				buffer[INET_ADDRSTRLEN];
 
-	if ( (client_socket = accept(server.getListenFd(), (struct sockaddr *)&client_address,
-	 (socklen_t*)&client_address_size)) == -1)
+	if ((client_socket = accept(server.getListenFd(), reinterpret_cast<struct sockaddr *>(&client_address),
+	 reinterpret_cast<socklen_t*>(&client_address_size))) == -1)
 	{
 		std::cout << "webserv: accept new connection error " << strerror(errno) << std::endl;
 		return ;
@@ -120,7 +118,6 @@ void	ServerManager::acceptNewConnection(Server &server)
 //Run all the servers after initializing the sets
 void	ServerManager::runServers()
 {
-
 	initializeSets();
 	struct timeval timer;
 	while(true)
@@ -157,6 +154,9 @@ void	ServerManager::assignServerConfig(Client &client)
 				return ;
 			}
 	}
+	client.clearClient();
+	return;
+	//DOUBLE CHECK THE CODE FLOW AT THIS POINT IF THE SERVER DISCONECTS OR THE CLIENT
 }
 
 //COMMUNICATION OPERATIONS
@@ -170,17 +170,12 @@ void	ServerManager::handleSocket(const int &fd, Client &client)
 		case READ:
 			readRequest(fd, client);
 			break;
-		case RESPONSE:
-			buildResponse(fd, client);
-			break;
 		case WRITE:
 			writeToClient(fd, client);
 			break;
-		case CLOSE:
-			closeConnection(fd);
-			break;
 		default:
-			//insert here a general case for error during the operations
+			//insert here a general case for error during the operations (DOUBLE CHECK THIS CASE)
+			closeConnection(fd);
 			break;
 	}
 }
@@ -206,11 +201,11 @@ void	ServerManager::readRequest(const int &fd, Client &client)
 			memset(buffer, 0, sizeof(buffer));
 	}
 
-	if (client.request.getParsingCompletionStatus() == 1 || client.request.getCode()) // 1 = parsing completed and we can work on the response.
+	if (client.request.getCode()) // Code initialize with 0 and changes according to the result of the request parsing
 	{
 		assignServerConfig(client);
 		std::cout << "Request Recived From Socket " << fd << ", Method=<" << client.request.getMethod() << ">  URI=<" << client.request.getPath() << ">." << std::endl;
-		client.buildResponse(); //STILL NEED TO WORK WITH THE RESPONSE
+		client.response.makeResponse(client.request, fd);
 
 		// if (client.response.getCgiState())
 		// {
@@ -221,6 +216,13 @@ void	ServerManager::readRequest(const int &fd, Client &client)
 		//STILL NEED TO WORK IN THE CGI RESPONSE
 		client.request.setRequestStatus(WRITE);
 	}
+}
+
+void	ServerManager::writeToClient(const int &fd, Client &client)
+{
+	//theeeen we send to the motherfuckers the answer xD
+	send(fd, client.response.getResponseString().data(), client.response.getResponseString().size(), 0);
+	client.request.setRequestStatus(READ);
 }
 
 //FINALIZING

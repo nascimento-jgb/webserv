@@ -6,11 +6,11 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 10:08:01 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/23 12:55:04 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/24 09:45:31 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../include/Client.hpp"
+#include "../includes/Client.hpp"
 
 //Canonical form
 Client::Client(Server &server) : _last_msg_time(time(NULL))
@@ -95,11 +95,16 @@ void	Client::setServer(Server &server)
 	_server = server;
 }
 
+void	Client::setRequest(Server &server)
+{
+	_server = server;
+}
+
 //Methods
 void	Client::setAndBuildResponse()
 {
 	_response.setRequest(this->_request);
-	_response.buildResponse();
+	_response.makeResponse(_request, _client_socket);
 }
 
 void	Client::updateTime()

@@ -6,12 +6,12 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 12:31:35 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/22 11:20:24 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/24 09:31:02 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../include/Webserver.hpp"
-#include "../include/ServerManager.hpp"
+#include "../includes/Webserver.hpp"
+#include "../includes/ServerManager.hpp"
 
 int main (int argc, char **argv)
 {

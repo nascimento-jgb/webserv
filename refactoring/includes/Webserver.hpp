@@ -6,14 +6,14 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 08:51:04 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/23 11:25:18 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/24 08:08:36 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef WEBSERV_HPP
 # define WEBSERV_HPP
 
-#define CONNECTION_TIMEOUT 60
+#define CONNECTION_TIMEOUT 60 //in seconds
 #define INET_ADDRSTRLEN 16
 #define MESSAGE_BUFFER 500000
 

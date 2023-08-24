@@ -31,12 +31,12 @@ class ServerManager
 		//Setup tools
 		void		initializeSets();
 		void 		acceptNewConnection(Server &server);
-		void		assignServer(Client &client);
+		void		assignServerConfig(Client &client);
 
 		//Communcation Operations
 		void		handleSocket(const int &fd, Client &client);
 		void		readRequest(const int &fd, Client &client);
-		void		buildResponse(const int &fd, Client &client);
+		void		buildResponseCall(const int &fd, Client &client);
 		void		writeToClient(const int &fd, Client &client);
 
 		//Finalizing
@@ -54,7 +54,6 @@ class ServerManager
 
 		void		setupServers(std::vector<Server>);
 		void		runServers();
-
 };
 
 #endif

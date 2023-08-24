@@ -6,11 +6,11 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 13:06:16 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/23 09:18:50 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/24 07:03:55 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../include/Server.hpp"
+#include "../includes/Server.hpp"
 
 Server::Server()
 {
