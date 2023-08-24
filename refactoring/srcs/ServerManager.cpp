@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerManager.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/22 12:42:37 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/24 10:40:45 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/24 15:09:28 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,18 +17,32 @@ ServerManager::ServerManager(): _biggest_fd(0) {}
 ServerManager::~ServerManager() {}
 
 //PUBLIC METHODS
-void	ServerManager::setupServers(std::vector<mainmap> servers)
+void	ServerManager::setupServers(std::vector<mainmap> &servers, std::vector<size_t> &serversPorts, std::vector<submap> &cgis)
 {
-	char	bufffer[INET_ADDRSTRLEN];
+	char							bufffer[INET_ADDRSTRLEN];
+	std::vector<size_t>::iterator	it_ports;
+	std::vector<submap>::iterator	it_cgi;
 
 	std::cout << "Initializing server(s)..." << std::endl;
 	_servers = servers;
+	_serversPorts = serversPorts;
+	_cgiServers = cgis;
+	_serversClass.clear();
+	_serversClass.reserve(_servers.size());
+	it_ports = _serversPorts.begin();
+	it_cgi = _cgiServers.begin();
 	for(std::vector<mainmap>::iterator it = _servers.begin(); it != _servers.end(); ++it)
 	{
-		it->setupServer();
-		std::cout << "Server initialized as - Name: "<< it->getServerName() << " Host: " << inet_ntop(AF_INET, &it->getHost(), bufffer, INET_ADDRSTRLEN) <<
-		" Port: " << it->getPort() << std::endl;
+		Server	temp;
+
+		temp.setupServer((*it), (*it_ports), (*it_cgi));
+		std::cout << "Server initialized as - Name: "<< temp.getServerName() << " Host: " << inet_ntop(AF_INET, &temp.getHost(), bufffer, INET_ADDRSTRLEN) <<
+		" Port: " << temp.getPort() << std::endl;
+		_serversClass.push_back(temp);
+		it_ports++;
+		it_cgi++;
 	}
+	return ;
 }
 
 //Run all the servers after initializing the sets
@@ -65,7 +79,7 @@ void ServerManager::initializeSets()
 {
 	FD_ZERO(&_fd_pool);
 
-	for (std::vector<Server>::iterator it = _servers.begin(); it != _servers.end(); ++it)
+	for (std::vector<Server>::iterator it = _serversClass.begin(); it != _serversClass.end(); ++it)
 	{
 		if (listen(it->getListenFd(), 512) == -1)
 		{
@@ -80,7 +94,7 @@ void ServerManager::initializeSets()
 		addToSet(it->getListenFd(), _fd_pool);
 		_servers_map.insert(std::make_pair(it->getListenFd(), *it));
 	}
-	_biggest_fd = _servers.back().getListenFd();
+	_biggest_fd = _serversClass.back().getListenFd();
 }
 
 //During the first time after the select, we accept the incomming connection to the socket
@@ -115,36 +129,9 @@ void	ServerManager::acceptNewConnection(Server &server)
 	_clients_map.insert(std::make_pair(client_socket, new_client));
 }
 
-//Run all the servers after initializing the sets
-void	ServerManager::runServers()
-{
-	initializeSets();
-	struct timeval timer;
-	while(true)
-	{
-		fd_set	io_set = _fd_pool;
-		int select_return = select(_biggest_fd + 1, &io_set, NULL, NULL, &timer);
-		if (select_return == -1)
-		{
-			std::cout << "webserv: select error: " << strerror(errno) << " Closing...." << std::endl;
-			exit(EXIT_FAILURE);
-			continue;
-		}
-		for (int fd = 0; fd <= _biggest_fd && select_return > 0; ++fd)
-		{
-
-			if (FD_ISSET(fd, &io_set) && _servers_map.count(fd))
-				acceptNewConnection(_servers_map.find(fd)->second);
-			else if (FD_ISSET(fd, &io_set) && _clients_map.count(fd))
-				handleSocket(fd, _clients_map[fd]);
-		}
-		checkTimeout();
-	}
-}
-
 void	ServerManager::assignServerConfig(Client &client)
 {
-	for (std::vector<Server>::iterator it = _servers.begin(); it != _servers.end(); ++it)
+	for (std::vector<Server>::iterator it = _serversClass.begin(); it != _serversClass.end(); ++it)
 	{
 		if (client.server.getHost() == it->getHost() &&
 			client.server.getPort() == it->getPort() &&
@@ -154,7 +141,7 @@ void	ServerManager::assignServerConfig(Client &client)
 				return ;
 			}
 	}
-	client.clearClient();
+	// client.clearClient();
 	return;
 	//DOUBLE CHECK THE CODE FLOW AT THIS POINT IF THE SERVER DISCONECTS OR THE CLIENT
 }

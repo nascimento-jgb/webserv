@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 12:31:35 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/24 10:27:54 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/24 11:07:44 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ int main (int argc, char **argv)
 			std::string			config_file;
 
 			parser.initializeConfFile(argc, argv);
-			manager.setupServers(parser.getVectorConfFile());
+			manager.setupServers(parser.getVectorConfFile(), parser.getPorts(), parser.getCgiServers());
 			manager.runServers();
 		}
 		catch (std::exception &e) {

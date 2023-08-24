@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigurationFile.hpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/01 11:30:33 by corellan          #+#    #+#             */
-/*   Updated: 2023/08/24 10:23:45 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/24 14:39:13 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,9 +80,9 @@ public:
 	~ConfigurationFile(void);
 
 	void					initializeConfFile(int ac, char **av);
-	std::vector<mainmap>	getVectorConfFile(void) const;
-	std::vector<size_t>		getPorts(void) const;
-	std::vector<submap>		getCgiServers(void) const;
+	std::vector<mainmap>	&getVectorConfFile(void);
+	std::vector<size_t>		&getPorts(void);
+	std::vector<submap>		&getCgiServers(void);
 };
 
 #endif

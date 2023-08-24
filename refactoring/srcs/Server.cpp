@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 13:06:16 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/24 07:03:55 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/24 14:58:02 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,8 +112,15 @@ int	Server::getListenFd(void)
 	return (this->_listen_fd);
 }
 
-void	Server::setupServer(void)
+void	Server::setupServer(mainmap &config, size_t &port, submap &cgi)
 {
+	_config = config;
+	_port = static_cast<uint16_t>(port);
+	_cgi = cgi;
+	_host = inet_addr(_config["main"]["host"].c_str());
+	_server_name = _config["main"]["server_name"];
+	_root = _config["main"]["root"];
+	_index = _config["main"]["index"];
 	try
 	{
 		if ((_listen_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)

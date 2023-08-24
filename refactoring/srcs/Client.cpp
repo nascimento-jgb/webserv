@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 10:08:01 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/24 09:45:31 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/24 15:07:07 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,8 @@ Client::Client(Server &server) : _last_msg_time(time(NULL))
 	setServer(server);
 	_request.setBodySize(server.getMaxBodySize()); //implement those functions later on
 }
+
+Client::Client() {}
 
 Client::~Client() {}
 
@@ -95,15 +97,15 @@ void	Client::setServer(Server &server)
 	_server = server;
 }
 
-void	Client::setRequest(Server &server)
-{
-	_server = server;
-}
+// void	Client::setRequest(Server &server)
+// {
+// 	_server = server;
+// }
 
 //Methods
 void	Client::setAndBuildResponse()
 {
-	_response.setRequest(this->_request);
+	// _response.setRequest(this->_request);
 	_response.makeResponse(_request, _client_socket);
 }
 
@@ -112,8 +114,8 @@ void	Client::updateTime()
 	_last_msg_time = time(NULL);
 }
 
-void	Client::clearClient()
-{
-	_response.clear();
-	_request.clear();
-}
+// void	Client::clearClient()
+// {
+// 	_response.clear();
+// 	_request.clear();
+// }
