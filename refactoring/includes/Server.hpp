@@ -28,6 +28,8 @@ class Server
 		std::string						_server_name;
 		std::string						_root;
 		std::string						_index;
+		mainmap							_config;
+		submap							_cgi;
 		unsigned long					_max_body_size;
 		bool							_autoindex;
 		int								_listen_fd;
@@ -62,7 +64,7 @@ class Server
 		int							getListenFd(void);
 
 		//Methods
-		void	setupServer();
+		void	setupServer(mainmap &config, size_t &port, submap &cgi);
 };
 
 #endif

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:58:47 by leklund           #+#    #+#             */
-/*   Updated: 2023/08/24 09:47:24 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/24 15:08:34 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,7 @@ void Response::makeResponse(Request& request, int write_socket)
 {
 	_responseCode = request.getCode();
 
+	(void)write_socket;
 	std::cout << "_responseCode: " << _responseCode << "Path-2: [" << request.getPath() << "]" << "method = " << request.getMethod() << std::endl;
 	if(_responseCode != 200)
 	{

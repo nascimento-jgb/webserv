@@ -14,7 +14,7 @@
 #include "../includes/Request.hpp"
 
 //Canonical Form
-Request::Request() : _requestStatus(READ), _parsingCompletionStatus(0) {}
+Request::Request() : _requestStatus(READ) {}
 
 Request::~Request() {}
 

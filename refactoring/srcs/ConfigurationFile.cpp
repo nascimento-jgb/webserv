@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigurationFile.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/04 17:14:34 by corellan          #+#    #+#             */
-/*   Updated: 2023/08/24 10:53:05 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/24 14:40:00 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ ConfigurationFile::~ConfigurationFile(void)
 	return ;
 }
 
-std::vector<mainmap>	ConfigurationFile::getVectorConfFile(void) const
+std::vector<mainmap>	&ConfigurationFile::getVectorConfFile(void)
 {
 	return (_confFileInformation);
 }
@@ -618,6 +618,8 @@ int	ConfigurationFile::_checkKeys(std::string const &name, submap seccion)
 		it_vector = std::find<iter>(keys.begin(), keys.end(), it_map->first);
 		if (it_vector == keys.end())
 			return (-1);
+		if (!it_map->first.compare("autoindex") && (it_map->second.compare("on") && it_map->second.compare("off")))
+			return (-1);
 		it_map++;
 	}
 	return (0);
@@ -646,12 +648,26 @@ std::vector<std::string>	ConfigurationFile::_splitcplusplus(std::string const &i
 
 int	ConfigurationFile::_checkAmmountValues(void)
 {
+	std::vector<std::string>			temp;
+
 	for (mainmap::iterator it = _tempMap.begin(); it != _tempMap.end(); it++)
 	{
 		for (submap::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++)
 		{
 			if (!it2->first.compare("allowed_methods") || !it2->first.compare("cgi_ext") || !it2->first.compare("cgi_path"))
+			{
+				if (!it2->first.compare("allowed_methods"))
+				{
+					temp.clear();
+					temp = _splitcplusplus(it2->second);
+					for (iter it3 = temp.begin(); it3 != temp.end(); it3++)
+					{
+						if (it3->compare("GET") && it3->compare("POST") && it3->compare("DELETE") && it3->compare("PUT"))
+							return (-1);
+					}
+				}
 				continue ;
+			}
 			if (_countWords(it2->second) > 1)
 				return (-1);
 		}
@@ -794,12 +810,12 @@ int	ConfigurationFile::_checkAccess(submap &keys)
 	return (0);
 }
 
-std::vector<submap>	ConfigurationFile::getCgiServers(void) const
+std::vector<submap>	&ConfigurationFile::getCgiServers(void)
 {
 	return (_cgi);
 }
 
-std::vector<size_t>	ConfigurationFile::getPorts(void) const
+std::vector<size_t>	&ConfigurationFile::getPorts(void)
 {
 	return (_ports);
 }

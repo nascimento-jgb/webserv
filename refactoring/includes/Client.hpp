@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 09:36:40 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/24 09:47:24 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/24 15:05:11 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,11 +31,10 @@ class Client
 		struct sockaddr_in	_client_address;
 		time_t				_last_msg_time;
 
-		//Canonical Form
-		Client();
-
 	public:
 
+		//Canonical Form
+		Client();
 		Client(Server &server);
 		~Client();
 		Client(Client const &other);
