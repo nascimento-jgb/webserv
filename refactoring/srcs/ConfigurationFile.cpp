@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/04 17:14:34 by corellan          #+#    #+#             */
-/*   Updated: 2023/08/24 09:53:19 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/24 10:53:05 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,9 +31,7 @@ std::vector<mainmap>	ConfigurationFile::getVectorConfFile(void) const
 void	ConfigurationFile::initializeConfFile(int ac, char **av)
 {
 	std::string	temp;
-	int			i;
 
-	i = 0;
 	if (ac == 1)
 		temp = "configuration/default.conf";
 	else
@@ -51,23 +49,6 @@ void	ConfigurationFile::initializeConfFile(int ac, char **av)
 		throw (ErrorDuplicatedPort());
 	if (_findPaths() == 1)
 		throw (ErrorCgiInfo());
-	/*for (std::vector<mainmap>::iterator it = _confFileInformation.begin(); it != _confFileInformation.end(); it++)
-	{
-		for (mainmap::iterator it2 = (*it).begin(); it2 != (*it).end(); it2++)
-		{
-			for (submap::iterator it3 = it2->second.begin(); it3 != it2->second.end(); it3++)
-			{
-				std::cout << "The server's number is: " << i << ". The seccion's name is: " << it2->first << ". The variables's name is: " << it3->first << ". And the value of the variable is: " << it3->second << "." << std::endl;
-			}
-		}
-		i++;
-	}*/
-	for (std::vector<submap>::iterator it = _cgi.begin(); it != _cgi.end(); it++)
-	{
-		for (submap::iterator it2 = (*it).begin(); it2 != (*it).end(); it2++)
-			std::cout << "The server's number is: " << i << ". The extension of the file is: " << it2->first << ". So, the path to execute this is: " << it2->second << "." << std::endl;
-		i++;
-	}
 	return ;
 }
 

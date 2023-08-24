@@ -18,7 +18,7 @@
 class Server
 {
 	private:
-		// std::map<short, std::string>	_error_pages;
+		// std::map<short, std::string>		_error_pages;
 		// std::vector<Location> 			_locations;
 
 		struct sockaddr_in 				_server_address;

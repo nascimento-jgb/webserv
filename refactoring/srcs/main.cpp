@@ -6,12 +6,13 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 12:31:35 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/24 09:31:02 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/24 10:27:54 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/Webserver.hpp"
 #include "../includes/ServerManager.hpp"
+#include "../includes/ConfigurationFile.hpp"
 
 int main (int argc, char **argv)
 {
@@ -19,13 +20,12 @@ int main (int argc, char **argv)
 	{
 		try
 		{
-			ConfigFileParser	parser;
+			ConfigurationFile	parser;
 			ServerManager		manager;
 			std::string			config_file;
 
-			config_file = (argc == 1 ? "configs/default.conf" : argv[1]);
-			parser.createServerCluster(config_file);
-			manager.setupServers(parser.getServers());
+			parser.initializeConfFile(argc, argv);
+			manager.setupServers(parser.getVectorConfFile());
 			manager.runServers();
 		}
 		catch (std::exception &e) {

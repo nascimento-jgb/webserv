@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/22 12:42:37 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/24 09:41:20 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/24 10:40:45 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,13 +17,13 @@ ServerManager::ServerManager(): _biggest_fd(0) {}
 ServerManager::~ServerManager() {}
 
 //PUBLIC METHODS
-void	ServerManager::setupServers(std::vector<Server> servers)
+void	ServerManager::setupServers(std::vector<mainmap> servers)
 {
 	char	bufffer[INET_ADDRSTRLEN];
 
 	std::cout << "Initializing server(s)..." << std::endl;
 	_servers = servers;
-	for(std::vector<Server>::iterator it = _servers.begin(); it != _servers.end(); ++it)
+	for(std::vector<mainmap>::iterator it = _servers.begin(); it != _servers.end(); ++it)
 	{
 		it->setupServer();
 		std::cout << "Server initialized as - Name: "<< it->getServerName() << " Host: " << inet_ntop(AF_INET, &it->getHost(), bufffer, INET_ADDRSTRLEN) <<

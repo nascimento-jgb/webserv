@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 08:51:04 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/24 09:53:08 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/24 10:23:52 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,11 @@
 #define CONNECTION_TIMEOUT 60 //in seconds
 #define INET_ADDRSTRLEN 16
 #define MESSAGE_BUFFER 500000
+
+typedef std::vector<std::string>::iterator	iter;
+typedef std::map< std::string, std::map<std::string, std::string> >	mainmap;
+typedef std::map<std::string, std::string>	submap;
+typedef	std::pair<iter, iter>	paired;
 
 //STL CONTAINERS
 #include <map>

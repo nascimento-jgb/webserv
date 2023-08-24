@@ -6,29 +6,14 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/01 11:30:33 by corellan          #+#    #+#             */
-/*   Updated: 2023/08/24 09:50:37 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/24 10:23:45 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CONFIGURATIONFILE_HPP
 # define CONFIGURATIONFILE_HPP
 
-# include <fstream>
-# include <string>
-# include <map>
-# include <stdexcept>
-# include <iostream>
-# include <vector>
-# include <list>
-# include <algorithm>
-# include <utility>
-# include <sstream>
-# include <unistd.h>
-
-typedef std::vector<std::string>::iterator	iter;
-typedef std::map< std::string, std::map<std::string, std::string> >	mainmap;
-typedef std::map<std::string, std::string>	submap;
-typedef	std::pair<iter, iter>	paired;
+#include "Webserver.hpp"
 
 class ConfigurationFile
 {

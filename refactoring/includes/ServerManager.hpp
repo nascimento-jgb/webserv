@@ -23,7 +23,7 @@ class ServerManager
 
 		std::map<int, Server>	_servers_map;
 		std::map<int, Client>	_clients_map;
-		std::vector<Server>		_servers;
+		std::vector<mainmap>	_servers;
 
 		fd_set					_fd_pool;
 		int						_biggest_fd;
@@ -52,7 +52,7 @@ class ServerManager
 		ServerManager();
 		~ServerManager();
 
-		void		setupServers(std::vector<Server>);
+		void		setupServers(std::vector<mainmap>);
 		void		runServers();
 };
 
