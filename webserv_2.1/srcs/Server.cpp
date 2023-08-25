@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 13:06:16 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/24 14:58:02 by corellan         ###   ########.fr       */
+/*   Updated: 2023/08/25 15:08:33 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,6 +82,11 @@ in_addr_t const		&Server::getHost(void) const
 	return (_host);
 }
 
+in_addr const		&Server::getHostS(void) const
+{
+	return (_host_s);
+}
+
 std::string const	&Server::getServerName(void) const
 {
 	return (_server_name);
@@ -117,7 +122,8 @@ void	Server::setupServer(mainmap &config, size_t &port, submap &cgi)
 	_config = config;
 	_port = static_cast<uint16_t>(port);
 	_cgi = cgi;
-	_host = inet_addr(_config["main"]["host"].c_str());
+	_host = ft_inet_addr(_config["main"]["host"]);
+	_host_s.s_addr = _host;
 	_server_name = _config["main"]["server_name"];
 	_root = _config["main"]["root"];
 	_index = _config["main"]["index"];
