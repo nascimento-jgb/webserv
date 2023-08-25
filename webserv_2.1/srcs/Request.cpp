@@ -373,19 +373,6 @@ void Request::parseCreate(std::string buffer, int size, int fd)
 	// std::cout << "body: " << _body << std::endl;
 }
 
-void Request::_clearRequest()
-{
-	HTTPMap.clear();
-	_header_max_body_len = 0;
-	_we_got_body_len = 0;
-	_requestCode = 200;
-	_body.clear();
-	_bodys.clear();
-	_request_path.clear();
-	_query.clear();
-	_filename.clear();
-}
-
 void	Request::setBodySize(size_t maxBodySizeFromConfigFile)
 {
 	_maxBodySizeFromConfigFile = maxBodySizeFromConfigFile;
@@ -443,6 +430,19 @@ std::string	Request::ft_itoa(int integer)
 	std::stringstream ss;
 	ss << integer;
 	return (ss.str());
+}
+
+void Request::clearRequest()
+{
+	HTTPMap.clear();
+	_header_max_body_len = 0;
+	_we_got_body_len = 0;
+	_requestCode = 200;
+	_body.clear();
+	_bodys.clear();
+	_request_path.clear();
+	_query.clear();
+	_filename.clear();
 }
 
 const char *Request::HttpRequestErrorException::what(void) const throw()

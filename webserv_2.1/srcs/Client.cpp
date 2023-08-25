@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 10:08:01 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/24 15:07:07 by corellan         ###   ########.fr       */
+/*   Updated: 2023/08/25 09:24:01 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,25 +97,15 @@ void	Client::setServer(Server &server)
 	_server = server;
 }
 
-// void	Client::setRequest(Server &server)
-// {
-// 	_server = server;
-// }
-
 //Methods
-void	Client::setAndBuildResponse()
-{
-	// _response.setRequest(this->_request);
-	_response.makeResponse(_request, _client_socket);
-}
 
 void	Client::updateTime()
 {
 	_last_msg_time = time(NULL);
 }
 
-// void	Client::clearClient()
-// {
-// 	_response.clear();
-// 	_request.clear();
-// }
+void	Client::clearClient()
+{
+	response.clearResponse();
+	request.clearRequest();
+}

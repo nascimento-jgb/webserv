@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:58:58 by leklund           #+#    #+#             */
-/*   Updated: 2023/08/24 09:44:39 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/25 09:23:27 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,7 @@ class Response
 
 		void				printResponseErrorMsg(std::string msg, int error_code);
 		void				makeResponse(Request& request, int write_socket);
+		void 				clearResponse();
 
 		std::string const	getResponseString(void) const;
 };

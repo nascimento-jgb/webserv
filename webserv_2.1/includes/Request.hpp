@@ -54,7 +54,6 @@ class Request
 		int 		_validChar(int c);
 		int 		_checkUri(std::string line);
 		int			_saveQuery(std::string line, int i);
-		void		_clearRequest();
 		void		_validHttp(std::string line);
 		void 		_saveImageToFile(const std::string& filename, const std::string& imageData);
 		void		_printRequestErrorMsg(std::string msg, int error_code);
@@ -78,6 +77,7 @@ class Request
 		std::string		getHeader(std::string header);
 		RequestStatus	getStatus();
 
+		void			clearRequest();
 		std::string		ft_itoa(int integer);
 
 		class HttpRequestErrorException : public std::exception

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:58:47 by leklund           #+#    #+#             */
-/*   Updated: 2023/08/24 15:08:34 by corellan         ###   ########.fr       */
+/*   Updated: 2023/08/25 09:23:31 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,6 +117,15 @@ void Response::makeResponse(Request& request, int write_socket)
 std::string const	Response::getResponseString(void) const
 {
 	return (_responseString);
+}
+
+void Response::clearResponse()
+{
+	_content_length = 0;
+	_content_type.clear();
+	_http_res.clear();
+	_responseString.clear();
+	_responseCode = 0;
 }
 
 void	Response::printResponseErrorMsg(std::string msg, int error_code)

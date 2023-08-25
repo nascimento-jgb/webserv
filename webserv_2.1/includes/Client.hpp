@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 09:36:40 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/25 07:52:42 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/25 09:23:36 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,9 +22,6 @@ class Client
 {
 
 	private:
-
-		Request				_request;
-		Response			_response;
 		Server				_server;
 
 		int					_client_socket;
@@ -58,7 +55,6 @@ class Client
 		void				setServer(Server &server);
 
 		//Methods
-		void				setAndBuildResponse();
 		void				updateTime();
 		void				clearClient();
 
