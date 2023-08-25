@@ -44,7 +44,6 @@ class Request
 		size_t			_we_got_body_len;
 		size_t			_maxBodySizeFromConfigFile;
 		int				_requestCode;
-		int				_parsingCompletionStatus;
 		RequestStatus	_requestStatus;
 
 		std::map<std::string, std::string>	HTTPMap;
@@ -67,11 +66,10 @@ class Request
 		Request(Request const &other);
 		Request &operator=(Request const &other);
 
-		void			parseCreate(std::string buffer, int valread);
+		void			parseCreate(std::string buffer, int valread, int fd);
 
 		void			setBodySize(size_t maxBodySizeFromConfigFile);
 		void			setRequestStatus(RequestStatus updatedStatus);
-		void			setParsingCompletionStatus(int validation);
 
 		int				getCode();
 		HttpMethod		getMethod();

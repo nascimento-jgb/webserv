@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerManager.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/22 12:42:37 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/24 15:09:28 by corellan         ###   ########.fr       */
+/*   Updated: 2023/08/25 07:57:29 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,9 +51,14 @@ void	ServerManager::runServers()
 	initializeSets();
 	struct timeval timer;
 
+	timer.tv_sec = 1;
+	timer.tv_usec = 0;
+
 	while(true)
 	{
 		fd_set	io_set = _fd_pool;
+		std::cout << _biggest_fd <<std::endl;
+
 		int select_return = select(_biggest_fd + 1, &io_set, NULL, NULL, &timer);
 		if (select_return == -1)
 		{
@@ -63,8 +68,7 @@ void	ServerManager::runServers()
 		}
 		for (int fd = 0; fd <= _biggest_fd && select_return > 0; ++fd)
 		{
-
-			if (FD_ISSET(fd, &io_set) && _servers_map.count(fd))
+			if (FD_ISSET(fd, &io_set) && _servers_map.count(fd) && _clients_map.find(fd) == _clients_map.end())
 				acceptNewConnection(_servers_map.find(fd)->second);
 			else if (FD_ISSET(fd, &io_set) && _clients_map.count(fd))
 				handleSocket(fd, _clients_map[fd]);
@@ -175,16 +179,16 @@ void	ServerManager::readRequest(const int &fd, Client &client)
 	switch (bytes_read)
 	{
 		case 0:
-			std::cout << "webserv: Client" << fd << " closed connection." << std::endl;
+			std::cout << "webserv: Client " << fd << " closed connection." << std::endl;
 			closeConnection(fd);
 			return ;
 		case -1:
-			std::cout << "webserv: Fd" << fd << " read error "<< strerror(errno) << "." << std::endl;
+			std::cout << "webserv: Fd " << fd << " read error "<< strerror(errno) << "." << std::endl;
 			closeConnection(fd);
 			return ;
 		default:
 			client.updateTime();
-			client.request.parseCreate(buffer, bytes_read);
+			client.request.parseCreate(buffer, bytes_read, client.getClientSocket()); //REVIEW THIS LINE
 			memset(buffer, 0, sizeof(buffer));
 	}
 
@@ -219,7 +223,7 @@ void	ServerManager::checkTimeout()
 	{
 		if (time(NULL) - it->second.getTimeoutCheck() > CONNECTION_TIMEOUT)
 		{
-			std::cout << "Client " << it->first << "Timeout, Closing Connection.." << std::endl;
+			std::cout << "Client " << it->first << " Timeout, Closing Connection.." << std::endl;
 			closeConnection(it->first);
 			return ;
 		}

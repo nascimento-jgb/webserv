@@ -231,8 +231,9 @@ void Request::_saveImageToFile(const std::string& filename, const std::string& i
 	}
 }
 
-void Request::parseCreate(std::string buffer, int size)
+void Request::parseCreate(std::string buffer, int size, int fd)
 {
+	(void)fd;
 	_clearRequest();
 
 	//saves the buffer as a file stream so we can manipulate the content with getline.
