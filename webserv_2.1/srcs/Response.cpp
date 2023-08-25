@@ -111,6 +111,7 @@ void Response::makeResponse(Request& request, int write_socket)
 		_responseString = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: "
 			+ request.ft_itoa(message.size()) + "\r\n\r\n" + message;
 	}
+	std::cout << "==============\nResponse:" << _responseString << std::endl;
 	return ;
 }
 

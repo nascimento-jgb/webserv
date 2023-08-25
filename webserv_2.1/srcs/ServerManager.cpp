@@ -66,11 +66,12 @@ void	ServerManager::runServers()
 			exit(EXIT_FAILURE);
 			continue;
 		}
-		for (int fd = 0; fd <= _biggest_fd && select_return > 0; ++fd)
+		for (int fd = 0; fd <= _biggest_fd; ++fd)
 		{
+			std::cout << "fd=" << fd << " FD_ISSET: " << FD_ISSET(fd, &io_set) << std::endl;
 			if (FD_ISSET(fd, &io_set) && _servers_map.count(fd) && _clients_map.find(fd) == _clients_map.end())
 				acceptNewConnection(_servers_map.find(fd)->second);
-			else if (FD_ISSET(fd, &io_set) && _clients_map.count(fd))
+			else if ((FD_ISSET(fd, &io_set) && _clients_map.count(fd)) || _clients_map.count(fd))
 				handleSocket(fd, _clients_map[fd]);
 		}
 		checkTimeout();
@@ -145,7 +146,7 @@ void	ServerManager::assignServerConfig(Client &client)
 				return ;
 			}
 	}
-	client.clearClient();
+	// client.clearClient();
 	return;
 }
 
@@ -154,7 +155,7 @@ void	ServerManager::handleSocket(const int &fd, Client &client)
 {
 	// Get the status to determine whether the socket should be read from or written to
 	int state = client.request.getStatus();
-
+	std::cout << "====================\nstate: " << state << "\n=======================" << std::endl;
 	switch (state)
 	{
 		case READ:
@@ -211,8 +212,11 @@ void	ServerManager::readRequest(const int &fd, Client &client)
 void	ServerManager::writeToClient(const int &fd, Client &client)
 {
 	//theeeen we send to the motherfuckers the answer xD
+	std::cout << "Go in: " << client.response.getResponseString() << std::endl;
 	send(fd, client.response.getResponseString().data(), client.response.getResponseString().size(), 0);
+	client.clearClient();
 	client.request.setRequestStatus(READ);
+
 }
 
 //FINALIZING

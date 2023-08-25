@@ -1,40 +1,39 @@
-NAME = webserver
+NAME = webserv
 
-GCC = c++
-CFLAGS = -Wall -Wextra -Werror -std=c++98 -fsanitize=address -g -static-libsan
+FLAGS = -Wall -Wextra -Werror -std=c++98 -fsanitize=address -g -static-libsan
 
-RM = rm
-RMFLAGS = -rf
+SRC = Client.cpp \
+	ConfigurationFile.cpp \
+	Error.cpp \
+	Mime.cpp \
+	Request.cpp \
+	Response.cpp \
+	Server.cpp \
+	ServerManager.cpp \
+	Utils.cpp \
+	main.cpp
 
-INC_DIR = includes
-SRC_DIR = srcs
-OBJ_DIR = obj
+OBJ_DIR = obj/
+SRC_DIR = srcs/
 
-HEADERS = $(wildcard $(INC_DIR)/*.hpp)
-
-SRCS = $(wildcard $(SRC_DIR)/*.cpp)
-
-vpath %.cpp $(SRC_DIR)
-
-OBJS = $(addprefix $(OBJ_DIR)/, $(notdir $(SRCS:.cpp=.o)))
+OBJ = $(addprefix $(OBJ_DIR), $(SRC:.cpp=.o))
 
 all : $(NAME)
 
-clean :
-	@$(RM) $(RMFLAGS)
+$(OBJ_DIR)%.o : $(SRC_DIR)%.cpp
+	c++ $(FLAGS) -c $< -o $@
 
-fclean : clean
-	@$(RM) $(RMFLAGS) $(NAME)
+$(OBJ_DIR):
+	mkdir -p $(OBJ_DIR)
 
-re : fclean all
+$(NAME) : $(OBJ_DIR) $(OBJ)
+	c++ $(FLAGS) $(OBJ) -o $@
 
-$(OBJ_DIR) :
-	@mkdir $(OBJ_DIR)
+clean:
+	rm -rf $(OBJ_DIR)
 
-$(OBJ_DIR)/%.o : %.c | $(OBJ_DIR)
-	@$(CC) $(CFLAGS) -c $< -o $@
+fclean: clean
+	rm -rf $(NAME)
 
-$(NAME) :
-	@$(GCC) $(CFLAGS) $(SRCS) -o $@
+re: fclean all
 
-.PHONY: all clean fclean re

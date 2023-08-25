@@ -276,7 +276,7 @@ void Request::_validHttp(std::string line)
 int Request::_checkUri(std::string line)
 {
 	int i = 0;
-	std::cout << line << std::endl;
+	// std::cout << line << std::endl;
 	if(!line.compare(0, 1, "/"))
 	{
 		_request_path += line[i];
@@ -320,21 +320,25 @@ HttpMethod Request::_checkMethod(std::string line)
 {
 	if(!line.compare(0, 4, "GET "))
 	{
+		std::cout << "IT IS GET" << std::endl;
 		_checkUri(line.substr(4));
 		return (GET);
 	}
 	else if(!line.compare(0, 5, "POST "))
 	{
+		std::cout << "IT IS POST" << std::endl;
 		_checkUri(line.substr(5));
 		return (POST);
 	}
 	else if(!line.compare(0, 7, "DELETE "))
 	{
+		std::cout << "IT IS DELETE" << std::endl;
 		_checkUri(line.substr(7));
 		return (DELETE);
 	}
 	else
 	{
+		std::cout << "IT IS NONE" << std::endl;
 		_printRequestErrorMsg("We dont support this Method", 405);
 		return(NONE);
 	}
@@ -344,7 +348,6 @@ void Request::parseCreate(std::string buffer, int size, int fd)
 {
 	(void)fd;
 	clearRequest();
-
 	//saves the buffer as a file stream so we can manipulate the content with getline.
 	std::istringstream iss(buffer);
 	std::string line;
@@ -363,7 +366,7 @@ void Request::parseCreate(std::string buffer, int size, int fd)
 		if(std::getline(lineStream, key,':') && std::getline(lineStream, value))
 		{
 			_checkHeaders(key, value);
-			std::cout << value << std::endl;
+			// std::cout << value << std::endl;
 			to_lower(key);
 			HTTPMap.insert(std::pair<std::string, std::string>(key, value));
 		}
