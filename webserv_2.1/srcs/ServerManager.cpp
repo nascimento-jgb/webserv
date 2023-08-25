@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/22 12:42:37 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/25 09:23:59 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/25 09:54:19 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -147,7 +147,6 @@ void	ServerManager::assignServerConfig(Client &client)
 	}
 	client.clearClient();
 	return;
-	//DOUBLE CHECK THE CODE FLOW AT THIS POINT IF THE SERVER DISCONECTS OR THE CLIENT
 }
 
 //COMMUNICATION OPERATIONS

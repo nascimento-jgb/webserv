@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 09:36:40 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/25 09:23:36 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/25 09:48:31 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,9 +18,12 @@
 #include "Response.hpp"
 #include "Request.hpp"
 
+class Response;
+class Request;
+class Server;
+
 class Client
 {
-
 	private:
 		Server				_server;
 
@@ -45,8 +48,6 @@ class Client
 		int const			&getClientSocket(void) const;
 		sockaddr_in const	&getClientAddress(void) const;
 		const Server		&getClientServerInfo(void) const;
-		const Request		&getClientRequest(void) const;
-		const Response		&getClientResponse(void) const;
 		const time_t		&getTimeoutCheck(void) const;
 
 		//Setters
