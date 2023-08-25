@@ -49,15 +49,19 @@ class Request
 		std::map<std::string, std::string>	HTTPMap;
 		std::vector<u_int8_t>				_bodys;
 
+		void		_uploadFile(int body_size);
+		int			_checkValidBodySize(int max_len);
 		int			_thereIsBody();
 		int			_checkHeaders(std::string &key, std::string &value);
 		int 		_validChar(int c);
 		int 		_checkUri(std::string line);
 		int			_saveQuery(std::string line, int i);
+		void		_clearRequest();
 		void		_validHttp(std::string line);
 		void 		_saveImageToFile(const std::string& filename, const std::string& imageData);
 		void		_printRequestErrorMsg(std::string msg, int error_code);
 		HttpMethod	_checkMethod(std::string line);
+		std::string _removeBoundary(std::string &body, std::string &boundary);
 
 	public:
 		Request();

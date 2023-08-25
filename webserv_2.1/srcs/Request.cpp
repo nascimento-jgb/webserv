@@ -56,6 +56,132 @@ Request &Request::operator=(Request const &other)
 	return (*this);
 }
 
+void Request::_saveImageToFile(const std::string& filename, const std::string& imageData)
+{
+	if (access(filename.c_str(), F_OK) != -1)
+		_printRequestErrorMsg("File already exists", 409);
+    std::ofstream file(filename.c_str(), std::ios::binary);
+    if (file)
+	{
+        file.write(imageData.c_str(), imageData.length());
+        file.close();
+        std::cout << "File saved successfully." << std::endl;
+    }
+    else {
+        std::cout << "Failed to save the File." << std::endl;
+    }
+}
+
+std::string Request::_removeBoundary(std::string &body, std::string &boundary)
+{
+    std::string buffer;
+    std::string uploadData;
+    bool is_boundary = false;
+    bool is_content = false;
+
+    if (body.find("--" + boundary) != std::string::npos && body.find("--" + boundary + "--") != std::string::npos)
+    {
+        std::cout << "found start and end boundary" << boundary << std::endl;
+        for (size_t i = 0; i < body.size(); i++)
+        {
+            buffer.clear();
+			std::cout << "START LOOP" << std::endl;
+            while(body[i] != '\n')
+            {
+                buffer += body[i];
+                i++;
+            }
+			std::cout << "Buffer done" << std::endl;
+            if (!buffer.compare(("--" + boundary + "--\r")))
+            {
+                std::cout << "END boundary --" << boundary << "--" << std::endl;
+                is_content = true;
+                is_boundary = false;
+            }
+            if (!buffer.compare(("--" + boundary + "\r")))
+            {
+                std::cout << "START boundary --" << boundary << std::endl;
+                is_boundary = true;
+            }
+            if (is_boundary)
+            {
+                std::cout << "there is boundary" << std::endl;
+                if (!buffer.compare(0, 31, "Content-Disposition: form-data;"))
+                {
+                    std::cout << "there is boundary Content-Disposition" << std::endl;
+                    size_t start = buffer.find("filename=\"");
+                    if (start != std::string::npos)
+                    {
+						std::string tmp1 = buffer.substr(start + 10);
+                        size_t end = tmp1.find("\"");
+                        if (end != std::string::npos)
+                            _filename = buffer.substr(start + 10, end);
+                        std::cout << "_filename: " << _filename << std::endl;
+                    }
+                }
+                else if (!buffer.compare(0, 1, "\r") && !_filename.empty())
+                {
+                    std::cout << "Newline && file not empty" << std::endl;
+                    is_boundary = false;
+                    is_content = true;
+                }
+
+            }
+            else if (is_content)
+            {
+                std::cout << "content" << std::endl;
+                if (!buffer.compare(("--" + boundary + "\r")))
+                {
+                    std::cout << "Why? START boundary --" << boundary << std::endl;
+                    is_boundary = true;
+                }
+                else if (!buffer.compare(("--" + boundary + "--\r")))
+                {
+                    std::cout << "Why? END boundary --" << boundary << "--" << std::endl;
+                    uploadData.erase(uploadData.end() - 1);
+                    break ;
+                }
+                else
+                {
+                    std::cout << "storing bin: " << buffer << std::endl;
+					uploadData.append(buffer + "\n");
+                }
+            }
+
+        }
+    }
+    body.clear();
+    return (uploadData);
+}
+
+void Request::_uploadFile(int body_size)
+{
+	std::cout << "multipart/form-data START" << std::endl;
+	_bodys.clear();
+	_bodys.resize(body_size);
+	for (std::size_t i = 0; i < _bodys.size(); i++)
+	{
+		_bodys[i] = _body[i];
+	}
+	std::string boundary = getHeader("content-type");
+	int tmp = boundary.find("--");
+	boundary = boundary.substr(tmp);
+	std::string charBodylizedStr(_bodys.begin(), _bodys.end());
+	std::string imageData = _removeBoundary(charBodylizedStr, boundary);
+	_saveImageToFile(_filename, imageData);
+	std::cout << "multipart/form-data DONE" << std::endl;
+}
+
+int	Request::_checkValidBodySize(int max_len)
+{
+	int len = _body.length();
+	std::cout << "checking len: " << len << ", max_len" << max_len << std::endl;
+	if(max_len > len)
+		_printRequestErrorMsg("Request body is too short or missing.", 400);
+	else if(max_len < len)
+		_printRequestErrorMsg("Request body is too long.", 400);
+	return(0);
+}
 
 int	Request::_thereIsBody()
 {
@@ -66,18 +192,19 @@ int	Request::_thereIsBody()
 		if(HTTPMap["transfer-encoding"].find("chunked"))
 		{
 			std::cout << "is chunked" << std::endl;
-			_header_max_body_len = -1;
-			return (1);
+			return (3);
 		}
 		else
-			_printRequestErrorMsg("we dont handle this encoding", 501);
+			_printRequestErrorMsg("we dont ahndle this encoding", 501);
 	}
 	else if(HTTPMap.count("content-type") && HTTPMap.count("content-length"))
 	{
 		if(_httpmethod == GET)
 			_printRequestErrorMsg("GET does not allow body", 400);
-		fromHexToDec(HTTPMap["content-length"]);
-		return (1);
+		if(getHeader("content-type").find("multipart/form-data") != std::string::npos)
+			return (2);
+		return(1);
+		
 	}
 	return (0);
 }
@@ -215,26 +342,10 @@ HttpMethod Request::_checkMethod(std::string line)
 	}
 }
 
-void Request::_saveImageToFile(const std::string& filename, const std::string& imageData)
-{
-	if (access(filename.c_str(), F_OK) != -1)
-		_printRequestErrorMsg("File already exists", 409);
-	std::ofstream file(filename.c_str(), std::ios::out | std::ios::binary);
-	if (file)
-	{
-		file.write(imageData.c_str(), imageData.length());
-		file.close();
-		std::cout << "Image saved successfully." << std::endl;
-	}
-	else {
-		std::cout << "Failed to save the image." << std::endl;
-	}
-}
-
 void Request::parseCreate(std::string buffer, int size, int fd)
 {
 	(void)fd;
-	_clearRequest();
+	clearRequest();
 
 	//saves the buffer as a file stream so we can manipulate the content with getline.
 	std::istringstream iss(buffer);
@@ -267,92 +378,47 @@ void Request::parseCreate(std::string buffer, int size, int fd)
 			_printRequestErrorMsg("invalid headers", 400);
 		}
 	}
-	if(_thereIsBody())
+	int body_type = _thereIsBody();
+	std::cout << "body_type: " << body_type << std::endl;
+	if(body_type)
 	{
-		std::cout << getHeader("content-type").find("multipart/form-data") << std::endl;
-		if(getHeader("content-type").find("multipart/form-data") != std::string::npos)
+		std::string content;
+		std::streampos pos = iss.tellg();
+		int tot = static_cast<int>(pos);
+		std::cout << "Size " << size <<", TOT: " << tot << std::endl;
+		std::cout << "header: " << getHeader("content-length") <<", aqtutal: " << size - tot << std::endl;
+		_body = buffer.substr(tot);
+		_checkValidBodySize(std::atoi(getHeader("content-length").c_str()));
+		if(body_type == 2)
 		{
-			std::cout << "multipart/form-data START" << std::endl;
-			_bodys.clear();
-			std::string content;
-			std::streampos pos = iss.tellg();
-			int tot = static_cast<int>(pos);
-			_body = buffer.substr(tot);
-			std::size_t start = _body.find("filename=\"");
-			if (start != std::string::npos) {
-				content = buffer.substr(tot+start);
-				std::size_t end = content.find("\"", 10);
-				if (start != std::string::npos) {
-					_filename = content.substr(10, end-10);
-
-					std::cout << "body: " << _body << std::endl;
-
-					// Find the position of the start of the image data (after the header)
-					std::size_t headerEndPos = _body.find("\r\n\r\n");
-					if (headerEndPos != std::string::npos)
-					{
-						std::string storage = _body.substr(headerEndPos + 4); // Skip the "\r\n\r\n" delimiter
-						std::cout << "imageData: " << storage << std::endl;
-						_bodys.resize(size - (tot + headerEndPos));
-						for (std::size_t i = 0; i < _bodys.size(); i++)
-						{
-							_bodys[i] = storage[headerEndPos + i];
-						}
-						std::string imageData(_bodys.begin(), _bodys.end());
-						_saveImageToFile(_filename, imageData);
-					}
-					else
-					{
-						std::cout << "Invalid body format: Header end not found." << std::endl;
-					}
-
-					// std::string imageData(_bodys.begin(), _bodys.end());
-					// _saveImageToFile(_filename, imageData);
-				}
-			}
-			std::cout << "multipart/form-data DONE" << std::endl;
-		}
-		else if(_header_max_body_len >= 0)
-		{
-			std::cout << "[THERE IS A BODY WOOWOOOP]" << std::endl;
-			std::streampos pos = iss.tellg();
-			_body = buffer.substr(pos);
-			_we_got_body_len = _body.length();
-			if(_header_max_body_len > _we_got_body_len)
-				_printRequestErrorMsg("Request body is too short or missing.", 400);
-			else if(_header_max_body_len < _we_got_body_len)
-				_printRequestErrorMsg("Request body is too long.", 400);
+			_uploadFile(size - tot);
 		}
 		else
 		{
 			std::cout << "is chunked TIME" << std::endl;
-			std::string rest;
-			std::streampos pos = iss.tellg();
-			// rest = buffer + pos;
-			rest = buffer.substr(pos);
 			int i = 0;
 			std::string chunking;
 			int	chunk = 0;
 			// std::cout << "this is the rest[" << rest << "]" << std::endl;
-			while(rest[i])
+			while(_body[i])
 			{
-				// std::cout << "checking: " << (int)rest[i] << " : " << (int)rest[i+1] << std::endl;
-				if(!std::isxdigit(rest[i]))
+				// std::cout << "checking: " << (int)_body[i] << " : " << (int)_body[i+1] << std::endl;
+				if(!std::isxdigit(_body[i]))
 				{
-					if(rest[i] != '\r' && rest[i+1] && rest[i+1] != '\n')
+					if(_body[i] != '\r' && _body[i+1] && _body[i+1] != '\n')
 						_printRequestErrorMsg("badly formated chunked-data", 422);
 					else
 					{
 						i += 2;
-						if(rest[i] == '0')
+						if(_body[i] == '0')
 							break;
 						chunk = fromHexToDec(chunking);
 						std::cout << chunk << std::endl;
 						while(chunk)
 						{
 							chunk--;
-							// std::cout << "adding to body: " << (int)rest[i] << std::endl;
-							_body += rest[i];
+							// std::cout << "adding to body: " << (int)_body[i] << std::endl;
+							_body += _body[i];
 							i++;
 						}
 						chunking.clear();
@@ -361,8 +427,8 @@ void Request::parseCreate(std::string buffer, int size, int fd)
 				}
 				else
 				{
-					std::cout << "adding to number " << rest[i] << std::endl;
-					chunking += rest[i];
+					std::cout << "adding to number " << _body[i] << std::endl;
+					chunking += _body[i];
 				}
 				i++;
 			}
@@ -370,7 +436,6 @@ void Request::parseCreate(std::string buffer, int size, int fd)
 		std::cout << "the is body DONE" << std::endl;
 	}
 	std::cout << "request DONE" << std::endl;
-	// std::cout << "body: " << _body << std::endl;
 }
 
 void	Request::setBodySize(size_t maxBodySizeFromConfigFile)

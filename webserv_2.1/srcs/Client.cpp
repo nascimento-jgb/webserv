@@ -16,7 +16,7 @@
 Client::Client(Server &server) : _last_msg_time(time(NULL))
 {
 	setServer(server);
-	_request.setBodySize(server.getMaxBodySize()); //implement those functions later on
+	request.setBodySize(server.getMaxBodySize()); //implement those functions later on
 }
 
 Client::Client() {}
@@ -65,15 +65,6 @@ sockaddr_in const	&Client::getClientAddress(void) const
 const Server	&Client::getClientServerInfo(void) const
 {
 	return (_server);
-}
-
-const Request	&Client::getClientRequest(void) const
-{
-	return (_request);
-}
-const Response	&Client::getClientResponse(void) const
-{
-	return (_response);
 }
 
 const time_t	&Client::getTimeoutCheck(void) const
