@@ -13,9 +13,9 @@
 #ifndef WEBSERV_HPP
 # define WEBSERV_HPP
 
-#define CONNECTION_TIMEOUT 60 //in seconds
+#define CONNECTION_TIMEOUT 60 //in seconds 219677  218777
 #define INET_ADDRSTRLEN 16
-#define MESSAGE_BUFFER 500000
+#define MESSAGE_BUFFER 2
 
 //STL CONTAINERS
 #include <map>

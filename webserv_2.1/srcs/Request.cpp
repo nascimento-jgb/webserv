@@ -15,7 +15,9 @@
 //Canonical Form
 Request::Request() : _requestStatus(READ) {}
 
-Request::~Request() {}
+Request::~Request() {
+	_requestCode = 0;
+}
 
 Request::Request(Request const &other)
 {
@@ -154,13 +156,16 @@ std::string Request::_removeBoundary(std::string &body, std::string &boundary)
 
 void Request::_uploadFile(int body_size)
 {
-	std::cout << "multipart/form-data START" << std::endl;
+	std::cout << "multipart/form-data START " << body_size << std::endl;
 	_bodys.clear();
 	_bodys.resize(body_size);
+	std::cout << "LOOP CHECK-start" << std::endl;
 	for (std::size_t i = 0; i < _bodys.size(); i++)
 	{
 		_bodys[i] = _body[i];
 	}
+	std::cout << "LOOP CHECK" << std::endl;
+
 	std::string boundary = getHeader("content-type");
 	int tmp = boundary.find("--");
 	boundary = boundary.substr(tmp);
@@ -172,8 +177,8 @@ void Request::_uploadFile(int body_size)
 
 int	Request::_checkValidBodySize(int max_len)
 {
-	int len = _body.length();
-	std::cout << "checking len: " << len << ", max_len" << max_len << std::endl;
+	int len = _we_got_body_len;
+	std::cout << "checking len: " << len << ", max_len: " << max_len << std::endl;
 	if(max_len > len)
 		_printRequestErrorMsg("Request body is too short or missing.", 400);
 	else if(max_len < len)
@@ -387,7 +392,8 @@ void Request::parseCreate(std::string buffer, int size, int fd)
 		std::streampos pos = iss.tellg();
 		int tot = static_cast<int>(pos);
 		std::cout << "Size " << size <<", TOT: " << tot << std::endl;
-		std::cout << "header: " << getHeader("content-length") <<", aqtutal: " << size - tot << std::endl;
+		_we_got_body_len = size - tot;
+		std::cout << "header: " << getHeader("content-length") <<", aqtutal: " << _we_got_body_len << std::endl;
 		_body = buffer.substr(tot);
 		_checkValidBodySize(std::atoi(getHeader("content-length").c_str()));
 		if(body_type == 2)
@@ -437,6 +443,7 @@ void Request::parseCreate(std::string buffer, int size, int fd)
 		std::cout << "the is body DONE" << std::endl;
 	}
 	std::cout << "request DONE" << std::endl;
+	_requestCode = 200;
 }
 
 void	Request::setBodySize(size_t maxBodySizeFromConfigFile)
@@ -503,7 +510,7 @@ void Request::clearRequest()
 	HTTPMap.clear();
 	_header_max_body_len = 0;
 	_we_got_body_len = 0;
-	_requestCode = 200;
+	_requestCode = 0;
 	_body.clear();
 	_bodys.clear();
 	_request_path.clear();

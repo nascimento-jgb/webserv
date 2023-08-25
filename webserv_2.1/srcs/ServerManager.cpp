@@ -68,11 +68,10 @@ void	ServerManager::runServers()
 		}
 		for (int fd = 0; fd <= _biggest_fd; ++fd)
 		{
-			std::cout << "fd=" << fd << " FD_ISSET: " << FD_ISSET(fd, &io_set) << std::endl;
-			if (FD_ISSET(fd, &io_set) && _servers_map.count(fd) && _clients_map.find(fd) == _clients_map.end())
-				acceptNewConnection(_servers_map.find(fd)->second);
-			else if ((FD_ISSET(fd, &io_set) && _clients_map.count(fd)) || _clients_map.count(fd))
+			if ((FD_ISSET(fd, &io_set) && _clients_map.count(fd)) || _clients_map.count(fd))
 				handleSocket(fd, _clients_map[fd]);
+			else if (FD_ISSET(fd, &io_set) && _servers_map.count(fd) && _clients_map.find(fd) == _clients_map.end())
+				acceptNewConnection(_servers_map.find(fd)->second);
 		}
 		checkTimeout();
 	}
@@ -174,23 +173,53 @@ void	ServerManager::handleSocket(const int &fd, Client &client)
 void	ServerManager::readRequest(const int &fd, Client &client)
 {
 	char	buffer[MESSAGE_BUFFER];
-	int		bytes_read = read(fd, buffer, MESSAGE_BUFFER);
-
-	switch (bytes_read)
+	int		bytes_read; //= read(fd, buffer, MESSAGE_BUFFER);
+	int		tot_read = 0;
+	int		flag = 0;
+	std::string storage;
+	while((bytes_read = read(fd, buffer, MESSAGE_BUFFER-1)) > 0)
 	{
-		case 0:
-			std::cout << "webserv: Client " << fd << " closed connection." << std::endl;
-			closeConnection(fd);
-			return ;
-		case -1:
-			std::cout << "webserv: Fd " << fd << " read error "<< strerror(errno) << "." << std::endl;
-			closeConnection(fd);
-			return ;
-		default:
-			client.updateTime();
-			client.request.parseCreate(buffer, bytes_read, client.getClientSocket()); //REVIEW THIS LINE
-			memset(buffer, 0, sizeof(buffer));
+		buffer[bytes_read - 1] = '\0';
+		flag = 1;
+		tot_read += bytes_read;
+		std::cout << "====================\nbytes_read: " << tot_read << "\n=======================" << std::endl;
+		storage.append(buffer);
+		memset(buffer, 0, sizeof(buffer));
 	}
+	if(flag)
+	{
+		client.updateTime();
+		client.request.parseCreate(storage, tot_read, client.getClientSocket()); //REVIEW THIS LINE
+		memset(buffer, 0, sizeof(buffer));
+	}
+	else if(!bytes_read)
+	{
+		std::cout << "webserv: Client " << fd << " closed connection." << std::endl;
+		closeConnection(fd);
+		return ;
+	}
+	else if(bytes_read < 0)
+	{
+		std::cout << "webserv: Fd " << fd << " read error "<< strerror(errno) << "." << std::endl;
+		closeConnection(fd);
+		return ;
+	}
+	
+	// switch (bytes_read)
+	// {
+	// 	case 0:
+	// 		std::cout << "webserv: Client " << fd << " closed connection." << std::endl;
+	// 		closeConnection(fd);
+	// 		return ;
+	// 	case -1:
+	// 		std::cout << "webserv: Fd " << fd << " read error "<< strerror(errno) << "." << std::endl;
+	// 		closeConnection(fd);
+	// 		return ;
+	// 	default:
+	// 		client.updateTime();
+	// 		client.request.parseCreate(buffer, bytes_read, client.getClientSocket()); //REVIEW THIS LINE
+	// 		memset(buffer, 0, sizeof(buffer));
+	// }
 
 	if (client.request.getCode()) // Code initialize with 0 and changes according to the result of the request parsing
 	{
@@ -212,7 +241,6 @@ void	ServerManager::readRequest(const int &fd, Client &client)
 void	ServerManager::writeToClient(const int &fd, Client &client)
 {
 	//theeeen we send to the motherfuckers the answer xD
-	std::cout << "Go in: " << client.response.getResponseString() << std::endl;
 	send(fd, client.response.getResponseString().data(), client.response.getResponseString().size(), 0);
 	client.clearClient();
 	client.request.setRequestStatus(READ);
