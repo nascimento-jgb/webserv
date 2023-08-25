@@ -1,15 +1,14 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   request.cpp                                         :+:      :+:    :+:   */
+/*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: leklund <leklund@student.hive.fi>          +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/07/23 06:59:41 by leklund           #+#    #+#             */
-/*   Updated: 2023/07/23 06:59:44 by leklund          ###   ########.fr       */
+/*   Created: 2023/08/25 10:24:25 by jonascim          #+#    #+#             */
+/*   Updated: 2023/08/25 10:24:37 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-
 
 #include "../includes/Request.hpp"
 
@@ -60,98 +59,97 @@ void Request::_saveImageToFile(const std::string& filename, const std::string& i
 {
 	if (access(filename.c_str(), F_OK) != -1)
 		_printRequestErrorMsg("File already exists", 409);
-    std::ofstream file(filename.c_str(), std::ios::binary);
-    if (file)
+	std::ofstream file(filename.c_str(), std::ios::binary);
+	if (file)
 	{
-        file.write(imageData.c_str(), imageData.length());
-        file.close();
-        std::cout << "File saved successfully." << std::endl;
-    }
-    else {
-        std::cout << "Failed to save the File." << std::endl;
-    }
+		file.write(imageData.c_str(), imageData.length());
+		file.close();
+		std::cout << "File saved successfully." << std::endl;
+	}
+	else {
+		std::cout << "Failed to save the File." << std::endl;
+	}
 }
 
 std::string Request::_removeBoundary(std::string &body, std::string &boundary)
 {
-    std::string buffer;
-    std::string uploadData;
-    bool is_boundary = false;
-    bool is_content = false;
+	std::string buffer;
+	std::string uploadData;
+	bool is_boundary = false;
+	bool is_content = false;
 
-    if (body.find("--" + boundary) != std::string::npos && body.find("--" + boundary + "--") != std::string::npos)
-    {
-        std::cout << "found start and end boundary" << boundary << std::endl;
-        for (size_t i = 0; i < body.size(); i++)
-        {
-            buffer.clear();
+	if (body.find("--" + boundary) != std::string::npos && body.find("--" + boundary + "--") != std::string::npos)
+	{
+		std::cout << "found start and end boundary" << boundary << std::endl;
+		for (size_t i = 0; i < body.size(); i++)
+		{
+			buffer.clear();
 			std::cout << "START LOOP" << std::endl;
-            while(body[i] != '\n')
-            {
-                buffer += body[i];
-                i++;
-            }
+			while(body[i] != '\n')
+			{
+				buffer += body[i];
+				i++;
+			}
 			std::cout << "Buffer done" << std::endl;
-            if (!buffer.compare(("--" + boundary + "--\r")))
-            {
-                std::cout << "END boundary --" << boundary << "--" << std::endl;
-                is_content = true;
-                is_boundary = false;
-            }
-            if (!buffer.compare(("--" + boundary + "\r")))
-            {
-                std::cout << "START boundary --" << boundary << std::endl;
-                is_boundary = true;
-            }
-            if (is_boundary)
-            {
-                std::cout << "there is boundary" << std::endl;
-                if (!buffer.compare(0, 31, "Content-Disposition: form-data;"))
-                {
-                    std::cout << "there is boundary Content-Disposition" << std::endl;
-                    size_t start = buffer.find("filename=\"");
-                    if (start != std::string::npos)
-                    {
+			if (!buffer.compare(("--" + boundary + "--\r")))
+			{
+				std::cout << "END boundary --" << boundary << "--" << std::endl;
+				is_content = true;
+				is_boundary = false;
+			}
+			if (!buffer.compare(("--" + boundary + "\r")))
+			{
+				std::cout << "START boundary --" << boundary << std::endl;
+				is_boundary = true;
+			}
+			if (is_boundary)
+			{
+				std::cout << "there is boundary" << std::endl;
+				if (!buffer.compare(0, 31, "Content-Disposition: form-data;"))
+				{
+					std::cout << "there is boundary Content-Disposition" << std::endl;
+					size_t start = buffer.find("filename=\"");
+					if (start != std::string::npos)
+					{
 						std::string tmp1 = buffer.substr(start + 10);
-                        size_t end = tmp1.find("\"");
-                        if (end != std::string::npos)
-                            _filename = buffer.substr(start + 10, end);
-                        std::cout << "_filename: " << _filename << std::endl;
-                    }
-                }
-                else if (!buffer.compare(0, 1, "\r") && !_filename.empty())
-                {
-                    std::cout << "Newline && file not empty" << std::endl;
-                    is_boundary = false;
-                    is_content = true;
-                }
-
-            }
-            else if (is_content)
-            {
-                std::cout << "content" << std::endl;
-                if (!buffer.compare(("--" + boundary + "\r")))
-                {
-                    std::cout << "Why? START boundary --" << boundary << std::endl;
-                    is_boundary = true;
-                }
-                else if (!buffer.compare(("--" + boundary + "--\r")))
-                {
-                    std::cout << "Why? END boundary --" << boundary << "--" << std::endl;
-                    uploadData.erase(uploadData.end() - 1);
-                    break ;
-                }
-                else
-                {
-                    std::cout << "storing bin: " << buffer << std::endl;
+						size_t end = tmp1.find("\"");
+						if (end != std::string::npos)
+							_filename = buffer.substr(start + 10, end);
+						std::cout << "_filename: " << _filename << std::endl;
+					}
+				}
+				else if (!buffer.compare(0, 1, "\r") && !_filename.empty())
+				{
+					std::cout << "Newline && file not empty" << std::endl;
+					is_boundary = false;
+					is_content = true;
+				}
+			}
+			else if (is_content)
+			{
+				std::cout << "content" << std::endl;
+				if (!buffer.compare(("--" + boundary + "\r")))
+				{
+					std::cout << "Why? START boundary --" << boundary << std::endl;
+					is_boundary = true;
+				}
+				else if (!buffer.compare(("--" + boundary + "--\r")))
+				{
+					std::cout << "Why? END boundary --" << boundary << "--" << std::endl;
+					uploadData.erase(uploadData.end() - 1);
+					break ;
+				}
+				else
+				{
+					std::cout << "storing bin: " << buffer << std::endl;
 					uploadData.append(buffer + "\n");
-                }
-            }
+				}
+			}
 
-        }
-    }
-    body.clear();
-    return (uploadData);
+		}
+	}
+	body.clear();
+	return (uploadData);
 }
 
 void Request::_uploadFile(int body_size)
@@ -204,7 +202,7 @@ int	Request::_thereIsBody()
 		if(getHeader("content-type").find("multipart/form-data") != std::string::npos)
 			return (2);
 		return(1);
-		
+
 	}
 	return (0);
 }

@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Request.hpp                                         :+:      :+:    :+:   */
+/*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: leklund <leklund@student.hive.fi>          +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:59:33 by leklund           #+#    #+#             */
-/*   Updated: 2023/07/23 06:59:35 by leklund          ###   ########.fr       */
+/*   Updated: 2023/08/25 10:25:10 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,19 +49,19 @@ class Request
 		std::map<std::string, std::string>	HTTPMap;
 		std::vector<u_int8_t>				_bodys;
 
-		void		_uploadFile(int body_size);
-		int			_checkValidBodySize(int max_len);
-		int			_thereIsBody();
-		int			_checkHeaders(std::string &key, std::string &value);
-		int 		_validChar(int c);
-		int 		_checkUri(std::string line);
-		int			_saveQuery(std::string line, int i);
-		void		_clearRequest();
-		void		_validHttp(std::string line);
-		void 		_saveImageToFile(const std::string& filename, const std::string& imageData);
-		void		_printRequestErrorMsg(std::string msg, int error_code);
-		HttpMethod	_checkMethod(std::string line);
-		std::string _removeBoundary(std::string &body, std::string &boundary);
+		void			_uploadFile(int body_size);
+		int				_checkValidBodySize(int max_len);
+		int				_thereIsBody();
+		int				_checkHeaders(std::string &key, std::string &value);
+		int 			_validChar(int c);
+		int 			_checkUri(std::string line);
+		int				_saveQuery(std::string line, int i);
+		void			_clearRequest();
+		void			_validHttp(std::string line);
+		void 			_saveImageToFile(const std::string& filename, const std::string& imageData);
+		void			_printRequestErrorMsg(std::string msg, int error_code);
+		HttpMethod		_checkMethod(std::string line);
+		std::string 	_removeBoundary(std::string &body, std::string &boundary);
 
 	public:
 		Request();
