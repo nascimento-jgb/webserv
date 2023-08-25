@@ -1,13 +1,13 @@
 /* ************************************************************************** */
-/*									    */
-/*							:::      ::::::::   */
-/*   Server.hpp					 :+:      :+:    :+:   */
-/*						    +:+ +:+	 +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>	+#+  +:+       +#+	*/
-/*						+#+#+#+#+#+   +#+	   */
-/*   Created: 2023/08/21 13:00:18 by jonascim	  #+#    #+#	     */
-/*   Updated: 2023/08/21 13:00:54 by jonascim	 ###   ########.fr       */
-/*									    */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Server.hpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/08/25 09:54:01 by jonascim          #+#    #+#             */
+/*   Updated: 2023/08/25 09:54:11 by jonascim         ###   ########.fr       */
+/*                                                                            */
 /* ************************************************************************** */
 
 #ifndef SERVER_HPP
@@ -18,18 +18,18 @@
 class Server
 {
 	private:
-		struct sockaddr_in 				_server_address;
+		struct sockaddr_in 			_server_address;
 
-		uint16_t						_port;
-		in_addr_t						_host;
-		std::string						_server_name;
-		std::string						_root;
-		std::string						_index;
-		mainmap							_config;
-		submap							_cgi;
-		unsigned long					_max_body_size;
-		bool							_autoindex;
-		int								_listen_fd;
+		uint16_t					_port;
+		in_addr_t					_host;
+		std::string					_server_name;
+		std::string					_root;
+		std::string					_index;
+		mainmap						_config;
+		submap						_cgi;
+		unsigned long				_max_body_size;
+		bool						_autoindex;
+		int							_listen_fd;
 
 	public:
 

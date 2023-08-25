@@ -6,22 +6,22 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 10:08:01 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/25 09:24:01 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/25 09:56:32 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/Client.hpp"
 
 //Canonical form
-Client::Client(Server &server) : _last_msg_time(time(NULL))
-{
-	setServer(server);
-	_request.setBodySize(server.getMaxBodySize()); //implement those functions later on
-}
-
 Client::Client() {}
 
 Client::~Client() {}
+
+Client::Client(Server &server) : _last_msg_time(time(NULL))
+{
+	setServer(server);
+	request.setBodySize(server.getMaxBodySize());
+}
 
 Client::Client(Client const &other)
 {
@@ -65,15 +65,6 @@ sockaddr_in const	&Client::getClientAddress(void) const
 const Server	&Client::getClientServerInfo(void) const
 {
 	return (_server);
-}
-
-const Request	&Client::getClientRequest(void) const
-{
-	return (_request);
-}
-const Response	&Client::getClientResponse(void) const
-{
-	return (_response);
 }
 
 const time_t	&Client::getTimeoutCheck(void) const
