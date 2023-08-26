@@ -15,7 +15,7 @@
 
 #define CONNECTION_TIMEOUT 60 //in seconds 219677  218777
 #define INET_ADDRSTRLEN 16
-#define MESSAGE_BUFFER 2
+#define MESSAGE_BUFFER 4
 
 //STL CONTAINERS
 #include <map>
