@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/25 10:24:25 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/25 10:24:37 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/26 10:24:46 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -157,12 +157,15 @@ std::string Request::_removeBoundary(std::string &body, std::string &boundary)
 void Request::_uploadFile(int body_size)
 {
 	std::cout << "multipart/form-data START " << body_size << std::endl;
+	std::cout << "comparison with body size " << _body.size() << std::endl;
 	_bodys.clear();
-	_bodys.resize(body_size);
+	// _bodys.resize(body_size);
 	std::cout << "LOOP CHECK-start" << std::endl;
-	for (std::size_t i = 0; i < _bodys.size(); i++)
+	for (std::size_t i = 0; i < _body.size(); i++)
 	{
-		_bodys[i] = _body[i];
+		_bodys.push_back(static_cast<u_int8_t>(_body[i]));
+		// std::cout << i << "  ";
+		// std::cout << "_bodys value[i]: " << _bodys[i] << "and _body value " << _body[i] << "index i: " << i << std::endl;
 	}
 	std::cout << "LOOP CHECK" << std::endl;
 
@@ -323,6 +326,7 @@ int Request::_checkUri(std::string line)
 
 HttpMethod Request::_checkMethod(std::string line)
 {
+	std::cout << line << std::endl;
 	if(!line.compare(0, 4, "GET "))
 	{
 		std::cout << "IT IS GET" << std::endl;
@@ -352,6 +356,7 @@ HttpMethod Request::_checkMethod(std::string line)
 void Request::parseCreate(std::string buffer, int size, int fd)
 {
 	(void)fd;
+	std::cout << "size is here: "<< size << std::endl;
 	clearRequest();
 	//saves the buffer as a file stream so we can manipulate the content with getline.
 	std::istringstream iss(buffer);

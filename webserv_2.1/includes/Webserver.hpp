@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Webserver.hpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 08:51:04 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/24 14:42:09 by corellan         ###   ########.fr       */
+/*   Updated: 2023/08/26 10:02:48 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@
 #include <string>
 
 //RANDOM INCLUDES
+#include <errno.h>
 #include <string>
 #include <unistd.h>
 #include <cstdlib>
