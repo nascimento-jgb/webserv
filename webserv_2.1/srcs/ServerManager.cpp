@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/22 12:42:37 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/25 09:54:19 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/26 10:08:29 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -154,7 +154,7 @@ void	ServerManager::handleSocket(const int &fd, Client &client)
 {
 	// Get the status to determine whether the socket should be read from or written to
 	int state = client.request.getStatus();
-	std::cout << "====================\nstate: " << state << "\n=======================" << std::endl;
+	// std::cout << "====================\nstate: " << state << "\n=======================" << std::endl;
 	switch (state)
 	{
 		case READ:
@@ -177,34 +177,41 @@ void	ServerManager::readRequest(const int &fd, Client &client)
 	int		tot_read = 0;
 	int		flag = 0;
 	std::string storage;
-	while((bytes_read = read(fd, buffer, MESSAGE_BUFFER-1)) > 0)
+	while((bytes_read = read(fd, buffer, MESSAGE_BUFFER - 1)) > 0)
 	{
-		buffer[bytes_read - 1] = '\0';
+		buffer[bytes_read] = '\0';
 		flag = 1;
 		tot_read += bytes_read;
-		std::cout << "====================\nbytes_read: " << tot_read << "\n=======================" << std::endl;
 		storage.append(buffer);
 		memset(buffer, 0, sizeof(buffer));
 	}
-	if(flag)
+	if (flag)
 	{
 		client.updateTime();
-		client.request.parseCreate(storage, tot_read, client.getClientSocket()); //REVIEW THIS LINE
+		client.request.parseCreate(storage, tot_read, client.getClientSocket());
 		memset(buffer, 0, sizeof(buffer));
 	}
-	else if(!bytes_read)
+	else if (!bytes_read)
 	{
 		std::cout << "webserv: Client " << fd << " closed connection." << std::endl;
 		closeConnection(fd);
 		return ;
 	}
-	else if(bytes_read < 0)
+	else if (bytes_read < 0)
 	{
-		std::cout << "webserv: Fd " << fd << " read error "<< strerror(errno) << "." << std::endl;
-		closeConnection(fd);
-		return ;
+		if (errno == EAGAIN || errno == EWOULDBLOCK)
+		{
+			// If the error is EAGAIN or EWOULDBLOCK, it's not really an error.
+			// Just try to read again later.
+			return;
+		}
+		else {
+			std::cout << "webserv: Fd " << fd << " read error "<< strerror(errno) << "." << std::endl;
+			closeConnection(fd);
+			return ;
+		}
 	}
-	
+
 	// switch (bytes_read)
 	// {
 	// 	case 0:
