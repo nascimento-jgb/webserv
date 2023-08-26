@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/22 12:42:37 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/25 09:54:19 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/25 11:24:10 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,11 +68,10 @@ void	ServerManager::runServers()
 		}
 		for (int fd = 0; fd <= _biggest_fd; ++fd)
 		{
-			std::cout << "fd=" << fd << " FD_ISSET: " << FD_ISSET(fd, &io_set) << std::endl;
-			if (FD_ISSET(fd, &io_set) && _servers_map.count(fd) && _clients_map.find(fd) == _clients_map.end())
-				acceptNewConnection(_servers_map.find(fd)->second);
-			else if ((FD_ISSET(fd, &io_set) && _clients_map.count(fd)) || _clients_map.count(fd))
+			if ((FD_ISSET(fd, &io_set) && _clients_map.count(fd)) || _clients_map.count(fd))
 				handleSocket(fd, _clients_map[fd]);
+			else if (FD_ISSET(fd, &io_set) && _servers_map.count(fd) && _clients_map.find(fd) == _clients_map.end())
+				acceptNewConnection(_servers_map.find(fd)->second);
 		}
 		checkTimeout();
 	}

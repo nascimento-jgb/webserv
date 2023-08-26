@@ -21,19 +21,19 @@ OBJ = $(addprefix $(OBJ_DIR), $(SRC:.cpp=.o))
 all : $(NAME)
 
 $(OBJ_DIR)%.o : $(SRC_DIR)%.cpp
-	c++ $(FLAGS) -c $< -o $@
+	@c++ $(FLAGS) -c $< -o $@
 
 $(OBJ_DIR):
-	mkdir -p $(OBJ_DIR)
+	@mkdir -p $(OBJ_DIR)
 
 $(NAME) : $(OBJ_DIR) $(OBJ)
-	c++ $(FLAGS) $(OBJ) -o $@
+	@c++ $(FLAGS) $(OBJ) -o $@
 
 clean:
-	rm -rf $(OBJ_DIR)
+	@rm -rf $(OBJ_DIR)
 
 fclean: clean
-	rm -rf $(NAME)
+	@rm -rf $(NAME)
 
 re: fclean all
 
