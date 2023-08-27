@@ -35,6 +35,9 @@ class Request
 {
 	private:
 		std::string		_rawBody;
+		std::string 	_boundary;
+        std::string		_bodyStr;
+		std::string 	_fileData;
 		std::string		_targetfile;
 		std::string		_request_path;
 		std::string		_query;
@@ -43,13 +46,13 @@ class Request
 		size_t			_header_max_body_len;
 		size_t			_we_got_body_len;
 		size_t			_maxBodySizeFromConfigFile;
+		bool			_fileUpload;
 		int				_requestCode;
 		RequestStatus	_requestStatus;
 
 		std::map<std::string, std::string>	HTTPMap;
 		std::vector<u_int8_t>				_body;
 
-		void			_uploadFile(int body_size);
 		int				_checkValidBodySize(int max_len);
 		int				_thereIsBody();
 		int				_checkHeaders(std::string &key, std::string &value);
@@ -58,11 +61,11 @@ class Request
 		int				_saveQuery(std::string line, int i);
 		void			_clearRequest();
 		void			_validHttp(std::string line);
-		void 			_saveImageToFile(const std::string& filename, const std::string& imageData);
 		void			_printRequestErrorMsg(std::string msg, int error_code);
 		HttpMethod		_checkMethod(std::string line);
-		std::string 	_removeBoundary(std::string &body, std::string &boundary);
 
+		std::string 	_removeBoundary(std::string &body, std::string &boundary);
+		void 			_parseFileData(int body_size);
 	public:
 		Request();
 		~Request();
@@ -75,6 +78,11 @@ class Request
 		void			setRequestStatus(RequestStatus updatedStatus);
 
 		int				getCode();
+		bool			isFileUpload();
+		size_t			getBodyLen();
+		std::string		getBody();
+		std::string		getImageData();
+		std::string		getFileName();
 		HttpMethod		getMethod();
 		std::string		getPath();
 		std::string		getQuery();

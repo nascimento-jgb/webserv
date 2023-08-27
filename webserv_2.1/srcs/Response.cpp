@@ -106,13 +106,37 @@ void Response::makeResponse(Request& request, int write_socket)
 	}
 	else if(request.getMethod() == POST)
 	{
+		if(request.isFileUpload())
+		{
+			_saveImageToFile(request.getFileName(), request.getImageData());
+			std::cout << "POST FILE" << std::endl;
+		}
 		std::cout << "POST Response" << std::endl;
 		std::string message = "This is your cool POST message!";
 		_responseString = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: "
 			+ request.ft_itoa(message.size()) + "\r\n\r\n" + message;
+
 	}
 	return ;
 }
+
+void Response::_saveImageToFile(const std::string& filename, const std::string& imageData)
+{
+	if (access(filename.c_str(), F_OK) != -1)
+		printResponseErrorMsg("File already exists", 409);
+	std::ofstream file(filename.c_str(), std::ios::binary);
+	if (file)
+	{
+		file.write(imageData.c_str(), imageData.length());
+		file.close();
+		std::cout << "File saved successfully." << std::endl;
+	}
+	else {
+		std::cout << "Failed to save the File." << std::endl;
+	}
+}
+
+
 
 std::string const	Response::getResponseString(void) const
 {

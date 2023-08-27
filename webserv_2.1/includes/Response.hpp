@@ -36,6 +36,7 @@ class Response
 
 		void				printResponseErrorMsg(std::string msg, int error_code);
 		void				makeResponse(Request &request, int write_socket);
+		void 				_saveImageToFile(const std::string& filename, const std::string& imageData);
 		void 				clearResponse();
 
 		std::string const	getResponseString(void) const;
