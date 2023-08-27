@@ -23,7 +23,7 @@ Request::Request(Request const &other)
 {
 	if (this != &other)
 	{
-		_body = other._body;
+		_rawBody = other._rawBody;
 		_targetfile = other._targetfile;
 		_request_path = other._request_path;
 		_query = other._query;
@@ -42,7 +42,7 @@ Request &Request::operator=(Request const &other)
 {
 	if (this != &other)
 	{
-		_body = other._body;
+		_rawBody = other._rawBody;
 		_targetfile = other._targetfile;
 		_request_path = other._request_path;
 		_query = other._query;
@@ -77,8 +77,8 @@ std::string Request::_removeBoundary(std::string &body, std::string &boundary)
 {
 	std::string buffer;
 	std::string uploadData;
-	bool is_boundary = false;
-	bool is_content = false;
+	bool isBoundary = false;
+	bool isContent = false;
 
 	if (body.find("--" + boundary) != std::string::npos && body.find("--" + boundary + "--") != std::string::npos)
 	{
@@ -96,15 +96,15 @@ std::string Request::_removeBoundary(std::string &body, std::string &boundary)
 			if (!buffer.compare(("--" + boundary + "--\r")))
 			{
 				std::cout << "END boundary --" << boundary << "--" << std::endl;
-				is_content = true;
-				is_boundary = false;
+				isContent = true;
+				isBoundary = false;
 			}
 			if (!buffer.compare(("--" + boundary + "\r")))
 			{
 				std::cout << "START boundary --" << boundary << std::endl;
-				is_boundary = true;
+				isBoundary = true;
 			}
-			if (is_boundary)
+			if (isBoundary)
 			{
 				std::cout << "there is boundary" << std::endl;
 				if (!buffer.compare(0, 31, "Content-Disposition: form-data;"))
@@ -123,21 +123,16 @@ std::string Request::_removeBoundary(std::string &body, std::string &boundary)
 				else if (!buffer.compare(0, 1, "\r") && !_filename.empty())
 				{
 					std::cout << "Newline && file not empty" << std::endl;
-					is_boundary = false;
-					is_content = true;
+					isBoundary = false;
+					isContent = true;
 				}
 			}
-			else if (is_content)
+			else if (isContent)
 			{
 				std::cout << "content" << std::endl;
-				if (!buffer.compare(("--" + boundary + "\r")))
+				if (!buffer.compare(("--" + boundary + "--\r")))
 				{
-					std::cout << "Why? START boundary --" << boundary << std::endl;
-					is_boundary = true;
-				}
-				else if (!buffer.compare(("--" + boundary + "--\r")))
-				{
-					std::cout << "Why? END boundary --" << boundary << "--" << std::endl;
+					std::cout << "content END boundary --" << boundary << "--" << "len: " << uploadData.size() << std::endl;
 					uploadData.erase(uploadData.end() - 1);
 					break ;
 				}
@@ -157,22 +152,25 @@ std::string Request::_removeBoundary(std::string &body, std::string &boundary)
 void Request::_uploadFile(int body_size)
 {
 	std::cout << "multipart/form-data START " << body_size << std::endl;
-	std::cout << "comparison with body size " << _body.size() << std::endl;
-	_bodys.clear();
-	// _bodys.resize(body_size);
+	// std::cout << "comparison with body size " << _rawBody.size() << std::endl;
+	_body.clear();
+	_body.resize(body_size);
 	std::cout << "LOOP CHECK-start" << std::endl;
-	for (std::size_t i = 0; i < _body.size(); i++)
+	for (unsigned int i = 0; i < _body.size(); i++)
 	{
-		_bodys.push_back(static_cast<u_int8_t>(_body[i]));
+		// _body.push_back((_rawBody[i]));
+		_body[i] = _rawBody[i];
+
 		// std::cout << i << "  ";
 		// std::cout << "_bodys value[i]: " << _bodys[i] << "and _body value " << _body[i] << "index i: " << i << std::endl;
 	}
+
 	std::cout << "LOOP CHECK" << std::endl;
 
 	std::string boundary = getHeader("content-type");
 	int tmp = boundary.find("--");
 	boundary = boundary.substr(tmp);
-	std::string charBodylizedStr(_bodys.begin(), _bodys.end());
+	std::string charBodylizedStr(_body.begin(), _body.end());
 	std::string imageData = _removeBoundary(charBodylizedStr, boundary);
 	_saveImageToFile(_filename, imageData);
 	std::cout << "multipart/form-data DONE" << std::endl;
@@ -399,7 +397,7 @@ void Request::parseCreate(std::string buffer, int size, int fd)
 		std::cout << "Size " << size <<", TOT: " << tot << std::endl;
 		_we_got_body_len = size - tot;
 		std::cout << "header: " << getHeader("content-length") <<", aqtutal: " << _we_got_body_len << std::endl;
-		_body = buffer.substr(tot);
+		_rawBody = buffer.substr(tot);
 		_checkValidBodySize(std::atoi(getHeader("content-length").c_str()));
 		if(body_type == 2)
 		{
@@ -412,17 +410,17 @@ void Request::parseCreate(std::string buffer, int size, int fd)
 			std::string chunking;
 			int	chunk = 0;
 			// std::cout << "this is the rest[" << rest << "]" << std::endl;
-			while(_body[i])
+			while(_rawBody[i])
 			{
 				// std::cout << "checking: " << (int)_body[i] << " : " << (int)_body[i+1] << std::endl;
-				if(!std::isxdigit(_body[i]))
+				if(!std::isxdigit(_rawBody[i]))
 				{
-					if(_body[i] != '\r' && _body[i+1] && _body[i+1] != '\n')
+					if(_rawBody[i] != '\r' && _rawBody[i+1] && _rawBody[i+1] != '\n')
 						_printRequestErrorMsg("badly formated chunked-data", 422);
 					else
 					{
 						i += 2;
-						if(_body[i] == '0')
+						if(_rawBody[i] == '0')
 							break;
 						chunk = fromHexToDec(chunking);
 						std::cout << chunk << std::endl;
@@ -430,7 +428,7 @@ void Request::parseCreate(std::string buffer, int size, int fd)
 						{
 							chunk--;
 							// std::cout << "adding to body: " << (int)_body[i] << std::endl;
-							_body += _body[i];
+							_rawBody += _rawBody[i];
 							i++;
 						}
 						chunking.clear();
@@ -439,8 +437,8 @@ void Request::parseCreate(std::string buffer, int size, int fd)
 				}
 				else
 				{
-					std::cout << "adding to number " << _body[i] << std::endl;
-					chunking += _body[i];
+					std::cout << "adding to number " << _rawBody[i] << std::endl;
+					chunking += _rawBody[i];
 				}
 				i++;
 			}
@@ -516,8 +514,8 @@ void Request::clearRequest()
 	_header_max_body_len = 0;
 	_we_got_body_len = 0;
 	_requestCode = 0;
+	_rawBody.clear();
 	_body.clear();
-	_bodys.clear();
 	_request_path.clear();
 	_query.clear();
 	_filename.clear();

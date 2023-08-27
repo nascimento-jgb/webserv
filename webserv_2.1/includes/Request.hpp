@@ -34,7 +34,7 @@ enum	RequestStatus
 class Request
 {
 	private:
-		std::string		_body;
+		std::string		_rawBody;
 		std::string		_targetfile;
 		std::string		_request_path;
 		std::string		_query;
@@ -47,7 +47,7 @@ class Request
 		RequestStatus	_requestStatus;
 
 		std::map<std::string, std::string>	HTTPMap;
-		std::vector<u_int8_t>				_bodys;
+		std::vector<u_int8_t>				_body;
 
 		void			_uploadFile(int body_size);
 		int				_checkValidBodySize(int max_len);

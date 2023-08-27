@@ -172,17 +172,17 @@ void	ServerManager::handleSocket(const int &fd, Client &client)
 
 void	ServerManager::readRequest(const int &fd, Client &client)
 {
-	char	buffer[MESSAGE_BUFFER];
+	char	buffer[MESSAGE_BUFFER+1];
 	int		bytes_read; //= read(fd, buffer, MESSAGE_BUFFER);
 	int		tot_read = 0;
 	int		flag = 0;
 	std::string storage;
-	while((bytes_read = read(fd, buffer, MESSAGE_BUFFER - 1)) > 0)
+	while((bytes_read = read(fd, buffer, MESSAGE_BUFFER)) > 0)
 	{
 		buffer[bytes_read] = '\0';
 		flag = 1;
 		tot_read += bytes_read;
-		storage.append(buffer);
+		storage.append(buffer, bytes_read);
 		memset(buffer, 0, sizeof(buffer));
 	}
 	if (flag)
