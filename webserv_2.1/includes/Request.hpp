@@ -21,7 +21,7 @@ enum HttpMethod
 	GET,
 	POST,
 	DELETE,
-	NONE
+	UNKNOWN
 };
 
 enum	RequestStatus
@@ -29,6 +29,13 @@ enum	RequestStatus
 	READ,
 	WRITE,
 	CLOSE
+};
+
+enum	BodyType
+{
+	NONE,
+	PLAIN,
+	CHUNKED
 };
 
 class Request
@@ -43,6 +50,7 @@ class Request
 		std::string		_query;
 		std::string		_filename;
 		HttpMethod		_httpmethod;
+		BodyType		_bodyType;
 		size_t			_header_max_body_len;
 		size_t			_we_got_body_len;
 		size_t			_maxBodySizeFromConfigFile;
@@ -54,7 +62,6 @@ class Request
 		std::vector<u_int8_t>				_body;
 
 		int				_checkValidBodySize(int max_len);
-		int				_thereIsBody();
 		int				_checkHeaders(std::string &key, std::string &value);
 		int 			_validChar(int c);
 		int 			_checkUri(std::string line);
@@ -62,10 +69,13 @@ class Request
 		void			_clearRequest();
 		void			_validHttp(std::string line);
 		void			_printRequestErrorMsg(std::string msg, int error_code);
+		BodyType		_checkBodyType();
 		HttpMethod		_checkMethod(std::string line);
 
 		std::string 	_removeBoundary(std::string &body, std::string &boundary);
-		void 			_parseFileData(int body_size);
+		void			_plainBodySave(int body_size);
+		void 			_chunkedBodySave(int body_size);
+		void 			_parseFileData();
 	public:
 		Request();
 		~Request();

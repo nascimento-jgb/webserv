@@ -13,10 +13,13 @@
 #include "../includes/Request.hpp"
 
 //Canonical Form
-Request::Request() : _requestStatus(READ) {}
+Request::Request() : _requestStatus(READ) {
+	_requestCode = 0;
+	_bodyType = NONE;
+}
 
 Request::~Request() {
-	_requestCode = 0;
+	
 }
 
 Request::Request(Request const &other)
@@ -70,19 +73,19 @@ int	Request::_checkValidBodySize(int max_len)
 	return(0);
 }
 
-int	Request::_thereIsBody()
+BodyType	Request::_checkBodyType()
 {
 	_fileUpload = false;
 	if(HTTPMap.count("transfer-encoding"))
 	{
 		if(_httpmethod == GET)
 			_printRequestErrorMsg("GET does not allow body", 400);
-		if(HTTPMap["transfer-encoding"].find("chunked"))
+		if(HTTPMap["transfer-encoding"].find("chunked") != std::string::npos)
 		{
 			std::cout << "is chunked" << std::endl;
 			if(getHeader("content-type").find("multipart/form-data") != std::string::npos)
 				_fileUpload = true;
-			return (2);
+			return (CHUNKED);
 		}
 		else
 			_printRequestErrorMsg("we dont ahndle this encoding", 501);
@@ -93,9 +96,9 @@ int	Request::_thereIsBody()
 			_printRequestErrorMsg("GET does not allow body", 400);
 		if(getHeader("content-type").find("multipart/form-data") != std::string::npos)
 			_fileUpload = true;
-		return(1);
+		return (PLAIN);
 	}
-	return (0);
+	return (NONE);
 }
 
 
@@ -232,14 +235,27 @@ HttpMethod Request::_checkMethod(std::string line)
 	{
 		std::cout << "IT IS NONE" << std::endl;
 		_printRequestErrorMsg("We dont support this Method", 405);
-		return(NONE);
+		return(UNKNOWN);
 	}
 }
 
 void Request::parseCreate(std::string buffer, int size, int fd)
 {
+	std::cout << "fileuplaod: " << _fileUpload << ", BodyType: " << _bodyType << std::endl;
+	if(_bodyType == CHUNKED)
+	{
+		std::cout << "Enter LOOP" << std::endl;
+		_rawBody = buffer;
+		_chunkedBodySave(size);
+		std::cout << "fileuplaod: " << _fileUpload << ", BodyType: " << _bodyType << std::endl;
+		if(_fileUpload && !_bodyType)
+			_parseFileData();
+		return ;
+	}
+	_body.clear();
 	(void)fd;
 	std::cout << "size is here: "<< size << std::endl;
+	std::cout << "=========================\n" << buffer << "\n=========================" << std::endl;
 	clearRequest();
 	//saves the buffer as a file stream so we can manipulate the content with getline.
 	std::istringstream iss(buffer);
@@ -272,62 +288,32 @@ void Request::parseCreate(std::string buffer, int size, int fd)
 			_printRequestErrorMsg("invalid headers", 400);
 		}
 	}
-	int body_type = _thereIsBody();
-	std::cout << "body_type: " << body_type << std::endl;
-	if(body_type)
+	_bodyType = _checkBodyType();
+	std::cout << "body_type: " << _bodyType << std::endl;
+	if(_bodyType)
 	{
 		std::string content;
 		std::streampos pos = iss.tellg();
 		int tot = static_cast<int>(pos);
 		std::cout << "Size " << size <<", TOT: " << tot << std::endl;
 		_we_got_body_len = size - tot;
-		std::cout << "header: " << getHeader("content-length") <<", aqtutal: " << _we_got_body_len << std::endl;
 		_rawBody = buffer.substr(tot);
-		_checkValidBodySize(std::atoi(getHeader("content-length").c_str()));
-		if(body_type == 1)
+		if(_bodyType == PLAIN)
 		{
+			std::cout << "header: " << getHeader("content-length") <<", aqtutal: " << _we_got_body_len << std::endl;
+			_checkValidBodySize(std::atoi(getHeader("content-length").c_str()));
+			_plainBodySave(_we_got_body_len);
 			if(_fileUpload)
-				_parseFileData(size - tot);
+				_parseFileData();
 		}
 		else
 		{
-			std::cout << "is chunked TIME" << std::endl;
-			int i = 0;
-			std::string chunking;
-			int	chunk = 0;
-			// std::cout << "this is the rest[" << rest << "]" << std::endl;
-			while(_rawBody[i])
-			{
-				// std::cout << "checking: " << (int)_body[i] << " : " << (int)_body[i+1] << std::endl;
-				if(!std::isxdigit(_rawBody[i]))
-				{
-					if(_rawBody[i] != '\r' && _rawBody[i+1] && _rawBody[i+1] != '\n')
-						_printRequestErrorMsg("badly formated chunked-data", 422);
-					else
-					{
-						i += 2;
-						if(_rawBody[i] == '0')
-							break;
-						chunk = fromHexToDec(chunking);
-						std::cout << chunk << std::endl;
-						while(chunk)
-						{
-							chunk--;
-							// std::cout << "adding to body: " << (int)_body[i] << std::endl;
-							_rawBody += _rawBody[i];
-							i++;
-						}
-						chunking.clear();
-						continue;
-					}
-				}
-				else
-				{
-					std::cout << "adding to number " << _rawBody[i] << std::endl;
-					chunking += _rawBody[i];
-				}
-				i++;
-			}
+			_chunkedBodySave(_we_got_body_len);
+			if(_fileUpload && !_bodyType)
+				_parseFileData();
+			std::cout << "fileuplaod: " << _fileUpload << ", BodyType: " << _bodyType << std::endl;
+			return ;
+
 		}
 		std::cout << "the is body DONE" << std::endl;
 	}
@@ -335,7 +321,58 @@ void Request::parseCreate(std::string buffer, int size, int fd)
 	_requestCode = 200;
 }
 
-
+void Request::_chunkedBodySave(int body_size)
+{
+	std::cout << "is chunked TIME" << std::endl;
+	std::cout << "fileuplaod: " << _fileUpload << ", BodyType: " << _bodyType << std::endl;
+	int i = 0;
+	std::string chunking;
+	int	chunk = 0;
+	std::cout << "this is the rest[" << _rawBody << "]" << std::endl;
+	while(i < body_size)
+	{
+		std::cout << ", checking: " << (int)_rawBody[i] << std::endl;
+		// std::cout << ", checking: " << (int)_rawBody[i+1] << std::endl;
+		// std::cout << ", checking: " << (int)_rawBody[i+2] << std::endl;
+		// std::cout << ", checking: " << (int)_rawBody[i+3] << std::endl;
+		// std::cout << ", checking: " << (int)_rawBody[i+4] << std::endl;
+		if(!std::isxdigit(_rawBody[i]))
+		{
+			if(_rawBody[i] != '\r' && i+1 < body_size && _rawBody[i+1] != '\n')
+				_printRequestErrorMsg("badly formated chunked-data", 422);
+			else
+			{
+				i += 2;
+				if(chunking == "0")
+				{
+					std::cout << "We done" << std::endl;
+					_bodyType = NONE;
+					_requestCode = 200;
+					break;
+				}
+				chunk = fromHexToDec(chunking);
+				std::cout << chunk << std::endl;
+				while(chunk && i < body_size)
+				{
+					chunk--;
+					std::cout << i << " / " << chunk << " / " << body_size << "adding to body: " << (int)_rawBody[i] << std::endl;
+					// _rawBody += _rawBody[i];
+					_body.push_back(_rawBody[i]);
+					i++;
+				}
+				i += 2;
+				chunking.clear();
+				continue;
+			}
+		}
+		else
+		{
+			std::cout << "adding to number " << _rawBody[i] << std::endl;
+			chunking += _rawBody[i];
+		}
+		i++;
+	}
+}
 
 std::string Request::_removeBoundary(std::string &body, std::string &boundary)
 {
@@ -413,10 +450,9 @@ std::string Request::_removeBoundary(std::string &body, std::string &boundary)
 	return (uploadData);
 }
 
-void Request::_parseFileData(int body_size)
+void Request::_plainBodySave(int body_size)
 {
-	std::cout << "multipart/form-data START " << body_size << std::endl;
-	// std::cout << "comparison with body size " << _rawBody.size() << std::endl;
+	std::cout << "save body START " << body_size << std::endl;
 	_body.clear();
 	_body.resize(body_size);
 	std::cout << "LOOP CHECK-start" << std::endl;
@@ -428,9 +464,11 @@ void Request::_parseFileData(int body_size)
 		// std::cout << i << "  ";
 		// std::cout << "_bodys value[i]: " << _bodys[i] << "and _body value " << _body[i] << "index i: " << i << std::endl;
 	}
-
 	std::cout << "LOOP CHECK" << std::endl;
+}
 
+void Request::_parseFileData()
+{
 	std::string boundary = getHeader("content-type");
 	int tmp = boundary.find("--");
 	boundary = boundary.substr(tmp);
@@ -537,6 +575,7 @@ void Request::clearRequest()
 	_request_path.clear();
 	_query.clear();
 	_filename.clear();
+	_bodyType = NONE;
 }
 
 const char *Request::HttpRequestErrorException::what(void) const throw()

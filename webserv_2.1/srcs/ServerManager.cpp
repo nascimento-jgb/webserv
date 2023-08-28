@@ -3,14 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerManager.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/22 12:42:37 by jonascim          #+#    #+#             */
-<<<<<<< HEAD
-/*   Updated: 2023/08/26 10:08:29 by jonascim         ###   ########.fr       */
-=======
-/*   Updated: 2023/08/25 15:25:53 by corellan         ###   ########.fr       */
->>>>>>> 66769e68a944ec0f430782eeca7d0aad0043e228
+/*   Updated: 2023/08/28 11:21:46 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -236,15 +232,15 @@ void	ServerManager::readRequest(const int &fd, Client &client)
 	{
 		assignServerConfig(client);
 		std::cout << "Request Recived From Socket " << fd << ", Method=<" << client.request.getMethod() << ">  URI=<" << client.request.getPath() << ">." << std::endl;
-		client.response.makeResponse(client.request, fd);
 
-		// if (client.response.getCgiState())
+		// if (client.request.getCgiState())
 		// {
-		// 	handleReqBody(client);
-		// 	addToSet(c.response._cgi_obj.pipe_in[1],  _write_fd_pool);
-		// 	addToSet(c.response._cgi_obj.pipe_out[0],  _recv_fd_pool);
+			// client.response.makeCgiResponse(client.request, fd);
+			// addToSet(c.response._cgi_obj.pipe_in[1],  _fd_pool);
 		// }
+		// else
 		//STILL NEED TO WORK IN THE CGI RESPONSE
+		client.response.makeResponse(client.request, fd);
 		client.request.setRequestStatus(WRITE);
 	}
 }
