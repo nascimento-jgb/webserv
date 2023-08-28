@@ -82,7 +82,7 @@ class Request
 		Request(Request const &other);
 		Request &operator=(Request const &other);
 
-		void			parseCreate(std::string buffer, int valread, int fd);
+		void			parseCreate(std::string buffer, int valread, mainmap &config);
 
 		void			setBodySize(size_t maxBodySizeFromConfigFile);
 		void			setRequestStatus(RequestStatus updatedStatus);

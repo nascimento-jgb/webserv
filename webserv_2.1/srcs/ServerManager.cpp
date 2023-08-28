@@ -188,7 +188,7 @@ void	ServerManager::readRequest(const int &fd, Client &client)
 	if (flag)
 	{
 		client.updateTime();
-		client.request.parseCreate(storage, tot_read, client.getClientSocket());
+		client.request.parseCreate(storage, tot_read, client.server.getConfigMap());
 		memset(buffer, 0, sizeof(buffer));
 	}
 	else if (!bytes_read)

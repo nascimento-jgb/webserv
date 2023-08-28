@@ -239,7 +239,7 @@ HttpMethod Request::_checkMethod(std::string line)
 	}
 }
 
-void Request::parseCreate(std::string buffer, int size, int fd)
+void Request::parseCreate(std::string buffer, int size, mainmap &config)
 {
 	std::cout << "fileuplaod: " << _fileUpload << ", BodyType: " << _bodyType << std::endl;
 	if(_bodyType == CHUNKED)
@@ -253,9 +253,8 @@ void Request::parseCreate(std::string buffer, int size, int fd)
 		return ;
 	}
 	_body.clear();
-	(void)fd;
 	std::cout << "size is here: "<< size << std::endl;
-	std::cout << "=========================\n" << buffer << "\n=========================" << std::endl;
+	// std::cout << "=========================\n" << buffer << "\n=========================" << std::endl;
 	clearRequest();
 	//saves the buffer as a file stream so we can manipulate the content with getline.
 	std::istringstream iss(buffer);
@@ -264,6 +263,7 @@ void Request::parseCreate(std::string buffer, int size, int fd)
 	//saves the request.
 	std::getline(iss, line);
 	_httpmethod = _checkMethod(line);
+	std::cout << "=======\nConfig path and Info: " << _request_path << " : [" << config[_request_path]["allowed_methods"] << "]\n=======" << std::endl;
 
 	//goes trough each headerline
 	while (std::getline(iss, line))
@@ -275,7 +275,7 @@ void Request::parseCreate(std::string buffer, int size, int fd)
 		if(std::getline(lineStream, key,':') && std::getline(lineStream, value))
 		{
 			_checkHeaders(key, value);
-			std::cout << value << std::endl;
+			// std::cout << value << std::endl;
 			to_lower(key);
 			HTTPMap.insert(std::pair<std::string, std::string>(key, value));
 		}

@@ -117,6 +117,11 @@ int	Server::getListenFd(void)
 	return (this->_listen_fd);
 }
 
+mainmap		&Server::getConfigMap(void)
+{
+	return(_config);
+}
+
 void	Server::setupServer(mainmap &config, size_t &port, submap &cgi)
 {
 	_config = config;

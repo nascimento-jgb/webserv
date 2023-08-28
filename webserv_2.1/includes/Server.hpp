@@ -59,6 +59,7 @@ class Server
 		std::string const			&getIndex(void) const;
 		unsigned long const			&getMaxBodySize(void) const;
 		bool const					&getAutoIndex(void) const;
+		mainmap						&getConfigMap(void);
 		int							getListenFd(void);
 
 		//Methods
