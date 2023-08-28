@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 13:06:16 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/28 11:37:02 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/28 11:38:05 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,7 +118,6 @@ void	Server::setupServer(mainmap &config, size_t &port, submap &cgi)
 	_port = static_cast<uint16_t>(port);
 	_cgi = cgi;
 	_host = ft_inet_addr(_config["main"]["host"]);
-	_host_s.s_addr = _host;
 	_server_name = _config["main"]["server_name"];
 	_root = _config["main"]["root"];
 	_index = _config["main"]["index"];
