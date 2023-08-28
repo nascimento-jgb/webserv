@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerManager.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/22 12:42:37 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/26 10:08:29 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/25 09:54:19 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ ServerManager::~ServerManager() {}
 //PUBLIC METHODS
 void	ServerManager::setupServers(std::vector<mainmap> &servers, std::vector<size_t> &serversPorts, std::vector<submap> &cgis)
 {
-	char							bufffer[INET_ADDRSTRLEN];
+	char							buffer[INET_ADDRSTRLEN];
 	std::vector<size_t>::iterator	it_ports;
 	std::vector<submap>::iterator	it_cgi;
 
@@ -36,7 +36,7 @@ void	ServerManager::setupServers(std::vector<mainmap> &servers, std::vector<size
 		Server	temp;
 
 		temp.setupServer((*it), (*it_ports), (*it_cgi));
-		std::cout << "Server initialized as - Name: "<< temp.getServerName() << " Host: " << inet_ntop(AF_INET, &temp.getHost(), bufffer, INET_ADDRSTRLEN) <<
+		std::cout << "Server initialized as - Name: "<< temp.getServerName() << " Host: " << ft_inet_ntop(AF_INET, temp.getHostS(), buffer, INET_ADDRSTRLEN) <<
 		" Port: " << temp.getPort() << std::endl;
 		_serversClass.push_back(temp);
 		it_ports++;
