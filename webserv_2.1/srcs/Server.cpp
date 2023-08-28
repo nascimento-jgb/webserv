@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 13:06:16 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/25 15:08:33 by corellan         ###   ########.fr       */
+/*   Updated: 2023/08/28 11:38:05 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,11 +82,6 @@ in_addr_t const		&Server::getHost(void) const
 	return (_host);
 }
 
-in_addr const		&Server::getHostS(void) const
-{
-	return (_host_s);
-}
-
 std::string const	&Server::getServerName(void) const
 {
 	return (_server_name);
@@ -128,7 +123,6 @@ void	Server::setupServer(mainmap &config, size_t &port, submap &cgi)
 	_port = static_cast<uint16_t>(port);
 	_cgi = cgi;
 	_host = ft_inet_addr(_config["main"]["host"]);
-	_host_s.s_addr = _host;
 	_server_name = _config["main"]["server_name"];
 	_root = _config["main"]["root"];
 	_index = _config["main"]["index"];

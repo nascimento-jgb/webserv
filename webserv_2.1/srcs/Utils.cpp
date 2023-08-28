@@ -15,7 +15,7 @@
 int	ft_stoi(std::string str)
 {
 	std::istringstream	ss;
-	int					res;	
+	int					res;
 
 	for (size_t i = 0; i < str.length(); ++i)
 	{
@@ -72,28 +72,28 @@ in_addr_t	ft_inet_addr(std::string const &ip)
 		switch (i)
 		{
 			case 0:
-			{	
+			{
 				iss >> first;
 				if (iss.fail() == true || first > 255)
 					return (0);
 				break;
 			}
 			case 1:
-			{	
+			{
 				iss >> second;
 				if (iss.fail() == true || second > 255)
 					return (0);
 				break;
 			}
 			case 2:
-			{	
+			{
 				iss >> third;
 				if (iss.fail() == true || third > 255)
 					return (0);
 				break;
 			}
 			case 3:
-			{	
+			{
 				iss >> fourth;
 				if (iss.fail() == true || fourth > 255)
 					return (0);
@@ -107,7 +107,7 @@ in_addr_t	ft_inet_addr(std::string const &ip)
 	return (fourth << 24 | third << 16 | second << 8 | first);
 }
 
-const char	*ft_inet_ntop(int af, const struct in_addr &addr, char *dst, socklen_t size)
+const char	*ft_inet_ntop(int af, const in_addr_t &addr, char *dst, socklen_t size)
 {
 	std::stringstream	ss;
 	unsigned int		first;
@@ -117,10 +117,10 @@ const char	*ft_inet_ntop(int af, const struct in_addr &addr, char *dst, socklen_
 
 	if (af != AF_INET)
 		return (NULL);
-	first = (addr.s_addr & 255);
-	second = ((addr.s_addr >> 8) & 255);
-	third = ((addr.s_addr >> 16) & 255);
-	fourth = ((addr.s_addr) >> 24);
+	first = (addr & 255);
+	second = ((addr >> 8) & 255);
+	third = ((addr >> 16) & 255);
+	fourth = (addr >> 24);
 	ss << first << "." << second << "." << third << "." << fourth;
 	if (ss.fail() == true)
 		return (NULL);

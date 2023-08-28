@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/22 12:42:37 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/26 10:08:29 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/28 11:37:02 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ ServerManager::~ServerManager() {}
 //PUBLIC METHODS
 void	ServerManager::setupServers(std::vector<mainmap> &servers, std::vector<size_t> &serversPorts, std::vector<submap> &cgis)
 {
-	char							bufffer[INET_ADDRSTRLEN];
+	char							buffer[INET_ADDRSTRLEN];
 	std::vector<size_t>::iterator	it_ports;
 	std::vector<submap>::iterator	it_cgi;
 
@@ -36,7 +36,7 @@ void	ServerManager::setupServers(std::vector<mainmap> &servers, std::vector<size
 		Server	temp;
 
 		temp.setupServer((*it), (*it_ports), (*it_cgi));
-		std::cout << "Server initialized as - Name: "<< temp.getServerName() << " Host: " << inet_ntop(AF_INET, &temp.getHost(), bufffer, INET_ADDRSTRLEN) <<
+		std::cout << "Server initialized as - Name: "<< temp.getServerName() << " Host: " << ft_inet_ntop(AF_INET, temp.getHost(), buffer, INET_ADDRSTRLEN) <<
 		" Port: " << temp.getPort() << std::endl;
 		_serversClass.push_back(temp);
 		it_ports++;
@@ -116,7 +116,7 @@ void	ServerManager::acceptNewConnection(Server &server)
 		std::cout << "webserv: accept new connection error " << strerror(errno) << std::endl;
 		return ;
 	}
-	std::cout << "New connection from " << inet_ntop(AF_INET, &client_address, buffer, INET_ADDRSTRLEN) << " assigned socket " << client_socket << std::endl;
+	std::cout << "New connection from " << ft_inet_ntop(AF_INET, client_address.sin_addr.s_addr, buffer, INET_ADDRSTRLEN) << " assigned socket " << client_socket << std::endl;
 
 	addToSet(client_socket, _fd_pool);
 
@@ -232,15 +232,15 @@ void	ServerManager::readRequest(const int &fd, Client &client)
 	{
 		assignServerConfig(client);
 		std::cout << "Request Recived From Socket " << fd << ", Method=<" << client.request.getMethod() << ">  URI=<" << client.request.getPath() << ">." << std::endl;
-		client.response.makeResponse(client.request, fd);
 
-		// if (client.response.getCgiState())
+		// if (client.request.getCgiState())
 		// {
-		// 	handleReqBody(client);
-		// 	addToSet(c.response._cgi_obj.pipe_in[1],  _write_fd_pool);
-		// 	addToSet(c.response._cgi_obj.pipe_out[0],  _recv_fd_pool);
+			// client.response.makeCgiResponse(client.request, fd);
+			// addToSet(c.response._cgi_obj.pipe_in[1],  _fd_pool);
 		// }
+		// else
 		//STILL NEED TO WORK IN THE CGI RESPONSE
+		client.response.makeResponse(client.request, fd);
 		client.request.setRequestStatus(WRITE);
 	}
 }
