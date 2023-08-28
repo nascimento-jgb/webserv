@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/04 17:14:34 by corellan          #+#    #+#             */
-/*   Updated: 2023/08/24 14:40:00 by corellan         ###   ########.fr       */
+/*   Updated: 2023/08/25 16:50:01 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,9 @@ std::vector<mainmap>	&ConfigurationFile::getVectorConfFile(void)
 void	ConfigurationFile::initializeConfFile(int ac, char **av)
 {
 	std::string	temp;
+	int			i;
 
+	i = 0;
 	if (ac == 1)
 		temp = "configuration/default.conf";
 	else
@@ -146,13 +148,13 @@ int	ConfigurationFile::_fillIterators(void)
 	flag_trash = 0;
 	while (parsedFile_it != _parsedFile.end() && flag_trash == 0)
 	{
-		if (!(_findPosChar((*parsedFile_it), '#', (*parsedFile_it).size()) - (_empty_spaces(*parsedFile_it))))
+		if (!(findPosChar((*parsedFile_it), '#', (*parsedFile_it).size()) - (_empty_spaces(*parsedFile_it))))
 		{
 			parsedFile_it++;
 			continue ;
 		}
 		temp.clear();
-		temp = (*parsedFile_it).substr(0, _findPosChar((*parsedFile_it), '#', ((*parsedFile_it).size())));
+		temp = (*parsedFile_it).substr(0, findPosChar((*parsedFile_it), '#', ((*parsedFile_it).size())));
 		if (temp.find("server") != std::string::npos)
 			break ;
 		parsedFile_it++;
@@ -163,7 +165,7 @@ int	ConfigurationFile::_fillIterators(void)
 	while (parsedFile_it != _parsedFile.end())
 	{
 		temp.clear();
-		temp = (*parsedFile_it).substr(0, _findPosChar((*parsedFile_it), '#', ((*parsedFile_it).size())));
+		temp = (*parsedFile_it).substr(0, findPosChar((*parsedFile_it), '#', ((*parsedFile_it).size())));
 		if (temp.find("server") != std::string::npos)
 		{
 			if (flag_in == 0)
@@ -205,9 +207,9 @@ int	ConfigurationFile::_findIdentation(iter first, iter second)
 	while (it_begin != second)
 	{
 		size = (*it_begin).size();
-		if ((*it_begin).substr(0, _findPosChar((*it_begin), '#', size)).find("{") != std::string::npos)
+		if ((*it_begin).substr(0, findPosChar((*it_begin), '#', size)).find("{") != std::string::npos)
 		{
-			temp.append((*it_begin).substr(0, _findPosChar((*it_begin), '#', size)));
+			temp.append((*it_begin).substr(0, findPosChar((*it_begin), '#', size)));
 			break ;
 		}
 		if ((_empty_spaces((*it_begin)) != size) && (counter > 0))
@@ -216,7 +218,7 @@ int	ConfigurationFile::_findIdentation(iter first, iter second)
 			break ;
 		}
 		counter++;
-		temp.append((*it_begin).substr(0, _findPosChar((*it_begin), '#', size)));
+		temp.append((*it_begin).substr(0, findPosChar((*it_begin), '#', size)));
 		it_begin++;
 	}
 	if (flag == 1 || it_begin == it_end || _checkHeader(temp) == false)
@@ -225,7 +227,7 @@ int	ConfigurationFile::_findIdentation(iter first, iter second)
 	while (it_end != first)
 	{
 		size = (*it_end).size();
-		if (!(_findPosChar((*it_end), '#', size) - (_empty_spaces(*it_end))))
+		if (!(findPosChar((*it_end), '#', size) - (_empty_spaces(*it_end))))
 		{
 			it_end--;
 			continue ;
@@ -235,7 +237,7 @@ int	ConfigurationFile::_findIdentation(iter first, iter second)
 			it_end--;
 			continue ;
 		}
-		if ((*it_end).substr(0, _findPosChar((*it_end), '#', size)).find("}") != std::string::npos)
+		if ((*it_end).substr(0, findPosChar((*it_end), '#', size)).find("}") != std::string::npos)
 			break ;
 		else
 			return (-1);
@@ -264,7 +266,7 @@ bool	ConfigurationFile::_checkHeader(std::string &input)
 
 	empty = _empty_spaces(input);
 	input = input.substr(empty);
-	bracket = _findPosChar(input, '{', input.size());
+	bracket = findPosChar(input, '{', input.size());
 	input = input.substr(0, bracket);
 	words = _countWords(input);
 	if (words > 1)
@@ -291,7 +293,7 @@ bool	ConfigurationFile::_correctIdentation(iter first, iter second)
 	while (it != second)
 	{
 		i = 0;
-		if (_findEmptySeccion((*it), left, right, _findPosChar((*it), '#', (*it).size())) == true)
+		if (_findEmptySeccion((*it), left, right, findPosChar((*it), '#', (*it).size())) == true)
 			return (false);
 		while ((*it)[i] != '\0')
 		{
@@ -318,19 +320,6 @@ bool	ConfigurationFile::_correctIdentation(iter first, iter second)
 	if (counter != 0)
 		return (false);
 	return (true);
-}
-
-size_t	ConfigurationFile::_findPosChar(std::string const &input, char c, size_t n)
-{
-	size_t		i;
-	std::string	temp;
-
-	temp = input.substr(0, n);
-	if (temp.find(c) != std::string::npos)
-		i = temp.find(c);
-	else
-		i = temp.size();
-	return (i);
 }
 
 bool	ConfigurationFile::_findEmptySeccion(std::string const &input, int &left, int &right, size_t const &size)
@@ -371,18 +360,18 @@ int	ConfigurationFile::_fillMap(iter first, iter second)
 	openBracket = 0;
 	key.clear();
 	subkeys.clear();
-	size = _findPosChar((*first), '#', (*first).size());
-	while ((it != second) && (_findPosChar((*it), '{', size) == size))
+	size = findPosChar((*first), '#', (*first).size());
+	while ((it != second) && (findPosChar((*it), '{', size) == size))
 	{
 		it++;
 		if ((it != second))
-			size = _findPosChar((*it), '#', (*it).size());
+			size = findPosChar((*it), '#', (*it).size());
 	}
-	line_position = _findPosChar((*it), '{', size);
+	line_position = findPosChar((*it), '{', size);
 	line_position++;
 	while (it != second)
 	{
-		size = _findPosChar((*it), '#', (*it).size());
+		size = findPosChar((*it), '#', (*it).size());
 		if (line_position >= size)
 		{
 			if ((*it)[line_position] == '{')
@@ -424,7 +413,7 @@ int	ConfigurationFile::_fillMap(iter first, iter second)
 			continue ;
 		if (openBracket == 0)
 		{
-			key.append((*it).substr(line_position, _findPosChar((*it).substr(line_position), '{', (size - line_position))));
+			key.append((*it).substr(line_position, findPosChar((*it).substr(line_position), '{', (size - line_position))));
 			if (((*it).substr(line_position, size).find("{") == std::string::npos))
 			{
 				key.push_back(' ');
@@ -434,14 +423,14 @@ int	ConfigurationFile::_fillMap(iter first, iter second)
 			}
 			else
 			{
-				line_position = (_findPosChar((*it).substr(line_position), '{', (size - line_position)) + (line_position));
+				line_position = (findPosChar((*it).substr(line_position), '{', (size - line_position)) + (line_position));
 				continue ;
 			}
 		}
 		else
 		{
-			subkeys.append((*it).substr(line_position, _findPosChar((*it).substr(line_position), '}', (size - line_position))));
-			if ((size - line_position) == _findPosChar((*it).substr(line_position), '}', size))
+			subkeys.append((*it).substr(line_position, findPosChar((*it).substr(line_position), '}', (size - line_position))));
+			if ((size - line_position) == findPosChar((*it).substr(line_position), '}', size))
 			{
 				subkeys.push_back(' ');
 				line_position = 0;
@@ -450,7 +439,7 @@ int	ConfigurationFile::_fillMap(iter first, iter second)
 			}
 			else
 			{
-				line_position = (_findPosChar((*it).substr(line_position), '}', (size - line_position)) + (line_position));
+				line_position = (findPosChar((*it).substr(line_position), '}', (size - line_position)) + (line_position));
 				continue ;
 			}
 		}
@@ -493,26 +482,26 @@ int	ConfigurationFile::_fillKeys(std::string &key, std::string &subkeys)
 		return (-1);
 	else if (words_key == 2)
 	{
-		pos_sc = _findPosChar(key, ' ', key.size());
-		if (_findPosChar(key, '\t', key.size()) < pos_sc)
-			pos_sc = _findPosChar(key, '\t', key.size());
+		pos_sc = findPosChar(key, ' ', key.size());
+		if (findPosChar(key, '\t', key.size()) < pos_sc)
+			pos_sc = findPosChar(key, '\t', key.size());
 		if (key.substr(0, pos_sc).compare("location"))
 			return (-1);
 		key = key.substr(8, key.size());
 		spaces = _empty_spaces(key);
 		key = key.substr(spaces);
-		pos_sc = _findPosChar(key, ' ', key.size());
-		if (_findPosChar(key, '\t', key.size()) < pos_sc)
-			pos_sc = _findPosChar(key, '\t', key.size());
+		pos_sc = findPosChar(key, ' ', key.size());
+		if (findPosChar(key, '\t', key.size()) < pos_sc)
+			pos_sc = findPosChar(key, '\t', key.size());
 		key = key.substr(0, pos_sc);
 		if (key[0] != '/')
 			return (-1);
 	}
 	else
 	{
-		pos_sc = _findPosChar(key, ' ', key.size());
-		if (_findPosChar(key, '\t', key.size()) < pos_sc)
-			pos_sc = _findPosChar(key, '\t', key.size());
+		pos_sc = findPosChar(key, ' ', key.size());
+		if (findPosChar(key, '\t', key.size()) < pos_sc)
+			pos_sc = findPosChar(key, '\t', key.size());
 		if (key.substr(0, pos_sc).compare("main"))
 			return (-1);
 		key.clear();
@@ -524,11 +513,11 @@ int	ConfigurationFile::_fillKeys(std::string &key, std::string &subkeys)
 		return (-1);
 	while (subkeys.find(';') != std::string::npos)
 	{
-		if (_countWords(subkeys.substr(0, _findPosChar(subkeys, ';', subkeys.size()))) < 2)
+		if (_countWords(subkeys.substr(0, findPosChar(subkeys, ';', subkeys.size()))) < 2)
 			return (-1);
-		pos_sc = _findPosChar(subkeys, ' ', subkeys.size());
-		if (_findPosChar(subkeys, '\t', subkeys.size()) < pos_sc)
-			pos_sc = _findPosChar(subkeys, '\t', subkeys.size());
+		pos_sc = findPosChar(subkeys, ' ', subkeys.size());
+		if (findPosChar(subkeys, '\t', subkeys.size()) < pos_sc)
+			pos_sc = findPosChar(subkeys, '\t', subkeys.size());
 		subkey_rec.clear();
 		subkey_rec = subkeys.substr(0, pos_sc);
 		if (_tempMap[key].find(subkey_rec) != _tempMap[key].end())
@@ -536,9 +525,9 @@ int	ConfigurationFile::_fillKeys(std::string &key, std::string &subkeys)
 		subkeys = subkeys.substr(pos_sc);
 		subkeys = subkeys.substr(_empty_spaces(subkeys));
 		value.clear();
-		value = subkeys.substr(0, _findPosChar(subkeys, ';', subkeys.size()));
+		value = subkeys.substr(0, findPosChar(subkeys, ';', subkeys.size()));
 		_tempMap[key][subkey_rec] = value;
-		subkeys = subkeys.substr((_findPosChar(subkeys, ';', subkeys.size()) + 1));
+		subkeys = subkeys.substr((findPosChar(subkeys, ';', subkeys.size()) + 1));
 		subkeys = subkeys.substr(_empty_spaces(subkeys));
 	}
 	if (_countWords(subkeys) != 0)
@@ -625,27 +614,6 @@ int	ConfigurationFile::_checkKeys(std::string const &name, submap seccion)
 	return (0);
 }
 
-std::vector<std::string>	ConfigurationFile::_splitcplusplus(std::string const &input)
-{
-	std::vector<std::string>	split;
-	std::string					temp;
-	size_t						words;
-	size_t						i;
-
-	temp = input;
-	words = _countWords(input);
-	i = 0;
-	while (i < words)
-	{
-		temp = temp.substr(_empty_spaces(temp));
-		split.push_back(temp.substr(0, _findPosChar(temp, ' ', temp.size())));
-		if ((i + 1) < words)
-			temp = temp.substr(_findPosChar(temp, ' ', temp.size()) + _empty_spaces(temp.substr(_findPosChar(temp, ' ', temp.size()))));
-		i++;
-	}
-	return (split);
-}
-
 int	ConfigurationFile::_checkAmmountValues(void)
 {
 	std::vector<std::string>			temp;
@@ -659,7 +627,7 @@ int	ConfigurationFile::_checkAmmountValues(void)
 				if (!it2->first.compare("allowed_methods"))
 				{
 					temp.clear();
-					temp = _splitcplusplus(it2->second);
+					temp = ft_split(it2->second, ' ');
 					for (iter it3 = temp.begin(); it3 != temp.end(); it3++)
 					{
 						if (it3->compare("GET") && it3->compare("POST") && it3->compare("DELETE") && it3->compare("PUT"))
@@ -749,8 +717,8 @@ int	ConfigurationFile::_findPaths(void)
 		}
 		split_ext.clear();
 		split_path.clear();
-		split_ext = _splitcplusplus((*it)["/cgi-bin"]["cgi_ext"]);
-		split_path = _splitcplusplus((*it)["/cgi-bin"]["cgi_path"]);
+		split_ext = ft_split((*it)["/cgi-bin"]["cgi_ext"], ' ');
+		split_path = ft_split((*it)["/cgi-bin"]["cgi_path"], ' ');
 		if (split_ext.size() != split_path.size())
 			return (1);
 		ext_it = split_ext.begin();
@@ -763,8 +731,8 @@ int	ConfigurationFile::_findPaths(void)
 				toSearch.append("python");
 			else if (!(*ext_it).compare(".php"))
 				toSearch.append("php");
-			else if (!(*ext_it).compare(".js"))
-				toSearch.append("node");
+			else if (!(*ext_it).compare(".rb"))
+				toSearch.append("ruby");
 			else if (!(*ext_it).compare(".sh"))
 				toSearch.append("bash");
 			else if (!(*ext_it).compare(".pl"))

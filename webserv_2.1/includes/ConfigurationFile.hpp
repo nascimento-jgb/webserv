@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/01 11:30:33 by corellan          #+#    #+#             */
-/*   Updated: 2023/08/24 14:39:13 by corellan         ###   ########.fr       */
+/*   Updated: 2023/08/25 16:34:28 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,6 @@ private:
 	int							_findIdentation(iter first, iter second);
 	size_t						_empty_spaces(std::string const &input);
 	bool						_correctIdentation(iter first, iter second);
-	size_t						_findPosChar(std::string const &input, char c, size_t n);
 	bool						_findEmptySeccion(std::string const &input, int &left, int &right, size_t const &size);
 	bool						_checkHeader(std::string &input);
 	int							_fillMap(iter first, iter second);
@@ -55,7 +54,6 @@ private:
 	int							_fillPorts(void);
 	int							_checkPorts(void);
 	int							_findPaths(void);
-	std::vector<std::string>	_splitcplusplus(std::string const &input);
 	int							_checkAccess(submap &keys);
 
 public:

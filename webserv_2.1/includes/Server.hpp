@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/25 09:54:01 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/25 09:54:11 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/25 15:07:05 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ class Server
 {
 	private:
 		struct sockaddr_in 			_server_address;
-
+		struct in_addr				_host_s;
 		uint16_t					_port;
 		in_addr_t					_host;
 		std::string					_server_name;
@@ -53,6 +53,7 @@ class Server
 		struct sockaddr_in const	&getServerAddress(void) const;
 		uint16_t const				&getPort(void) const;
 		in_addr_t const				&getHost(void) const;
+		in_addr const				&getHostS(void) const;
 		std::string const			&getServerName(void) const;
 		std::string const			&getRoot(void) const;
 		std::string const			&getIndex(void) const;
