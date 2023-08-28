@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/22 12:42:37 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/28 11:21:46 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/28 11:37:02 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ void	ServerManager::setupServers(std::vector<mainmap> &servers, std::vector<size
 		Server	temp;
 
 		temp.setupServer((*it), (*it_ports), (*it_cgi));
-		std::cout << "Server initialized as - Name: "<< temp.getServerName() << " Host: " << ft_inet_ntop(AF_INET, temp.getHostS(), buffer, INET_ADDRSTRLEN) <<
+		std::cout << "Server initialized as - Name: "<< temp.getServerName() << " Host: " << ft_inet_ntop(AF_INET, temp.getHost(), buffer, INET_ADDRSTRLEN) <<
 		" Port: " << temp.getPort() << std::endl;
 		_serversClass.push_back(temp);
 		it_ports++;
@@ -116,7 +116,7 @@ void	ServerManager::acceptNewConnection(Server &server)
 		std::cout << "webserv: accept new connection error " << strerror(errno) << std::endl;
 		return ;
 	}
-	std::cout << "New connection from " << inet_ntop(AF_INET, &client_address, buffer, INET_ADDRSTRLEN) << " assigned socket " << client_socket << std::endl;
+	std::cout << "New connection from " << ft_inet_ntop(AF_INET, client_address.sin_addr.s_addr, buffer, INET_ADDRSTRLEN) << " assigned socket " << client_socket << std::endl;
 
 	addToSet(client_socket, _fd_pool);
 
