@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 10:08:01 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/25 09:56:32 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/29 07:15:32 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,9 +17,9 @@ Client::Client() {}
 
 Client::~Client() {}
 
-Client::Client(Server &server) : _last_msg_time(time(NULL))
+Client::Client(Server &server_from_map) : _last_msg_time(time(NULL))
 {
-	setServer(server);
+	this->server = server_from_map;
 	request.setBodySize(server.getMaxBodySize());
 }
 

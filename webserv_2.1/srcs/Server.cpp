@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 13:06:16 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/28 11:38:05 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/29 06:57:09 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,11 +36,11 @@ Server::Server(const Server &other)
 		this->_port = other._port;
 		this->_max_body_size = other._max_body_size;
 		this->_index = other._index;
-		// this->_error_pages = other._error_pages;
-		// this->_locations = other._locations;
 		this->_listen_fd = other._listen_fd;
 		this->_autoindex = other._autoindex;
 		this->_server_address = other._server_address;
+		this->_config =  other._config;
+		this->_cgi = other._cgi;
 	}
 	return ;
 }
@@ -55,11 +55,11 @@ Server &Server::operator=(const Server &other)
 		this->_port = other._port;
 		this->_max_body_size = other._max_body_size;
 		this->_index = other._index;
-		// this->_error_pages = other._error_pages;
-		// this->_locations = other._locations;
 		this->_listen_fd = other._listen_fd;
 		this->_autoindex = other._autoindex;
 		this->_server_address = other._server_address;
+		this->_config =  other._config;
+		this->_cgi = other._cgi;
 	}
 	return (*this);
 }

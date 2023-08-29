@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 09:36:40 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/25 09:48:31 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/29 07:06:47 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ class Client
 
 		//Canonical Form
 		Client();
-		Client(Server &server);
+		Client(Server &server_from_map);
 		~Client();
 		Client(Client const &other);
 		Client &operator=(Client const &other);

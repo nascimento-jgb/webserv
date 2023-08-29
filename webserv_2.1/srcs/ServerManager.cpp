@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/22 12:42:37 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/28 11:37:02 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/29 07:08:16 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,15 +102,15 @@ void ServerManager::initializeSets()
 }
 
 //During the first time after the select, we accept the incomming connection to the socket
-void	ServerManager::acceptNewConnection(Server &server)
+void	ServerManager::acceptNewConnection(Server &server_from_map)
 {
 	struct sockaddr_in	client_address;
 	long				client_address_size = sizeof(client_address);
 	int					client_socket;
-	Client				new_client(server);
+	Client				new_client(server_from_map);
 	char				buffer[INET_ADDRSTRLEN];
 
-	if ((client_socket = accept(server.getListenFd(), reinterpret_cast<struct sockaddr *>(&client_address),
+	if ((client_socket = accept(server_from_map.getListenFd(), reinterpret_cast<struct sockaddr *>(&client_address),
 	 reinterpret_cast<socklen_t*>(&client_address_size))) == -1)
 	{
 		std::cout << "webserv: accept new connection error " << strerror(errno) << std::endl;
