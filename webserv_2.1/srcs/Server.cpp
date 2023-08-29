@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 13:06:16 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/29 06:57:09 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/29 17:12:37 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -122,10 +122,10 @@ void	Server::setupServer(mainmap &config, size_t &port, submap &cgi)
 	_config = config;
 	_port = static_cast<uint16_t>(port);
 	_cgi = cgi;
-	_host = ft_inet_addr(_config["main"]["host"]);
-	_server_name = _config["main"]["server_name"];
-	_root = _config["main"]["root"];
-	_index = _config["main"]["index"];
+	_host = ft_inet_addr(_config.find("/")->second.find("host")->second);
+	_server_name = _config.find("/")->second.find("server_name")->second;
+	_root =  _config.find("/")->second.find("root")->second;
+	_index = _config.find("/")->second.find("index")->second;
 	try
 	{
 		if ((_listen_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
