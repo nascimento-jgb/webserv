@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/22 12:42:37 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/29 07:08:16 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/29 13:36:25 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -145,16 +145,14 @@ void	ServerManager::assignServerConfig(Client &client)
 				return ;
 			}
 	}
-	// client.clearClient();
+	client.clearClient();
 	return;
 }
 
 //COMMUNICATION OPERATIONS
 void	ServerManager::handleSocket(const int &fd, Client &client)
 {
-	// Get the status to determine whether the socket should be read from or written to
 	int state = client.request.getStatus();
-	// std::cout << "====================\nstate: " << state << "\n=======================" << std::endl;
 	switch (state)
 	{
 		case READ:
@@ -173,7 +171,7 @@ void	ServerManager::handleSocket(const int &fd, Client &client)
 void	ServerManager::readRequest(const int &fd, Client &client)
 {
 	char	buffer[MESSAGE_BUFFER+1];
-	int		bytes_read; //= read(fd, buffer, MESSAGE_BUFFER);
+	int		bytes_read;
 	int		tot_read = 0;
 	int		flag = 0;
 	std::string storage;
@@ -212,22 +210,6 @@ void	ServerManager::readRequest(const int &fd, Client &client)
 		}
 	}
 
-	// switch (bytes_read)
-	// {
-	// 	case 0:
-	// 		std::cout << "webserv: Client " << fd << " closed connection." << std::endl;
-	// 		closeConnection(fd);
-	// 		return ;
-	// 	case -1:
-	// 		std::cout << "webserv: Fd " << fd << " read error "<< strerror(errno) << "." << std::endl;
-	// 		closeConnection(fd);
-	// 		return ;
-	// 	default:
-	// 		client.updateTime();
-	// 		client.request.parseCreate(buffer, bytes_read, client.getClientSocket()); //REVIEW THIS LINE
-	// 		memset(buffer, 0, sizeof(buffer));
-	// }
-
 	if (client.request.getCode()) // Code initialize with 0 and changes according to the result of the request parsing
 	{
 		assignServerConfig(client);
@@ -247,11 +229,9 @@ void	ServerManager::readRequest(const int &fd, Client &client)
 
 void	ServerManager::writeToClient(const int &fd, Client &client)
 {
-	//theeeen we send to the motherfuckers the answer xD
 	send(fd, client.response.getResponseString().data(), client.response.getResponseString().size(), 0);
 	client.clearClient();
 	client.request.setRequestStatus(READ);
-
 }
 
 //FINALIZING
