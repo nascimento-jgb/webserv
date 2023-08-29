@@ -156,7 +156,7 @@ int	Request::_checkHeaders(std::string &key, std::string &value)
 /*Valid Char from RFC 3986 (Uniform Resource Identifier (URI): Generic Syntax)*/
 int Request::_validChar(int c)
 {
-	if(std::isalnum(c) || c == '-' || c == '.' || c == '_' || c == '~')
+	if(std::isalnum(c) || c == '-' || c == '.' || c == '_' || c == '~' || c == '/')
 		return (1);
 	return (0);
 }
@@ -177,6 +177,7 @@ int Request::_checkUri(std::string line)
 		i++;
 		while(line[i] && line[i] != ' ' && line[i] != '\t')
 		{
+			std::cout << line[i] << std::endl;
 			if(_validChar(line[i]))
 				_request_path += line[i];
 			else

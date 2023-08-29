@@ -117,13 +117,45 @@ void Response::makeResponse(Request& request, int write_socket)
 			+ request.ft_itoa(message.size()) + "\r\n\r\n" + message;
 
 	}
+	else if(request.getMethod() == DELETE)
+	{
+		std::cout << "path: " << request.getPath() << std::endl;
+		std::string path = request.getPath().substr(1, request.getPath().size());
+		std::cout << "path: " << path << std::endl;
+		
+		if (!fileExists(path.c_str()))
+        {
+            _responseCode = 204;
+			std::string message = "File not found";
+			_responseString = "HTTP/1.1 204 Not Found\r\nContent-Type: text/plain\r\nContent-Length: "
+				+ request.ft_itoa(message.size()) + "\r\nServer: JLC\r\n\r\n" + message;
+            return ;
+        }
+		std::cout << "  2 " << std::endl;
+        if (remove(path.c_str()) != 0 )
+        {
+            _responseCode = 500;
+			std::string message = "cant remove this file";
+			_responseString = "HTTP/1.1 500 Not Removable\r\nContent-Type: text/plain\r\nContent-Length: "
+				+ request.ft_itoa(message.size()) + "\r\nServer: JLC\r\n\r\n" + message;
+            return ;
+        }
+		std::cout << "  3 " << std::endl;
+		std::string message = "Delete done";
+			_responseString = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: "
+				+ request.ft_itoa(message.size()) + "\r\nServer: JLC\r\n\r\n" + message;
+	}
 	return ;
 }
+bool Response::fileExists (const std::string& f)
+{
+    std::ifstream file(f.c_str());
+    return (file.good());
+}
+
 
 void Response::_saveImageToFile(const std::string& filename, const std::string& imageData)
 {
-	if (access(filename.c_str(), F_OK) != -1)
-		printResponseErrorMsg("File already exists", 409);
 	std::ofstream file(filename.c_str(), std::ios::binary);
 	if (file)
 	{

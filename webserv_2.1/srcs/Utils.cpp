@@ -187,3 +187,6 @@ std::vector<std::string>	ft_split(std::string const &input, char c)
 	}
 	return (split);
 }
+
+
+

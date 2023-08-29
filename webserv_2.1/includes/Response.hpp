@@ -38,6 +38,7 @@ class Response
 		void				makeResponse(Request &request, int write_socket);
 		void 				_saveImageToFile(const std::string& filename, const std::string& imageData);
 		void 				clearResponse();
+		bool				fileExists (const std::string& f);
 
 		std::string const	getResponseString(void) const;
 };
