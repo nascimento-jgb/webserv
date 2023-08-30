@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/25 10:24:25 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/26 10:24:46 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/29 18:06:11 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -238,7 +238,38 @@ HttpMethod Request::_checkMethod(std::string line)
 	}
 }
 
-void Request::parseCreate(std::string buffer, int size, mainmap &config)
+void	Request::_findLocationMap(mainmap &config)
+{
+	std::string			temp;
+	mainmap::iterator	it;
+
+	temp = _request_path;
+	while (1)
+	{
+		it = config.find(temp);
+		if (it != config.end()) //If the request_path matches with one of the locations, we break the while loop and we assign the temp string to _location. If we don't find the key, we trim temp until we find the next /
+			break ;
+		else
+			_trimString(temp);
+	}
+	_location = temp;
+	return ;
+}
+
+void	Request::_trimString(std::string &temp)
+{
+	size_t	index;
+
+	if (temp.size() == 1)
+		return ;
+	index = (temp.size() - 1);
+	while (index > 1 && temp[index] != '/') //The reason that why index must be more than one it's because I am assuming that the first character must be a / character.
+		index--;
+	temp = temp.substr(0, index);
+	return ;
+}
+
+void	Request::parseCreate(std::string buffer, int size, mainmap &config)
 {
 	std::cout << "fileuplaod: " << _fileUpload << ", BodyType: " << _bodyType << std::endl;
 	if(_bodyType == CHUNKED)
@@ -262,7 +293,8 @@ void Request::parseCreate(std::string buffer, int size, mainmap &config)
 	//saves the request.
 	std::getline(iss, line);
 	_httpmethod = _checkMethod(line);
-	std::cout << "=======\nConfig path and Info: " << _request_path << " : [" << config[_request_path]["allowed_methods"] << "]\n=======" << std::endl;
+	_findLocationMap(config);
+	std::cout << "=======\nConfig path and Info: " << _location << " : [" << config.find(_location)->second.find("allowed_methods")->second << "]\n=======" << std::endl;
 
 	//goes trough each headerline
 	while (std::getline(iss, line))

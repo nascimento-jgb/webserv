@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:59:33 by leklund           #+#    #+#             */
-/*   Updated: 2023/08/25 10:25:10 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/29 17:36:04 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,7 @@ class Request
 		std::string		_request_path;
 		std::string		_query;
 		std::string		_filename;
+		std::string		_location;
 		HttpMethod		_httpmethod;
 		BodyType		_bodyType;
 		size_t			_header_max_body_len;
@@ -71,7 +72,8 @@ class Request
 		void			_printRequestErrorMsg(std::string msg, int error_code);
 		BodyType		_checkBodyType();
 		HttpMethod		_checkMethod(std::string line);
-
+		void			_findLocationMap(mainmap &config);
+		void			_trimString(std::string &temp);
 		std::string 	_removeBoundary(std::string &body, std::string &boundary);
 		void			_plainBodySave(int body_size);
 		void 			_chunkedBodySave(int body_size);

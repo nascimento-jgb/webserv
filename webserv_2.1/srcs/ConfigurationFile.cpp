@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/04 17:14:34 by corellan          #+#    #+#             */
-/*   Updated: 2023/08/25 16:50:01 by corellan         ###   ########.fr       */
+/*   Updated: 2023/08/28 23:03:55 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,9 +31,7 @@ std::vector<mainmap>	&ConfigurationFile::getVectorConfFile(void)
 void	ConfigurationFile::initializeConfFile(int ac, char **av)
 {
 	std::string	temp;
-	int			i;
 
-	i = 0;
 	if (ac == 1)
 		temp = "configuration/default.conf";
 	else
@@ -110,7 +108,7 @@ int	ConfigurationFile::_checkInputConfFile(void)
 			return (1);
 		if (_fillMap((*it).first, ((*it).second)) == -1)
 			return (1);
-		if (_tempMap.find("main") == _tempMap.end())
+		if (_tempMap.find("/") == _tempMap.end())
 			return (1);
 		for (mainmap::iterator it = _tempMap.begin(); it != _tempMap.end(); it++)
 		{
@@ -494,7 +492,7 @@ int	ConfigurationFile::_fillKeys(std::string &key, std::string &subkeys)
 		if (findPosChar(key, '\t', key.size()) < pos_sc)
 			pos_sc = findPosChar(key, '\t', key.size());
 		key = key.substr(0, pos_sc);
-		if (key[0] != '/')
+		if (key[0] != '/' || !key.compare("/"))
 			return (-1);
 	}
 	else
@@ -505,7 +503,7 @@ int	ConfigurationFile::_fillKeys(std::string &key, std::string &subkeys)
 		if (key.substr(0, pos_sc).compare("main"))
 			return (-1);
 		key.clear();
-		key = "main";
+		key = "/";
 	}
 	if (_tempMap.find(key) != _tempMap.end())
 		return (-1);
@@ -540,14 +538,14 @@ void	ConfigurationFile::_setupMandatory(std::string const &superkey)
 	mainmap::iterator	it;
 
 	it = _tempMap.find(superkey);
-	if (!superkey.compare("main"))
+	if (!superkey.compare("/"))
 	{
 		if (it->second.find("listen") == it->second.end() || !it->second["listen"].compare("default"))
-			_tempMap["main"]["listen"] = "8080";
+			_tempMap["/"]["listen"] = "8080";
 		if (it->second.find("host") == it->second.end() || !it->second["host"].compare("default") || !it->second["host"].compare("localhost"))
-			_tempMap["main"]["host"] = "127.0.0.1";
+			_tempMap["/"]["host"] = "127.0.0.1";
 		if (it->second.find("server_name") == it->second.end() || !it->second["server_name"].compare("default"))
-			_tempMap["main"]["server_name"] = "Webserv_JLC";
+			_tempMap["/"]["server_name"] = "Webserv_JLC";
 	}
 	if (!superkey.compare("/cgi-bin"))
 	{
@@ -582,7 +580,7 @@ int	ConfigurationFile::_checkKeys(std::string const &name, submap seccion)
 	submap::iterator			it_map;
 	iter						it_vector;
 
-	if (!name.compare("main"))
+	if (!name.compare("/"))
 	{
 		keys.push_back("listen");
 		keys.push_back("host");
@@ -653,15 +651,15 @@ int	ConfigurationFile::_fillPorts(void)
 	{
 		iss.clear();
 		i = 0;
-		while (i < (*it)["main"]["listen"].size())
+		while (i < (*it)["/"]["listen"].size())
 		{
-			if (!std::isdigit((*it)["main"]["listen"][i]))
+			if (!std::isdigit((*it)["/"]["listen"][i]))
 				break;
 			i++;
 		}
-		if (i != (*it)["main"]["listen"].size())
+		if (i != (*it)["/"]["listen"].size())
 			return (-1);
-		iss.str((*it)["main"]["listen"]);
+		iss.str((*it)["/"]["listen"]);
 		iss >> temp;
 		if (iss.fail() == true || temp > static_cast<size_t>(65535))
 			return (-1);
