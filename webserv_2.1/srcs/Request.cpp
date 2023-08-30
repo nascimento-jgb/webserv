@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/25 10:24:25 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/29 18:06:11 by corellan         ###   ########.fr       */
+/*   Updated: 2023/08/30 12:53:07 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -269,7 +269,7 @@ void	Request::_trimString(std::string &temp)
 	return ;
 }
 
-void	Request::parseCreate(std::string buffer, int size, mainmap &config)
+void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap &cgi)
 {
 	std::cout << "fileuplaod: " << _fileUpload << ", BodyType: " << _bodyType << std::endl;
 	if(_bodyType == CHUNKED)
@@ -293,8 +293,12 @@ void	Request::parseCreate(std::string buffer, int size, mainmap &config)
 	//saves the request.
 	std::getline(iss, line);
 	_httpmethod = _checkMethod(line);
+	_configMap.clear();
+	_cgiMap.clear();
+	_cgiMap = cgi;
 	_findLocationMap(config);
-	std::cout << "=======\nConfig path and Info: " << _location << " : [" << config.find(_location)->second.find("allowed_methods")->second << "]\n=======" << std::endl;
+	_configMap = config.find(_location)->second;
+	std::cout << "=======\nConfig path and Info: " << _location << " : [" << _configMap.find("allowed_methods")->second << "]\n=======" << std::endl;
 
 	//goes trough each headerline
 	while (std::getline(iss, line))
@@ -559,6 +563,31 @@ std::string	Request::getQuery()
 std::string	Request::getPath()
 {
 	return(_request_path);
+}
+
+std::string	Request::getLocation() const
+{
+	return (_location);
+}
+
+const submap	Request::getConfigMap() const
+{
+	return (_configMap);
+}
+
+submap	Request::getConfigMap()
+{
+	return (_configMap);
+}
+
+const submap	Request::getCgiMap() const
+{
+	return (_cgiMap);
+}
+
+submap	Request::getCgiMap()
+{
+	return (_cgiMap);
 }
 
 std::string Request::getHeader(std::string header)

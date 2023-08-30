@@ -11,6 +11,7 @@ SRC = Client.cpp \
 	Server.cpp \
 	ServerManager.cpp \
 	Utils.cpp \
+	CgiHandler.cpp \
 	main.cpp
 
 OBJ_DIR = obj/

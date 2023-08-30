@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:59:33 by leklund           #+#    #+#             */
-/*   Updated: 2023/08/29 17:36:04 by corellan         ###   ########.fr       */
+/*   Updated: 2023/08/30 12:51:06 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,6 +60,8 @@ class Request
 		RequestStatus	_requestStatus;
 
 		std::map<std::string, std::string>	HTTPMap;
+		submap								_configMap;
+		submap								_cgiMap;
 		std::vector<u_int8_t>				_body;
 
 		int				_checkValidBodySize(int max_len);
@@ -84,7 +86,7 @@ class Request
 		Request(Request const &other);
 		Request &operator=(Request const &other);
 
-		void			parseCreate(std::string buffer, int valread, mainmap &config);
+		void			parseCreate(std::string buffer, int valread, mainmap &config, submap &cgi);
 
 		void			setBodySize(size_t maxBodySizeFromConfigFile);
 		void			setRequestStatus(RequestStatus updatedStatus);
@@ -97,9 +99,14 @@ class Request
 		std::string		getFileName();
 		HttpMethod		getMethod();
 		std::string		getPath();
+		std::string		getLocation() const;
 		std::string		getQuery();
 		std::string		getHeader(std::string header);
 		RequestStatus	getStatus();
+		const submap	getConfigMap() const;
+		submap			getConfigMap();
+		const submap	getCgiMap() const;
+		submap			getCgiMap();
 
 		void			clearRequest();
 		std::string		ft_itoa(int integer);

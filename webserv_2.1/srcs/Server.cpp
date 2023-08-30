@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 13:06:16 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/29 17:12:37 by corellan         ###   ########.fr       */
+/*   Updated: 2023/08/30 12:06:04 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,6 +115,11 @@ int	Server::getListenFd(void)
 mainmap		&Server::getConfigMap(void)
 {
 	return(_config);
+}
+
+submap		&Server::getCgiMap(void)
+{
+	return (_cgi);
 }
 
 void	Server::setupServer(mainmap &config, size_t &port, submap &cgi)
