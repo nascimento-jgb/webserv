@@ -73,13 +73,12 @@ void Response::makeResponse(Request& request, int write_socket)
 			_responseString = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: "
 				+ request.ft_itoa(message.size()) + "\r\nServer: JLC\r\nDate: " + buffer + "\r\n\r\n" + message;
 		}
-		// else if(request.getPath() == "/favicon.ico")
-		// 	return ;
 		else if(!request.getPath().compare(0,1, "/"))
 		{
-			// std::cout << "THERE is a path\n";
-			std::ifstream file(request.getPath().substr(1,request.getPath().length() - 1).c_str());
-			if(!file)
+			std::string path = request.getPath().substr(1,request.getPath().length() - 1).c_str();
+			std::cout << "THERE is a path: " << path << std::endl;
+			std::ifstream file(path);
+			if(file.bad())
 			{
 				// std::cout << "Failed to open file\n";
 				printResponseErrorMsg("File not found", 404);
@@ -94,10 +93,10 @@ void Response::makeResponse(Request& request, int write_socket)
 
 				buffer << file.rdbuf();
 				std::string fileContents = buffer.str();
-				// std::cout << "File contents: " << fileContents << '\n';\r\nContent-Type: text/html
+				// std::cout << "File contents: " << fileContents << std::endl;
 				_responseString = "HTTP/1.1 200 OK";
 				_responseString.append("\r\nContent-Type: ");
-				_responseString.append(mimes.getMimeType(request.getPath().substr(request.getPath().rfind(".", std::string::npos))));
+				_responseString.append(mimes.getMimeType(path));
 				_responseString.append("\r\nContent-Length: ");
 				_responseString.append(request.ft_itoa(fileContents.size()) + "\r\n\r\n" + fileContents);
 				file.close();

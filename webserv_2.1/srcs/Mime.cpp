@@ -23,8 +23,14 @@ Mime::~Mime()
 {
 }
 
-std::string Mime::getMimeType(std::string ending)
+std::string Mime::getMimeType(std::string path)
 {
+	if(path.empty())
+		return ("text/plain");
+	size_t int_tmp = path.rfind(".");
+	if (int_tmp == std::string::npos)
+		return ("text/plain");
+	std::string ending = path.substr(int_tmp);
 	std::map<std::string, std::string>::iterator it = _mime_types.find(ending);
 	if(it != _mime_types.end())
 		return (it->second);

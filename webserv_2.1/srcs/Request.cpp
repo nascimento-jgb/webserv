@@ -170,14 +170,12 @@ void Request::_validHttp(std::string line)
 int Request::_checkUri(std::string line)
 {
 	int i = 0;
-	// std::cout << line << std::endl;
 	if(!line.compare(0, 1, "/"))
 	{
 		_request_path += line[i];
 		i++;
 		while(line[i] && line[i] != ' ' && line[i] != '\t')
 		{
-			std::cout << line[i] << std::endl;
 			if(_validChar(line[i]))
 				_request_path += line[i];
 			else
