@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:34:03 by corellan          #+#    #+#             */
-/*   Updated: 2023/08/30 12:28:08 by corellan         ###   ########.fr       */
+/*   Updated: 2023/08/30 14:47:21 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,12 +37,15 @@ private:
 	int			_fd[2];
 	pid_t		_pid;
 	std::string	_output;
+	std::string	_extension;
 
 	CgiHandler(CgiHandler const &rhs);
 
 	CgiHandler	&operator=(CgiHandler &rhs);
 
 	int		_checkAccess(void);
+	int		_findPath(Request &request);
+	int		_trimString(std::string &temp);
 	int		_fillMap(Request &request);
 	char	**_getEnvInChar(void);
 	void	_deleteAllocFail(char **array);

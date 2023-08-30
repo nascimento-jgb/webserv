@@ -188,5 +188,18 @@ std::vector<std::string>	ft_split(std::string const &input, char c)
 	return (split);
 }
 
+void	trimString(std::string &temp, char c)
+{
+	size_t	index;
+
+	if (temp.size() == 1)
+		return ;
+	index = (temp.size() - 1);
+	while (index > 1 && temp[index] != c) //The reason that why index must be more than one it's because I am assuming that the first character must be a / character.
+		index--;
+	temp = temp.substr(0, index);
+	return ;
+}
+
 
 
