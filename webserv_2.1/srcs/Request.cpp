@@ -293,6 +293,7 @@ void	Request::parseCreate(std::string buffer, int size, mainmap &config)
 	//saves the request.
 	std::getline(iss, line);
 	_httpmethod = _checkMethod(line);
+
 	_findLocationMap(config);
 	std::cout << "=======\nConfig path and Info: " << _location << " : [" << config.find(_location)->second.find("allowed_methods")->second << "]\n=======" << std::endl;
 
