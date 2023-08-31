@@ -54,10 +54,9 @@ void Response::makeResponse(Request& request, int write_socket)
 	_responseCode = request.getCode();
 
 	(void)write_socket;
-	std::cout << "_responseCode: " << _responseCode << "Path-2: [" << request.getPath() << "]" << "method = " << request.getMethod() << std::endl;
 	if(_responseCode != 200)
 	{
-		printResponseErrorMsg("yoo this should not be checked here", 418);
+		_buildAndPrintErrorResponse("yoo this should not be checked here", 418);
 		return ;
 	}
 	if (!request.getLocation().compare("/cgi-bin"))
@@ -81,13 +80,11 @@ void Response::makeResponse(Request& request, int write_socket)
 	}
 	else if(request.getMethod() == GET)
 	{
-		// std::cout << "it is GET\n";Date: Sun, 30 Jul 2023 04:51:23 GMT\r\n
 		std::time_t	cur_time = std::time(NULL);
 		std::tm		*local_time = std::gmtime(&cur_time);
 		char buffer[80];
 
 		std::strftime(buffer, sizeof(buffer), "%a, %d %b %Y %H:%M:%S GMT", local_time);
-		std::cout << buffer << std::endl;
 		if(request.getPath() == "/")
 		{
 			std::string message = "This is your cool GET message!";
@@ -97,24 +94,18 @@ void Response::makeResponse(Request& request, int write_socket)
 		else if(!request.getPath().compare(0,1, "/"))
 		{
 			std::string path = request.getPath().substr(1,request.getPath().length() - 1).c_str();
-			std::cout << "THERE is a path: " << path << std::endl;
 			std::ifstream file(path);
 			if(file.bad())
 			{
-				// std::cout << "Failed to open file\n";
-				printResponseErrorMsg("File not found", 404);
-				std::string message = "File not found";
-				_responseString = "HTTP/1.1 404 NOT found\r\nContent-Type: text/plain\r\nContent-Length: "
-				+ request.ft_itoa(message.size()) + "\r\n\r\n" + message;
+				_buildAndPrintErrorResponse("File not found", 404);
+				return ;
 			}
 			else
 			{
-				Mime				mimes;
 				std::stringstream	buffer;
 
 				buffer << file.rdbuf();
 				std::string fileContents = buffer.str();
-				// std::cout << "File contents: " << fileContents << std::endl;
 				_responseString = "HTTP/1.1 200 OK";
 				_responseString.append("\r\nContent-Type: ");
 				_responseString.append(mimes.getMimeType(path));
@@ -128,20 +119,24 @@ void Response::makeResponse(Request& request, int write_socket)
 	{
 		if(request.isFileUpload())
 		{
-			_saveImageToFile(request.getFileName(), request.getImageData());
-			std::cout << "POST FILE" << std::endl;
+			if(mimes.getMimeType(request.getFileName()) == "text/html")
+			{
+				_buildAndPrintErrorResponse("Sorry we do not allow user to POST Html files", 400);
+				return ;
+			}
+			else
+			{
+				_saveImageToFile(request.getFileName(), request.getImageData());
+				std::cout << "POST FILE" << std::endl;
+			}
 		}
-		std::cout << "POST Response" << std::endl;
 		std::string message = "This is your cool POST message!";
 		_responseString = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: "
 			+ request.ft_itoa(message.size()) + "\r\n\r\n" + message;
-
 	}
 	else if(request.getMethod() == DELETE)
 	{
-		std::cout << "path: " << request.getPath() << std::endl;
 		std::string path = request.getPath().substr(1, request.getPath().size());
-		std::cout << "path: " << path << std::endl;
 		
 		if (!fileExists(path.c_str()))
         {
@@ -151,7 +146,6 @@ void Response::makeResponse(Request& request, int write_socket)
 				+ request.ft_itoa(message.size()) + "\r\nServer: JLC\r\n\r\n" + message;
             return ;
         }
-		std::cout << "  2 " << std::endl;
         if (remove(path.c_str()) != 0 )
         {
             _responseCode = 500;
@@ -160,7 +154,6 @@ void Response::makeResponse(Request& request, int write_socket)
 				+ request.ft_itoa(message.size()) + "\r\nServer: JLC\r\n\r\n" + message;
             return ;
         }
-		std::cout << "  3 " << std::endl;
 		std::string message = "Delete done";
 			_responseString = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: "
 				+ request.ft_itoa(message.size()) + "\r\nServer: JLC\r\n\r\n" + message;
@@ -204,11 +197,13 @@ void Response::clearResponse()
 	_responseCode = 0;
 }
 
-void	Response::printResponseErrorMsg(std::string msg, int error_code)
+
+void	Response::_buildAndPrintErrorResponse(std::string msg, int error_code)
 {
 	Error errors;
 
 	_responseCode = error_code;
 	std::cout << "\033[1;31m[" << error_code << "][" << errors.getErrorMsg(error_code) << "] " << msg << "\033[0m" << std::endl;
-	// throw(request::HttpRequestErrorException());
+	_responseString = "HTTP/1.1 " + ft_itoa(error_code) + " " + errors.getErrorMsg(error_code) + "\r\nContent-Type: text/plain\r\nContent-Length: "
+		+ ft_itoa(msg.size()) + "\r\nServer: JLC\r\n\r\n" + msg;
 }

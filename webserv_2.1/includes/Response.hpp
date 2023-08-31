@@ -28,6 +28,7 @@ class Response
 		std::string			_http_res;
 		std::string			_responseString;
 		int					_responseCode;
+		Mime				mimes;
 
 	public:
 		Response();
@@ -35,7 +36,7 @@ class Response
 		Response(Response const &other);
 		Response &operator=(Response const &other);
 
-		void				printResponseErrorMsg(std::string msg, int error_code);
+		void				_buildAndPrintErrorResponse(std::string msg, int error_code);
 		void				makeResponse(Request &request, int write_socket);
 		void 				_saveImageToFile(const std::string& filename, const std::string& imageData);
 		void 				clearResponse();

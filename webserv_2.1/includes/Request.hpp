@@ -35,7 +35,8 @@ enum	BodyType
 {
 	NONE,
 	PLAIN,
-	CHUNKED
+	CHUNKED,
+	INVALID
 };
 
 class Request
@@ -70,15 +71,15 @@ class Request
 		int 			_checkUri(std::string line);
 		int				_saveQuery(std::string line, int i);
 		void			_clearRequest();
-		void			_validHttp(std::string line);
-		void			_printRequestErrorMsg(std::string msg, int error_code);
+		int				_validHttp(std::string line);
+		int				_printRequestErrorMsg(std::string msg, int error_code);
 		BodyType		_checkBodyType();
 		HttpMethod		_checkMethod(std::string line);
 		void			_findLocationMap(mainmap &config);
 		void			_trimString(std::string &temp);
 		std::string 	_removeBoundary(std::string &body, std::string &boundary);
-		void			_plainBodySave(int body_size);
-		void 			_chunkedBodySave(int body_size);
+		int				_plainBodySave(int body_size);
+		int 			_chunkedBodySave(int body_size);
 		void 			_parseFileData();
 	public:
 		Request();
@@ -111,11 +112,11 @@ class Request
 		void			clearRequest();
 		std::string		ft_itoa(int integer);
 
-		class HttpRequestErrorException : public std::exception
-		{
-			public:
-				virtual const char *what() const throw();
-		};
+		// class HttpRequestErrorException : public std::exception
+		// {
+		// 	public:
+		// 		virtual const char *what() const throw();
+		// };
 };
 
 
