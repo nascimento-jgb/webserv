@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerManager.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/22 12:42:37 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/29 13:36:25 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/30 12:06:43 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -186,7 +186,7 @@ void	ServerManager::readRequest(const int &fd, Client &client)
 	if (flag)
 	{
 		client.updateTime();
-		client.request.parseCreate(storage, tot_read, client.server.getConfigMap());
+		client.request.parseCreate(storage, tot_read, client.server.getConfigMap(), client.server.getCgiMap());
 		memset(buffer, 0, sizeof(buffer));
 	}
 	else if (!bytes_read)

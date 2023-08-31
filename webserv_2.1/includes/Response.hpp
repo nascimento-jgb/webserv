@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:58:58 by leklund           #+#    #+#             */
-/*   Updated: 2023/08/25 10:24:54 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/30 12:34:10 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 # include "Webserver.hpp"
 # include "Request.hpp"
+# include "CgiHandler.hpp"
 # include "Mime.hpp"
 
 class Request;

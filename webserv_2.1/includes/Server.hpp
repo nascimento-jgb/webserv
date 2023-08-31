@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/25 09:54:01 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/28 11:37:02 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/30 12:05:27 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,6 +58,7 @@ class Server
 		unsigned long const			&getMaxBodySize(void) const;
 		bool const					&getAutoIndex(void) const;
 		mainmap						&getConfigMap(void);
+		submap						&getCgiMap(void);
 		int							getListenFd(void);
 
 		//Methods

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:58:47 by leklund           #+#    #+#             */
-/*   Updated: 2023/08/25 09:23:31 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/08/30 12:36:14 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,8 @@ Response &Response::operator=(Response const &other)
 
 void Response::makeResponse(Request& request, int write_socket)
 {
+	CgiHandler	cgi;
+
 	_responseCode = request.getCode();
 
 	(void)write_socket;
@@ -58,7 +60,26 @@ void Response::makeResponse(Request& request, int write_socket)
 		printResponseErrorMsg("yoo this should not be checked here", 418);
 		return ;
 	}
-	if(request.getMethod() == GET)
+	if (!request.getLocation().compare("/cgi-bin"))
+	{
+			std::string	message;
+			std::string	response;
+
+			if (cgi.cgiInitialization(request) == -1)
+			{
+				message = "Error executing CGI script";
+				std::string error = "HTTP/1.1 400 NOT OK\r\nContent-Type: text/plain\r\nContent-Length: " 
+				+ std::to_string(message.size()) + "\r\n\r\n" + message;
+				send(write_socket, error.data(), error.size(), 0);
+			}
+			else
+			{
+				message = cgi.fetchOutputCgi();
+				response = "HTTP/1.1 200 OK\r\n" + message;
+				send(write_socket, response.data(), response.size(), 0);
+			}
+	}
+	else if(request.getMethod() == GET)
 	{
 		// std::cout << "it is GET\n";Date: Sun, 30 Jul 2023 04:51:23 GMT\r\n
 		std::time_t	cur_time = std::time(NULL);
