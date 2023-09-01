@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/25 10:24:25 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/30 12:53:07 by corellan         ###   ########.fr       */
+/*   Updated: 2023/08/30 14:08:48 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -302,6 +302,7 @@ void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap 
 	_cgiMap.clear();
 	_cgiMap = cgi;
 	_findLocationMap(config);
+	_serverMap = config;
 	_configMap = config.find(_location)->second;
 	std::cout << "=======\nConfig path and Info: " << _location << " : [" << _configMap.find("allowed_methods")->second << "]\n=======" << std::endl;
 
@@ -541,6 +542,16 @@ std::string	Request::getPath()
 std::string	Request::getLocation() const
 {
 	return (_location);
+}
+
+const mainmap	Request::getServerMap() const
+{
+	return (_serverMap);
+}
+
+mainmap		Request::getServerMap()
+{
+	return (_serverMap);
 }
 
 const submap	Request::getConfigMap() const

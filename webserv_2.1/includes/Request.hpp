@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:59:33 by leklund           #+#    #+#             */
-/*   Updated: 2023/08/30 12:51:06 by corellan         ###   ########.fr       */
+/*   Updated: 2023/08/30 13:42:53 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,6 +61,7 @@ class Request
 		RequestStatus	_requestStatus;
 
 		std::map<std::string, std::string>	HTTPMap;
+		mainmap								_serverMap;
 		submap								_configMap;
 		submap								_cgiMap;
 		std::vector<u_int8_t>				_body;
@@ -104,6 +105,8 @@ class Request
 		std::string		getQuery();
 		std::string		getHeader(std::string header);
 		RequestStatus	getStatus();
+		const mainmap	getServerMap() const;
+		mainmap			getServerMap();
 		const submap	getConfigMap() const;
 		submap			getConfigMap();
 		const submap	getCgiMap() const;
