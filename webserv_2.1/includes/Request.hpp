@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:59:33 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/01 09:36:05 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/01 11:26:57 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@ enum	RequestStatus
 {
 	READ,
 	WRITE,
+	CGI,
 	CLOSE
 };
 

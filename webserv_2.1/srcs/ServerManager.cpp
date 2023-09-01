@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerManager.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/22 12:42:37 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/30 12:06:43 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/01 11:44:20 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -215,21 +215,27 @@ void	ServerManager::readRequest(const int &fd, Client &client)
 		assignServerConfig(client);
 		std::cout << "Request Recived From Socket " << fd << ", Method=<" << client.request.getMethod() << ">  URI=<" << client.request.getPath() << ">." << std::endl;
 
-		// if (client.request.getCgiState())
-		// {
-			// client.response.makeCgiResponse(client.request, fd);
+		if (client.request.getStatus() == CGI)
+		{
+			client.setCgiFlag(1);
+			client.response.makeCgiResponse(client.request);
 			// addToSet(c.response._cgi_obj.pipe_in[1],  _fd_pool);
-		// }
-		// else
-		//STILL NEED TO WORK IN THE CGI RESPONSE
-		client.response.makeResponse(client.request, fd);
+		}
+		else
+			client.response.makeResponse(client.request);
 		client.request.setRequestStatus(WRITE);
 	}
 }
 
 void	ServerManager::writeToClient(const int &fd, Client &client)
 {
-	send(fd, client.response.getResponseString().data(), client.response.getResponseString().size(), 0);
+	if (client.getCgiFlag() == 1)
+	{
+		send(fd, client.response.getCgiResponseString().data(), client.response.getCgiResponseString().size(), 0);
+		client.setCgiFlag(0);
+	}
+	else
+		send(fd, client.response.getResponseString().data(), client.response.getResponseString().size(), 0);
 	client.clearClient();
 	client.request.setRequestStatus(READ);
 }

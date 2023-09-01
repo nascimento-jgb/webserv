@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/25 10:24:25 by jonascim          #+#    #+#             */
-/*   Updated: 2023/09/01 09:59:19 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/01 11:26:58 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -329,6 +329,8 @@ void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap 
 	_findLocationMap(config);
 	_serverMap = config;
 	_configMap = config.find(_location)->second;
+	if (!_location.compare("/cgi-bin"))
+		setRequestStatus(CGI);
 	if (_checkMethodInLocation() != 0)
 		return ;
 	std::cout << "=======\nConfig path and Info: " << _location << " : [" << _configMap.find("allowed_methods")->second << "]\n=======" << std::endl;
