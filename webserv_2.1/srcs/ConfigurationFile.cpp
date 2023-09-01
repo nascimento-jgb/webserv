@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/04 17:14:34 by corellan          #+#    #+#             */
-/*   Updated: 2023/08/28 23:03:55 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/01 18:30:26 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,11 +21,6 @@ ConfigurationFile::~ConfigurationFile(void)
 {
 	_confFile.close();
 	return ;
-}
-
-std::vector<mainmap>	&ConfigurationFile::getVectorConfFile(void)
-{
-	return (_confFileInformation);
 }
 
 void	ConfigurationFile::initializeConfFile(int ac, char **av)
@@ -124,6 +119,8 @@ int	ConfigurationFile::_checkInputConfFile(void)
 		else
 			_cgiStates.push_back(false);
 		if (_checkAmmountValues() == -1)
+			return (1);
+		if (_checkErrorPages() == -1)
 			return (1);
 		_confFileInformation.push_back(_tempMap);
 	}
@@ -546,6 +543,8 @@ void	ConfigurationFile::_setupMandatory(std::string const &superkey)
 			_tempMap["/"]["host"] = "127.0.0.1";
 		if (it->second.find("server_name") == it->second.end() || !it->second["server_name"].compare("default"))
 			_tempMap["/"]["server_name"] = "Webserv_JLC";
+		if (it->second.find("error_page") == it->second.end() || !it->second["error_page"].compare("default"))
+			_tempMap[superkey]["error_page"] = "404 error_pages/404.html";
 	}
 	if (!superkey.compare("/cgi-bin"))
 	{
@@ -585,6 +584,7 @@ int	ConfigurationFile::_checkKeys(std::string const &name, submap seccion)
 		keys.push_back("listen");
 		keys.push_back("host");
 		keys.push_back("server_name");
+		keys.push_back("error_page");
 	}
 	keys.push_back("alias");
 	keys.push_back("allowed_methods");
@@ -595,7 +595,6 @@ int	ConfigurationFile::_checkKeys(std::string const &name, submap seccion)
 		keys.push_back("cgi_path");
 	}
 	keys.push_back("client_max_body_size");
-	keys.push_back("error_page");
 	keys.push_back("index");
 	keys.push_back("return");
 	keys.push_back("root");
@@ -620,7 +619,7 @@ int	ConfigurationFile::_checkAmmountValues(void)
 	{
 		for (submap::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++)
 		{
-			if (!it2->first.compare("allowed_methods") || !it2->first.compare("cgi_ext") || !it2->first.compare("cgi_path"))
+			if (!it2->first.compare("allowed_methods") || !it2->first.compare("cgi_ext") || !it2->first.compare("cgi_path") || !it2->first.compare("error_page"))
 			{
 				if (!it2->first.compare("allowed_methods"))
 				{
@@ -641,6 +640,81 @@ int	ConfigurationFile::_checkAmmountValues(void)
 	return (0);
 }
 
+int	ConfigurationFile::_checkErrorPages(void)
+{
+	numbermap					error;
+	std::string					temp;
+	std::vector<std::string>	split;
+	std::vector<std::string>	codeCheck;
+	size_t						i;
+	int							code;
+	DIR							*directory;
+
+	i = 0;
+	if (_tempMap.find("/")->second.find("error_page") == _tempMap.find("/")->second.end())
+		return (-1);
+	if (_tempMap.find("/")->second.find("root") == _tempMap.find("/")->second.end())
+		return (-1);
+	temp = _tempMap.find("/")->second.find("error_page")->second;
+	split = ft_split(temp, ' ');
+	if (split.size() % 2 == 1)
+		return (-1);
+	for (iter it = split.begin(); it != split.end(); it++)
+	{
+		if (i % 2 == 0)
+		{
+			try
+			{
+				codeCheck.push_back(*it);
+				code = ft_stoi(*it);
+			}
+			catch(const std::exception &e)
+			{
+				return (-1);
+			}
+		}
+		else
+		{
+			temp.clear();
+			temp = _tempMap.find("/")->second.find("root")->second + (*it);
+			if (access(temp.c_str(), F_OK))
+				return (-1);
+			directory = opendir(temp.c_str()); //This is to check if we are trying to put a directory as a error page. Because the result of access is gonna be positive when we access to a directory.
+			if (directory != NULL)
+			{
+				closedir(directory);
+				return (-1);
+			}
+			error[code] = temp;
+		}
+		i++;
+	}
+	if (_checkRepeatedCodes(codeCheck) == -1) //This is to check if we have define more than once the same error code.
+		return (-1);
+	if (error.find(404) == error.end())
+		return (-1);
+	_error.push_back(error);
+	return (0);
+}
+
+int	ConfigurationFile::_checkRepeatedCodes(std::vector<std::string> &split)
+{
+	size_t	counter;
+
+	for (iter it = split.begin(); it != split.end(); it++)
+	{
+		counter = 0;
+		for (iter it2 = split.begin(); it2 != split.end(); it2++)
+		{
+			if (!it2->compare((*it)))
+				counter++;
+			if (counter > 1)
+				return (-1);
+		}
+	}
+	return (0);
+}
+
 int	ConfigurationFile::_fillPorts(void)
 {
 	std::istringstream	iss;
@@ -651,15 +725,15 @@ int	ConfigurationFile::_fillPorts(void)
 	{
 		iss.clear();
 		i = 0;
-		while (i < (*it)["/"]["listen"].size())
+		while (i < (*it).find("/")->second.find("listen")->second.size())
 		{
-			if (!std::isdigit((*it)["/"]["listen"][i]))
+			if (!std::isdigit((*it).find("/")->second.find("listen")->second[i]))
 				break;
 			i++;
 		}
-		if (i != (*it)["/"]["listen"].size())
+		if (i != (*it).find("/")->second.find("listen")->second.size())
 			return (-1);
-		iss.str((*it)["/"]["listen"]);
+		iss.str((*it).find("/")->second.find("listen")->second);
 		iss >> temp;
 		if (iss.fail() == true || temp > static_cast<size_t>(65535))
 			return (-1);
@@ -715,8 +789,8 @@ int	ConfigurationFile::_findPaths(void)
 		}
 		split_ext.clear();
 		split_path.clear();
-		split_ext = ft_split((*it)["/cgi-bin"]["cgi_ext"], ' ');
-		split_path = ft_split((*it)["/cgi-bin"]["cgi_path"], ' ');
+		split_ext = ft_split((*it).find("/cgi-bin")->second.find("cgi_ext")->second, ' ');
+		split_path = ft_split((*it).find("/cgi-bin")->second.find("cgi_path")->second, ' ');
 		if (split_ext.size() != split_path.size())
 			return (1);
 		ext_it = split_ext.begin();
@@ -776,6 +850,11 @@ int	ConfigurationFile::_checkAccess(submap &keys)
 	return (0);
 }
 
+std::vector<mainmap>	&ConfigurationFile::getVectorConfFile(void)
+{
+	return (_confFileInformation);
+}
+
 std::vector<submap>	&ConfigurationFile::getCgiServers(void)
 {
 	return (_cgi);
@@ -784,6 +863,11 @@ std::vector<submap>	&ConfigurationFile::getCgiServers(void)
 std::vector<size_t>	&ConfigurationFile::getPorts(void)
 {
 	return (_ports);
+}
+
+std::vector<numbermap>	&ConfigurationFile::getErrors(void)
+{
+	return (_error);
 }
 
 const char	*ConfigurationFile::ErrorOpeningConfFile::what(void) const throw()

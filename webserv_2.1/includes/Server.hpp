@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/25 09:54:01 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/30 12:05:27 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/01 15:21:28 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@ class Server
 		std::string					_index;
 		mainmap						_config;
 		submap						_cgi;
+		numbermap					_error;
 		unsigned long				_max_body_size;
 		bool						_autoindex;
 		int							_listen_fd;
@@ -59,10 +60,11 @@ class Server
 		bool const					&getAutoIndex(void) const;
 		mainmap						&getConfigMap(void);
 		submap						&getCgiMap(void);
+		numbermap					&getErrorMap(void);
 		int							getListenFd(void);
 
 		//Methods
-		void	setupServer(mainmap &config, size_t &port, submap &cgi);
+		void	setupServer(mainmap &config, size_t &port, submap &cgi, numbermap &error);
 };
 
 #endif
