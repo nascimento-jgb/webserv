@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 08:51:04 by jonascim          #+#    #+#             */
-/*   Updated: 2023/09/01 18:13:13 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/03 09:40:15 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@
 #include <fcntl.h>
 #include <utility>
 #include <stdexcept>
-#include <dirent.h>
+#include <sys/stat.h>
 
 typedef std::vector<std::string>::iterator	iter;
 typedef std::map< std::string, std::map<std::string, std::string> >	mainmap;
