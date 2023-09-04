@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 13:06:16 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/30 12:06:04 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/01 15:26:13 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,7 @@ Server::Server(const Server &other)
 		this->_server_address = other._server_address;
 		this->_config =  other._config;
 		this->_cgi = other._cgi;
+		this->_error = other._error;
 	}
 	return ;
 }
@@ -60,6 +61,7 @@ Server &Server::operator=(const Server &other)
 		this->_server_address = other._server_address;
 		this->_config =  other._config;
 		this->_cgi = other._cgi;
+		this->_error = other._error;
 	}
 	return (*this);
 }
@@ -122,11 +124,17 @@ submap		&Server::getCgiMap(void)
 	return (_cgi);
 }
 
-void	Server::setupServer(mainmap &config, size_t &port, submap &cgi)
+numbermap	&Server::getErrorMap(void)
+{
+	return (_error);
+}
+
+void	Server::setupServer(mainmap &config, size_t &port, submap &cgi, numbermap &error)
 {
 	_config = config;
 	_port = static_cast<uint16_t>(port);
 	_cgi = cgi;
+	_error = error;
 	_host = ft_inet_addr(_config.find("/")->second.find("host")->second);
 	_server_name = _config.find("/")->second.find("server_name")->second;
 	_root =  _config.find("/")->second.find("root")->second;
@@ -140,7 +148,7 @@ void	Server::setupServer(mainmap &config, size_t &port, submap &cgi)
 		_server_address.sin_port = htons(_port);
 		int	option_value = 1;
 		setsockopt(_listen_fd, SOL_SOCKET, SO_REUSEADDR, &option_value, sizeof(int));
-		memset(_server_address.sin_zero, '\0', sizeof(_server_address.sin_zero));
+		std::memset(_server_address.sin_zero, '\0', sizeof(_server_address.sin_zero));
 		if (bind(_listen_fd, reinterpret_cast<struct sockaddr*>(&_server_address), sizeof(_server_address)) < 0)
 		{
 			std::cerr << "Error in bind: " << errno << " - " << strerror(errno) << std::endl;
@@ -150,6 +158,6 @@ void	Server::setupServer(mainmap &config, size_t &port, submap &cgi)
 	catch(const std::exception &e)
 	{
 		std::cerr << "Exception caught: " << e.what() << std::endl;
-		exit(EXIT_FAILURE);
+		std::exit(EXIT_FAILURE);
 	}
 }

@@ -27,6 +27,7 @@ class ServerManager
 		std::vector<size_t>		_serversPorts;
 		std::vector<submap>		_cgiServers;
 		std::vector<Server>		_serversClass;
+		std::vector<numbermap>	_error;
 
 		fd_set					_fd_pool;
 		int						_biggest_fd;
@@ -55,7 +56,7 @@ class ServerManager
 		ServerManager();
 		~ServerManager();
 
-		void		setupServers(std::vector<mainmap> &servers, std::vector<size_t> &serversPorts, std::vector<submap> &cgis);
+		void		setupServers(std::vector<mainmap> &servers, std::vector<size_t> &serversPorts, std::vector<submap> &cgis, std::vector<numbermap> &error);
 		void		runServers();
 };
 

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/25 10:24:25 by jonascim          #+#    #+#             */
-/*   Updated: 2023/09/01 11:26:58 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/03 09:51:02 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -285,7 +285,7 @@ int	Request::_checkMethodInLocation(void)
 			placeholder = "UNKNOWN";
 			break;
 	}
-	if (_configMap["allowed_methods"].find(placeholder) == std::string::npos)
+	if (_configMap.find("allowed_methods")->second.find(placeholder) == std::string::npos)
 		return (_printRequestErrorMsg("Yo, you can't to this, sorry about the inconvenience.", 405));
 	else
 		return (0);
