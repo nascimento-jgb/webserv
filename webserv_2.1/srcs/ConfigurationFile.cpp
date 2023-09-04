@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/04 17:14:34 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/01 18:30:26 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/03 09:59:39 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -648,7 +648,7 @@ int	ConfigurationFile::_checkErrorPages(void)
 	std::vector<std::string>	codeCheck;
 	size_t						i;
 	int							code;
-	DIR							*directory;
+	struct stat					st;
 
 	i = 0;
 	if (_tempMap.find("/")->second.find("error_page") == _tempMap.find("/")->second.end())
@@ -679,11 +679,10 @@ int	ConfigurationFile::_checkErrorPages(void)
 			temp = _tempMap.find("/")->second.find("root")->second + (*it);
 			if (access(temp.c_str(), F_OK))
 				return (-1);
-			directory = opendir(temp.c_str()); //This is to check if we are trying to put a directory as a error page. Because the result of access is gonna be positive when we access to a directory.
-			if (directory != NULL)
+			if (!stat(temp.c_str(), &st)) //This is to check if we are trying to put a directory as a error page. Because access gives a successful response in case of directory.
 			{
-				closedir(directory);
-				return (-1);
+				if (S_ISDIR(st.st_mode))
+					return (-1);
 			}
 			error[code] = temp;
 		}
