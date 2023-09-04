@@ -50,7 +50,6 @@ Response &Response::operator=(Response const &other)
 void Response::makeResponse(Request& request, int write_socket)
 {
 	CgiHandler	cgi;
-
 	_responseCode = request.getCode();
 
 	(void)write_socket;
@@ -88,8 +87,14 @@ void Response::makeResponse(Request& request, int write_socket)
 		if(request.getPath() == "/")
 		{
 			std::string message = "This is your cool GET message!";
-			_responseString = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: "
+			//////////////////////////////////////////////////////////
+			//														//
+			//					TESTING COOKIES!!!!!				//
+			//														//
+			//////////////////////////////////////////////////////////
+			_responseString = "HTTP/1.1 200 OK\r\nset-cookie: lol=xd\r\nContent-Type: text/plain\r\nContent-Length: "
 				+ request.ft_itoa(message.size()) + "\r\nServer: JLC\r\nDate: " + buffer + "\r\n\r\n" + message;
+			//////////////////////////////////////////////////////////
 		}
 		else if(!request.getPath().compare(0,1, "/"))
 		{
@@ -126,8 +131,13 @@ void Response::makeResponse(Request& request, int write_socket)
 			}
 			else
 			{
-				_saveImageToFile(request.getFileName(), request.getImageData());
-				std::cout << "POST FILE" << std::endl;
+				std::string pathAndSource = request.getLocation();
+				if(request.getLocation() != "/")
+					pathAndSource.append("/");
+				pathAndSource.append(request.getFileName());
+				pathAndSource = pathAndSource.substr(1, pathAndSource.length());
+				std::cout << "POST FILE\n========================\n" << pathAndSource << "\n========================" << std::endl;
+				_saveImageToFile(pathAndSource, request.getImageData());
 			}
 		}
 		std::string message = "This is your cool POST message!";
