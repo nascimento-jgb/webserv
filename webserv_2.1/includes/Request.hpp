@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:59:33 by leklund           #+#    #+#             */
-/*   Updated: 2023/08/30 13:42:53 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/01 11:26:57 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@ enum	RequestStatus
 {
 	READ,
 	WRITE,
+	CGI,
 	CLOSE
 };
 
@@ -77,11 +78,13 @@ class Request
 		BodyType		_checkBodyType();
 		HttpMethod		_checkMethod(std::string line);
 		void			_findLocationMap(mainmap &config);
+		int 			_checkMethodInLocation(void);
 		void			_trimString(std::string &temp);
 		std::string 	_removeBoundary(std::string &body, std::string &boundary);
 		int				_plainBodySave(int body_size);
 		int 			_chunkedBodySave(int body_size);
 		void 			_parseFileData();
+
 	public:
 		Request();
 		~Request();

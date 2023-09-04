@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 10:08:01 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/29 07:15:32 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/01 11:36:52 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@ Client::~Client() {}
 
 Client::Client(Server &server_from_map) : _last_msg_time(time(NULL))
 {
+	_cgiFlag = 0;
 	this->server = server_from_map;
 	request.setBodySize(server.getMaxBodySize());
 }
@@ -27,6 +28,7 @@ Client::Client(Client const &other)
 {
 	if (this != &other)
 	{
+		_cgiFlag = other._cgiFlag;
 		_client_socket = other._client_socket;
 		_client_address = other._client_address;
 		_last_msg_time = other._last_msg_time;
@@ -41,6 +43,7 @@ Client &Client::operator=(Client const &other)
 {
 	if (this != &other)
 	{
+		_cgiFlag = other._cgiFlag;
 		_client_socket = other._client_socket;
 		_client_address = other._client_address;
 		_last_msg_time = other._last_msg_time;
@@ -72,6 +75,11 @@ const time_t	&Client::getTimeoutCheck(void) const
 	return(_last_msg_time);
 }
 
+int				Client::getCgiFlag(void) const
+{
+	return (_cgiFlag);
+}
+
 //Setters
 void	Client::setSocket(int const &i)
 {
@@ -86,6 +94,11 @@ void	Client::setAddress(sockaddr_in &address)
 void	Client::setServer(Server &server)
 {
 	_server = server;
+}
+
+void	Client::setCgiFlag(int flag)
+{
+	_cgiFlag = flag;
 }
 
 //Methods

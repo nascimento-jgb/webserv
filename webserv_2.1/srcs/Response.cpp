@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:58:47 by leklund           #+#    #+#             */
-/*   Updated: 2023/08/30 12:36:14 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/01 11:46:05 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,37 +47,34 @@ Response &Response::operator=(Response const &other)
 	return (*this);
 }
 
-void Response::makeResponse(Request& request, int write_socket)
+void	Response::makeCgiResponse(Request& request)
 {
 	CgiHandler	cgi;
+	std::string	message;
+
+	if (cgi.cgiInitialization(request) == -1)
+	{
+		message = "Error executing CGI script";
+		_responseCgiString = "HTTP/1.1 400 NOT OK\r\nContent-Type: text/plain\r\nContent-Length: "
+		+ ft_itoa(message.size()) + "\r\n\r\n" + message;
+	}
+	else
+	{
+		message = cgi.fetchOutputCgi();
+		_responseCgiString = "HTTP/1.1 200 OK\r\n" + message;
+	}
+}
+
+void	Response::makeResponse(Request& request)
+{
 	_responseCode = request.getCode();
 
-	(void)write_socket;
 	if(_responseCode != 200)
 	{
 		_buildAndPrintErrorResponse("yoo this should not be checked here", 418);
 		return ;
 	}
-	if (!request.getLocation().compare("/cgi-bin"))
-	{
-			std::string	message;
-			std::string	response;
-
-			if (cgi.cgiInitialization(request) == -1)
-			{
-				message = "Error executing CGI script";
-				std::string error = "HTTP/1.1 400 NOT OK\r\nContent-Type: text/plain\r\nContent-Length: " 
-				+ std::to_string(message.size()) + "\r\n\r\n" + message;
-				send(write_socket, error.data(), error.size(), 0);
-			}
-			else
-			{
-				message = cgi.fetchOutputCgi();
-				response = "HTTP/1.1 200 OK\r\n" + message;
-				send(write_socket, response.data(), response.size(), 0);
-			}
-	}
-	else if(request.getMethod() == GET)
+	if(request.getMethod() == GET)
 	{
 		std::time_t	cur_time = std::time(NULL);
 		std::tm		*local_time = std::gmtime(&cur_time);
@@ -147,7 +144,7 @@ void Response::makeResponse(Request& request, int write_socket)
 	else if(request.getMethod() == DELETE)
 	{
 		std::string path = request.getPath().substr(1, request.getPath().size());
-		
+
 		if (!fileExists(path.c_str()))
         {
             _responseCode = 204;
@@ -196,6 +193,11 @@ void Response::_saveImageToFile(const std::string& filename, const std::string& 
 std::string const	Response::getResponseString(void) const
 {
 	return (_responseString);
+}
+
+std::string const	Response::getCgiResponseString(void) const
+{
+	return (_responseCgiString);
 }
 
 void Response::clearResponse()

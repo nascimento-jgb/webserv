@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:58:58 by leklund           #+#    #+#             */
-/*   Updated: 2023/08/30 12:34:10 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/01 11:44:00 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ class Response
 		std::string			_content_type;
 		std::string			_http_res;
 		std::string			_responseString;
+		std::string			_responseCgiString;
 		int					_responseCode;
 		Mime				mimes;
 
@@ -37,12 +38,14 @@ class Response
 		Response &operator=(Response const &other);
 
 		void				_buildAndPrintErrorResponse(std::string msg, int error_code);
-		void				makeResponse(Request &request, int write_socket);
+		void				makeResponse(Request &request);
+		void				makeCgiResponse(Request& request);
 		void 				_saveImageToFile(const std::string& filename, const std::string& imageData);
 		void 				clearResponse();
 		bool				fileExists (const std::string& f);
 
 		std::string const	getResponseString(void) const;
+		std::string const	getCgiResponseString(void) const;
 };
 
 #endif

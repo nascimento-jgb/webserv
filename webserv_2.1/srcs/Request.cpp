@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/25 10:24:25 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/30 14:08:48 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/01 11:26:58 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ Request::Request() : _requestStatus(READ) {
 }
 
 Request::~Request() {
-	
+
 }
 
 Request::Request(Request const &other)
@@ -263,6 +263,31 @@ void	Request::_findLocationMap(mainmap &config)
 	return ;
 }
 
+int	Request::_checkMethodInLocation(void)
+{
+	std::string	placeholder;
+
+	switch (_httpmethod)
+	{
+		case 0:
+			placeholder = "GET";
+			break;
+		case 1:
+			placeholder = "POST";
+			break;
+		case 2:
+			placeholder = "DELETE";
+			break;
+		default:
+			placeholder = "UNKNOWN";
+			break;
+	}
+	if (_configMap["allowed_methods"].find(placeholder) == std::string::npos)
+		return (_printRequestErrorMsg("Yo, you can't to this, sorry about the inconvenience.", 405));
+	else
+		return (0);
+}
+
 void	Request::_trimString(std::string &temp)
 {
 	size_t	index;
@@ -304,8 +329,11 @@ void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap 
 	_findLocationMap(config);
 	_serverMap = config;
 	_configMap = config.find(_location)->second;
+	if (!_location.compare("/cgi-bin"))
+		setRequestStatus(CGI);
+	if (_checkMethodInLocation() != 0)
+		return ;
 	std::cout << "=======\nConfig path and Info: " << _location << " : [" << _configMap.find("allowed_methods")->second << "]\n=======" << std::endl;
-
 	//goes trough each headerline
 	while (std::getline(iss, line))
 	{
@@ -621,8 +649,3 @@ void Request::clearRequest()
 	_filename.clear();
 	_bodyType = NONE;
 }
-
-// const char *Request::HttpRequestErrorException::what(void) const throw()
-// {
-// 	return ("A error occured during HTTP request parsing");
-// }
