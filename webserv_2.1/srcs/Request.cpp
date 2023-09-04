@@ -64,8 +64,11 @@ Request &Request::operator=(Request const &other)
 
 int	Request::_checkValidBodySize(int max_len)
 {
+	_maxBodySizeFromConfigFile = ft_stoi(_configMap.find("client_max_body_size")->second);
 	int len = _we_got_body_len;
-	std::cout << "checking len: " << len << ", max_len: " << max_len << std::endl;
+	std::cout << "checking len: " << len << ", max_len: " << max_len << ", Config: " << _maxBodySizeFromConfigFile << std::endl;
+	if(_maxBodySizeFromConfigFile < max_len)
+		return(_printRequestErrorMsg("Request body is larger than accepted size", 400));
 	if(max_len > len)
 		return(_printRequestErrorMsg("Request body is too short or missing.", 400));
 	else if(max_len < len)
