@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/22 09:21:24 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/30 14:07:25 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/04 16:07:41 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@ unsigned int				fromHexToDec(const std::string& nb);
 void						to_lower(std::string &str);
 size_t						findPosChar(std::string const &input, char c, size_t n);
 std::vector<std::string>	ft_split(std::string const &input, char c);
+std::vector<std::string>	ft_split(std::string const &input, std::string const &needle);
 in_addr_t					ft_inet_addr(std::string const &ip);
 const char					*ft_inet_ntop(int af, const in_addr_t &addr, char *dst, socklen_t size);
 void						trimString(std::string &temp, char c);

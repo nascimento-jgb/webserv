@@ -141,7 +141,7 @@ size_t	findPosChar(std::string const &input, char c, size_t n)
 	return (i);
 }
 
-size_t	count_char(std::string const &input, char c)
+size_t	countChar(std::string const &input, char c)
 {
 	size_t	i;
 
@@ -179,10 +179,126 @@ std::vector<std::string>	ft_split(std::string const &input, char c)
 	i = 0;
 	while (i < words)
 	{
-		temp = temp.substr(count_char(temp, c));
+		temp = temp.substr(countChar(temp, c));
 		split.push_back(temp.substr(0, findPosChar(temp, c, temp.size())));
 		if ((i + 1) < words)
-			temp = temp.substr(findPosChar(temp, c, temp.size()) + count_char(temp.substr(findPosChar(temp, c, temp.size())), c));
+			temp = temp.substr(findPosChar(temp, c, temp.size()) + countChar(temp.substr(findPosChar(temp, c, temp.size())), c));
+		i++;
+	}
+	return (split);
+}
+
+size_t	findPosString(std::string const &input, std::string const &needle, size_t n)
+{
+	size_t		i;
+	std::string	temp;
+
+	temp = input.substr(0, n);
+	if (temp.find(needle) != std::string::npos)
+		i = temp.find(needle);
+	else
+		i = temp.size();
+	return (i);
+}
+
+size_t	countInString(std::string const &input, std::string const &needle)
+{
+	size_t	i;
+	size_t	j;
+	size_t	k;
+
+	i = 0;
+	k = 0;
+	while (input[i])
+	{
+		j = 0;
+		while (input[i] && needle[j] && input[i] == needle[j])
+		{
+			i++;
+			j++;
+		}
+		if (j == needle.size())
+			k = i;
+		else
+			break ;
+	}
+	return (k);
+}
+
+bool	checkBlock(std::string const &input, std::string const &needle, size_t i)
+{
+	size_t	len_needle;
+	size_t	start_point;
+
+	len_needle = needle.size() - 1;
+	start_point = i;
+	while (len_needle > 0 && start_point > 0)
+	{
+		if (needle[len_needle] != input[start_point])
+			break ;
+		len_needle--;
+		start_point--;
+	}
+	if (needle[len_needle] != input[start_point])
+		return (false);
+	return (true);
+}
+
+size_t	countWords(std::string const &input, std::string const &needle)
+{
+	size_t	i;
+	size_t	j;
+	size_t	k;
+	int		flag;
+	size_t	words;
+
+	words = 0;
+	i = 0;
+	while (input[i])
+	{
+		flag = 0;
+		k = (i + 1);
+		j = 0;
+		while ((input[k]) && (needle[j]) && (input[k] == needle[j]))
+		{
+			k++;
+			j++;
+		}
+		if (j == needle.size())
+			flag = 1;
+		if ((checkBlock(input, needle, i) == false) && (flag == 1 || input[i + 1] == '\0'))
+			words++;
+		i++;
+	}
+	return (words);
+}
+
+std::vector<std::string>	ft_split(std::string const &input, std::string const &needle)
+{
+	std::vector<std::string>	split;
+	std::string					temp;
+	size_t						words;
+	size_t						i;
+
+	temp = input;
+	if (needle.size() == 0 || input.size() < needle.size())
+	{
+		split.push_back(input);
+		return (split);
+	}
+	else if (!input.compare(needle))
+	{
+		split.push_back("");
+		return (split);
+	}
+	words = countWords(input, needle);
+	i = 0;
+	while (i < words)
+	{
+		temp = temp.substr(countInString(temp, needle));
+		split.push_back(temp.substr(0, findPosString(temp, needle, temp.size())));
+		if ((i + 1) < words)
+			temp = temp.substr(findPosString(temp, needle, temp.size()) + countInString(temp.substr(findPosString(temp, needle, temp.size())), needle));
 		i++;
 	}
 	return (split);
