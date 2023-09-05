@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Webserver.hpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 08:51:04 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/26 10:02:48 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/03 09:40:15 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,10 +43,12 @@
 #include <fcntl.h>
 #include <utility>
 #include <stdexcept>
+#include <sys/stat.h>
 
 typedef std::vector<std::string>::iterator	iter;
 typedef std::map< std::string, std::map<std::string, std::string> >	mainmap;
 typedef std::map<std::string, std::string>	submap;
+typedef std::map<int, std::string>	numbermap;
 typedef	std::pair<iter, iter>	paired;
 
 //ERROR CLASS

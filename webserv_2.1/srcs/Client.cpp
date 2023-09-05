@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 10:08:01 by jonascim          #+#    #+#             */
-/*   Updated: 2023/09/01 11:36:52 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/04 13:07:27 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,7 +105,7 @@ void	Client::setCgiFlag(int flag)
 
 void	Client::updateTime()
 {
-	_last_msg_time = time(NULL);
+	_last_msg_time = std::time(NULL);
 }
 
 void	Client::clearClient()

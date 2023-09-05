@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/01 11:30:33 by corellan          #+#    #+#             */
-/*   Updated: 2023/08/25 16:34:28 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/01 18:14:51 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ private:
 	std::vector<size_t>			_ports; //Vectors with every port defined for every server. getPorts function let us access to this information.
 	std::vector<submap>			_cgi; //This vector has the maps per server to check the interpreters that we need to call in the CGI seccion. getCgiServers function let us access to this information.
 	std::vector<bool>			_cgiStates;
-
+	std::vector<numbermap>		_error;
 
 	ConfigurationFile(ConfigurationFile const &rhs);
 
@@ -51,6 +51,8 @@ private:
 	void						_setupMandatory(std::string const &superkey);
 	int							_checkKeys(std::string const &name, submap seccion);
 	int							_checkAmmountValues(void);
+	int							_checkErrorPages(void);
+	int							_checkRepeatedCodes(std::vector<std::string> &split);
 	int							_fillPorts(void);
 	int							_checkPorts(void);
 	int							_findPaths(void);
@@ -81,6 +83,7 @@ public:
 	std::vector<mainmap>	&getVectorConfFile(void);
 	std::vector<size_t>		&getPorts(void);
 	std::vector<submap>		&getCgiServers(void);
+	std::vector<numbermap>	&getErrors(void);
 };
 
 #endif

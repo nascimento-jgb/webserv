@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerManager.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/22 12:42:37 by jonascim          #+#    #+#             */
-/*   Updated: 2023/09/01 11:44:20 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/01 15:42:11 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,30 +17,34 @@ ServerManager::ServerManager(): _biggest_fd(0) {}
 ServerManager::~ServerManager() {}
 
 //PUBLIC METHODS
-void	ServerManager::setupServers(std::vector<mainmap> &servers, std::vector<size_t> &serversPorts, std::vector<submap> &cgis)
+void	ServerManager::setupServers(std::vector<mainmap> &servers, std::vector<size_t> &serversPorts, std::vector<submap> &cgis, std::vector<numbermap> &error)
 {
-	char							buffer[INET_ADDRSTRLEN];
-	std::vector<size_t>::iterator	it_ports;
-	std::vector<submap>::iterator	it_cgi;
+	char								buffer[INET_ADDRSTRLEN];
+	std::vector<size_t>::iterator		it_ports;
+	std::vector<submap>::iterator		it_cgi;
+	std::vector<numbermap>::iterator	it_error;
 
 	std::cout << "Initializing server(s)..." << std::endl;
 	_servers = servers;
 	_serversPorts = serversPorts;
 	_cgiServers = cgis;
+	_error = error;
 	_serversClass.clear();
 	_serversClass.reserve(_servers.size());
 	it_ports = _serversPorts.begin();
 	it_cgi = _cgiServers.begin();
+	it_error = _error.begin();
 	for(std::vector<mainmap>::iterator it = _servers.begin(); it != _servers.end(); ++it)
 	{
 		Server	temp;
 
-		temp.setupServer((*it), (*it_ports), (*it_cgi));
+		temp.setupServer((*it), (*it_ports), (*it_cgi), (*it_error));
 		std::cout << "Server initialized as - Name: "<< temp.getServerName() << " Host: " << ft_inet_ntop(AF_INET, temp.getHost(), buffer, INET_ADDRSTRLEN) <<
 		" Port: " << temp.getPort() << std::endl;
 		_serversClass.push_back(temp);
 		it_ports++;
 		it_cgi++;
+		it_error++;
 	}
 	return ;
 }
@@ -170,24 +174,29 @@ void	ServerManager::handleSocket(const int &fd, Client &client)
 
 void	ServerManager::readRequest(const int &fd, Client &client)
 {
-	char	buffer[MESSAGE_BUFFER+1];
-	int		bytes_read;
-	int		tot_read = 0;
-	int		flag = 0;
-	std::string storage;
+	char		buffer[MESSAGE_BUFFER+1];
+	int			bytes_read;
+	int			tot_read = 0;
+	int			flag = 0;
+	std::string	storage;
+
 	while((bytes_read = read(fd, buffer, MESSAGE_BUFFER)) > 0)
 	{
 		buffer[bytes_read] = '\0';
 		flag = 1;
 		tot_read += bytes_read;
 		storage.append(buffer, bytes_read);
-		memset(buffer, 0, sizeof(buffer));
+		std::memset(buffer, 0, sizeof(buffer));
 	}
 	if (flag)
 	{
 		client.updateTime();
+		for (numbermap::iterator it = client.server.getErrorMap().begin(); it != client.server.getErrorMap().end(); it++)
+		{
+			std::cout << "key: " << it->first << ". value: " << it->second << "." << std::endl;
+		}
 		client.request.parseCreate(storage, tot_read, client.server.getConfigMap(), client.server.getCgiMap());
-		memset(buffer, 0, sizeof(buffer));
+		std::memset(buffer, 0, sizeof(buffer));
 	}
 	else if (!bytes_read)
 	{
@@ -197,14 +206,14 @@ void	ServerManager::readRequest(const int &fd, Client &client)
 	}
 	else if (bytes_read < 0)
 	{
-		if (errno == EAGAIN || errno == EWOULDBLOCK)
+		if (errno == EAGAIN || errno == EWOULDBLOCK) //REREMBER THAT CHECKING THE VALUE OF ERRNO IS FORBIDDEN IN THE SUBJECT.
 		{
 			// If the error is EAGAIN or EWOULDBLOCK, it's not really an error.
 			// Just try to read again later.
 			return;
 		}
 		else {
-			std::cout << "webserv: Fd " << fd << " read error "<< strerror(errno) << "." << std::endl;
+			std::cout << "webserv: Fd " << fd << " read error "<< std::strerror(errno) << "." << std::endl;
 			closeConnection(fd);
 			return ;
 		}
