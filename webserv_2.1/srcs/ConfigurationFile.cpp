@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/04 17:14:34 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/03 09:59:39 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/05 18:00:34 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,12 @@ ConfigurationFile::~ConfigurationFile(void)
 void	ConfigurationFile::initializeConfFile(int ac, char **av)
 {
 	std::string	temp;
+	extern char	**environ;
 
+	if (environ == NULL)
+		throw (ErrorEnvironmentVariables());
+	if (_findAndValidateDirectory(environ, av) == -1)
+		throw (ErrorEnvironmentVariables());
 	if (ac == 1)
 		temp = "configuration/default.conf";
 	else
@@ -45,6 +50,76 @@ void	ConfigurationFile::initializeConfFile(int ac, char **av)
 	if (_findPaths() == 1)
 		throw (ErrorCgiInfo());
 	return ;
+}
+
+int	ConfigurationFile::_findAndValidateDirectory(char **environ, char **av)
+{
+	size_t						len;
+	size_t						pos;
+	std::vector<std::string>	split;
+	std::string					programName;
+
+	len = arrayLength(environ);
+	if (len == 0)
+		return (-1);
+	if (_checkPathVariable(environ, av[0]) == 0) //This function checks if the path to our server is already defined in the enviroment variable PATH, and the user is calling our server directly.
+		return (0);
+	pos = findWordInArray(environ, "PWD=");
+	if (pos == len)
+		return (-1);
+	split = ft_split(environ[pos], '=');
+	if (split.size() != 2)
+		return (-1);
+	_serverExecutionPath = *(split.end() - 1);
+	programName = _serverExecutionPath;
+	programName.append(av[0]);
+	if (_isPathValid(programName) == -1)
+		return (-1);
+}
+
+int	ConfigurationFile::_checkPathVariable(char **environ, char *name)
+{
+	std::vector<std::string>	pathsEnvironment;
+	std::string					path;
+	std::string					temp;
+
+	if (findWordInArray(environ, "PATH=") == arrayLength(environ))
+		return (1);
+	temp = environ[findWordInArray(environ, "PATH=")];
+	if (ft_split(temp, '=').size() != 2)
+		return (1);
+	temp = temp.substr(5);
+	pathsEnvironment = ft_split(temp, ':');
+	for (iter it = pathsEnvironment.begin(); it != pathsEnvironment.end(); it++)
+	{
+		path.clear();
+		path = *it;
+		path.append(name);
+		if (!access(path.c_str(), F_OK) && !access(path.c_str(), X_OK))
+		{
+			_serverExecutionPath = *it;
+			return (0);
+		}
+	}
+	return (1);
+}
+
+int	ConfigurationFile::_isPathValid(std::string const &programName)
+{
+	std::string					temp;
+	std::vector<std::string>	split;
+	std::vector<std::string>	finalPath;
+	struct stat					st;
+	size_t						i;
+	
+	temp = programName;
+	split = ft_split(temp, '/');
+	i = 0;
+	for (iter it = split.begin(); it != split.end(); it++)
+	{
+		if (i = 0 && !(*it).compare(".."))
+			return (-1);
+	}
 }
 
 int	ConfigurationFile::_readFile(void)
@@ -867,6 +942,11 @@ std::vector<size_t>	&ConfigurationFile::getPorts(void)
 std::vector<numbermap>	&ConfigurationFile::getErrors(void)
 {
 	return (_error);
+}
+
+const char	*ConfigurationFile::ErrorEnvironmentVariables::what(void) const throw()
+{
+	return ("Webserv: There is no evironment variables defined or the required ones are missing.");
 }
 
 const char	*ConfigurationFile::ErrorOpeningConfFile::what(void) const throw()

@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/01 11:30:33 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/01 18:14:51 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/05 17:00:15 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@ private:
 	size_t						_startPosition;
 	mainmap						_tempMap;
 	std::string					_stringFile;
+	std::string					_serverExecutionPath;
 	std::vector<paired>			_array;
 	std::vector<mainmap>		_confFileInformation; //This is the vector that has all the maps of the servers defined in the configuration file. getVectorConfFile function let us access to this variable.
 	std::vector<std::string>	_parsedFile;
@@ -36,6 +37,9 @@ private:
 
 	ConfigurationFile	&operator=(ConfigurationFile const &rhs);
 
+	int							_findAndValidateDirectory(char **environ, char **av);
+	int							_checkPathVariable(char **environ, char *name);
+	int							_isPathValid(std::string const &programName);
 	int							_readFile(void);
 	int							_parseConfFile(void);
 	int							_checkInputConfFile(void);
@@ -60,6 +64,10 @@ private:
 
 public:
 
+	class	ErrorEnvironmentVariables : public std::exception
+	{
+		virtual const char	*what(void) const throw();
+	};
 	class	ErrorOpeningConfFile : public std::exception
 	{
 		virtual const char	*what(void) const throw();

@@ -317,5 +317,30 @@ void	trimString(std::string &temp, char c)
 	return ;
 }
 
+size_t	findWordInArray(char **array, std::string needle)
+{
+	size_t	i;
+	size_t	j;
+
+	i = 0;
+	j = arrayLength(array);
+	if (array == NULL)
+		return (0);
+	while ((i < j) && (needle.compare(0, needle.size(), array[i], 0, needle.size())))
+		i++;
+	return (i);
+}
+
+size_t	arrayLength(char **array)
+{
+	size_t	i;
+
+	i = 0;
+	if (array == NULL)
+		return (0);
+	while (array[i] != NULL)
+		i++;
+	return (i);
+}
 
 
