@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/04 17:14:34 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/05 18:00:34 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/05 21:58:59 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,13 +30,17 @@ void	ConfigurationFile::initializeConfFile(int ac, char **av)
 
 	if (environ == NULL)
 		throw (ErrorEnvironmentVariables());
+	if (_checkBinaryName(av[0]) == -1)
+		throw (ErrorBinaryName());
 	if (_findAndValidateDirectory(environ, av) == -1)
 		throw (ErrorEnvironmentVariables());
 	if (ac == 1)
-		temp = "configuration/default.conf";
+	{
+		temp.append(_serverExecutionPath);
+		temp.append("/configuration/default.conf");
+	}
 	else
 		temp = av[1];
-	_confFile.open(temp);
 	if (_confFile.fail() == true)
 		throw (ErrorOpeningConfFile());
 	if (_readFile() == 1)
@@ -50,6 +54,18 @@ void	ConfigurationFile::initializeConfFile(int ac, char **av)
 	if (_findPaths() == 1)
 		throw (ErrorCgiInfo());
 	return ;
+}
+
+int	ConfigurationFile::_checkBinaryName(char *name)
+{
+	std::string	trimmedName;
+
+	trimmedName = name;
+	while (trimmedName.find("/") != std::string::npos)
+		trimmedName = trimmedName.substr(trimmedName.find("/") + 1);
+	if (!trimmedName.compare("webserv"))
+		return (0);
+	return (-1);
 }
 
 int	ConfigurationFile::_findAndValidateDirectory(char **environ, char **av)
@@ -72,9 +88,11 @@ int	ConfigurationFile::_findAndValidateDirectory(char **environ, char **av)
 		return (-1);
 	_serverExecutionPath = *(split.end() - 1);
 	programName = _serverExecutionPath;
+	programName.append("/");
 	programName.append(av[0]);
 	if (_isPathValid(programName) == -1)
 		return (-1);
+	return (0);
 }
 
 int	ConfigurationFile::_checkPathVariable(char **environ, char *name)
@@ -94,6 +112,7 @@ int	ConfigurationFile::_checkPathVariable(char **environ, char *name)
 	{
 		path.clear();
 		path = *it;
+		path.append("/");
 		path.append(name);
 		if (!access(path.c_str(), F_OK) && !access(path.c_str(), X_OK))
 		{
@@ -104,22 +123,65 @@ int	ConfigurationFile::_checkPathVariable(char **environ, char *name)
 	return (1);
 }
 
-int	ConfigurationFile::_isPathValid(std::string const &programName)
+int	ConfigurationFile::_isPathValid(std::string &programName)
 {
 	std::string					temp;
+	std::string					tempDir;
 	std::vector<std::string>	split;
 	std::vector<std::string>	finalPath;
 	struct stat					st;
-	size_t						i;
+	int							flag;
 	
 	temp = programName;
 	split = ft_split(temp, '/');
-	i = 0;
+	flag = 0;
+	if (split.size() == 0)
+		return (-1);
+	_removeDash(temp);
 	for (iter it = split.begin(); it != split.end(); it++)
 	{
-		if (i = 0 && !(*it).compare(".."))
+		if (flag == 0 && !(*it).compare(".."))
 			return (-1);
+		else if (!(*it).compare(".."))
+		{
+			finalPath.pop_back();
+			if (finalPath.size() == 0)
+				return (-1);
+			temp = temp.substr((*it).size());
+			_removeDash(temp);
+		}
+		else if (!(*it).compare("."))
+		{
+			temp = temp.substr((*it).size());
+			_removeDash(temp);
+		}
+		else
+		{
+			finalPath.push_back((*it));
+			tempDir.clear();
+			for (iter it2 = finalPath.begin(); it2 != finalPath.end(); it2++)
+			{
+				tempDir.append("/");
+				tempDir.append((*it2));
+			}
+			if (access(tempDir.c_str(), F_OK))
+				return (-1);
+			if (stat(tempDir.c_str(), &st))
+				return (-1);
+			if (!S_ISDIR(st.st_mode))
+				break ;
+		}
+		flag = 1;
 	}
+	trimString(tempDir, '/');
+	_serverExecutionPath = tempDir;
+	return (0);
+}
+
+void	ConfigurationFile::_removeDash(std::string &input)
+{
+	while (input[0] == '/')
+		input = input.substr(1);
 }
 
 int	ConfigurationFile::_readFile(void)
@@ -944,9 +1006,14 @@ std::vector<numbermap>	&ConfigurationFile::getErrors(void)
 	return (_error);
 }
 
+const char	*ConfigurationFile::ErrorBinaryName::what(void) const throw()
+{
+	return ("Webserv: Wrong name for the binary. The binary must be named webserv.");
+}
+
 const char	*ConfigurationFile::ErrorEnvironmentVariables::what(void) const throw()
 {
-	return ("Webserv: There is no evironment variables defined or the required ones are missing.");
+	return ("Webserv: Error generating the path of the server.");
 }
 
 const char	*ConfigurationFile::ErrorOpeningConfFile::what(void) const throw()

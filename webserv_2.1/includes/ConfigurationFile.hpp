@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/01 11:30:33 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/05 17:00:15 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/05 21:45:48 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,9 +37,11 @@ private:
 
 	ConfigurationFile	&operator=(ConfigurationFile const &rhs);
 
+	int							_checkBinaryName(char *name);
 	int							_findAndValidateDirectory(char **environ, char **av);
 	int							_checkPathVariable(char **environ, char *name);
-	int							_isPathValid(std::string const &programName);
+	int							_isPathValid(std::string &programName);
+	void						_removeDash(std::string &input);
 	int							_readFile(void);
 	int							_parseConfFile(void);
 	int							_checkInputConfFile(void);
@@ -64,6 +66,10 @@ private:
 
 public:
 
+	class	ErrorBinaryName : public std::exception
+	{
+		virtual const char	*what(void) const throw();
+	};
 	class	ErrorEnvironmentVariables : public std::exception
 	{
 		virtual const char	*what(void) const throw();
