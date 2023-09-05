@@ -71,7 +71,10 @@ void	Response::makeResponse(Request& request)
 
 	if(_responseCode != 200)
 	{
-		_buildAndPrintErrorResponse("yoo this should not be checked here", 418);
+		Error errors;
+		std::string msg = "here we should display error page: " + ft_itoa(_responseCode);
+		_responseString = "HTTP/1.1 " + ft_itoa(_responseCode) + " " + errors.getErrorMsg(_responseCode) + "\r\nContent-Type: text/plain\r\nContent-Length: "
+		+ ft_itoa(msg.size()) + "\r\nServer: JLC\r\n\r\n" + msg;
 		return ;
 	}
 	if(request.getMethod() == GET)
@@ -93,27 +96,59 @@ void	Response::makeResponse(Request& request)
 				+ request.ft_itoa(message.size()) + "\r\nServer: JLC\r\nDate: " + buffer + "\r\n\r\n" + message;
 			//////////////////////////////////////////////////////////
 		}
-		else if(!request.getPath().compare(0,1, "/"))
+		else
 		{
 			std::string path = request.getPath().substr(1,request.getPath().length() - 1).c_str();
-			std::ifstream file(path);
-			if(file.bad())
+			struct stat pathType;
+			std::cout << "STATS" << std::endl;
+			if(stat(path.c_str(), &pathType) == 0)
 			{
-				_buildAndPrintErrorResponse("File not found", 404);
-				return ;
+			std::cout << "STATS-CHECK" << std::endl;
+
+				if(S_ISDIR(pathType.st_mode))
+				{
+					std::cout << "Lets List the dirs IF OKAY" << std::endl;
+					DIR				*tmp;
+					struct dirent	*entry;
+					if((tmp = opendir(path.c_str())) == NULL)
+					{
+						_buildAndPrintErrorResponse("File not found", 404);
+						return ;
+					}
+					while((entry = readdir(tmp)))
+					{
+						std::cout << entry->d_name << std::endl;
+					}
+					return ;
+				}
+				else
+				{
+					std::cout << "IS FILE" << std::endl;
+					std::ifstream file(path);
+					if(file.bad())
+					{
+						_buildAndPrintErrorResponse("File not found", 404);
+						return ;
+					}
+					else
+					{
+						std::stringstream	buffer;
+
+						buffer << file.rdbuf();
+						std::string fileContents = buffer.str();
+						_responseString = "HTTP/1.1 200 OK";
+						_responseString.append("\r\nContent-Type: ");
+						_responseString.append(mimes.getMimeType(path));
+						_responseString.append("\r\nContent-Length: ");
+						_responseString.append(request.ft_itoa(fileContents.size()) + "\r\n\r\n" + fileContents);
+						file.close();
+					}
+				}
 			}
 			else
 			{
-				std::stringstream	buffer;
-
-				buffer << file.rdbuf();
-				std::string fileContents = buffer.str();
-				_responseString = "HTTP/1.1 200 OK";
-				_responseString.append("\r\nContent-Type: ");
-				_responseString.append(mimes.getMimeType(path));
-				_responseString.append("\r\nContent-Length: ");
-				_responseString.append(request.ft_itoa(fileContents.size()) + "\r\n\r\n" + fileContents);
-				file.close();
+				_buildAndPrintErrorResponse("path not found", 404);
+				return ;
 			}
 		}
 	}

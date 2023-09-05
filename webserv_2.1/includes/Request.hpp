@@ -67,7 +67,7 @@ class Request
 		submap								_cgiMap;
 		std::vector<u_int8_t>				_body;
 
-		int				_checkValidBodySize(int max_len);
+		int				_checkValidBodySize(size_t max_len);
 		int				_checkHeaders(std::string &key, std::string &value);
 		int 			_validChar(int c);
 		int 			_checkUri(std::string line);

@@ -44,6 +44,8 @@
 #include <utility>
 #include <stdexcept>
 #include <sys/stat.h>
+#include <dirent.h>
+
 
 typedef std::vector<std::string>::iterator	iter;
 typedef std::map< std::string, std::map<std::string, std::string> >	mainmap;
