@@ -89,7 +89,7 @@ void	Response::makeResponse(Request& request)
 			//					TESTING COOKIES!!!!!				//
 			//														//
 			//////////////////////////////////////////////////////////
-			_responseString = "HTTP/1.1 200 OK\r\nset-cookie: lol=xd\r\nContent-Type: text/plain\r\nContent-Length: "
+			_responseString = "HTTP/1.1 200 OK\r\nset-cookie: YourCookie=true\r\nContent-Type: text/plain\r\nContent-Length: "
 				+ request.ft_itoa(message.size()) + "\r\nServer: JLC\r\nDate: " + buffer + "\r\n\r\n" + message;
 			//////////////////////////////////////////////////////////
 		}
