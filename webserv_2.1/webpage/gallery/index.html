@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="eng">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, intial-scale=1.0">
+		<title>CLJ WEBPAGE</title>
+
+		<!-- Link the external CSS file -->
+		<link rel="stylesheet" type="text/css" href="../css/styles.css">
+	</head>
+
+<body>
+	<header>
+		<!-- Site Name -->
+		<h1>CLJ WEBSERV</h1>
+
+		<!-- Main Menu -->
+		<nav>
+			<ul class="nav-pills">
+				<li><a href="../index.html">Home</a></li>
+				<li><a href="../account/index.html">Account</a></li>
+				<li><a href="../services/index.html">Services</a></li>
+				<li><a href="../gallery/index.html">Gallery</a></li>
+			</ul>
+		</nav>
+	</header>
+
+	<main>
+		<div class="grid-container">
+			<div class="grid-item">
+				<img src="images/image1.png" id="image1"/>
+				<button onclick="deleteImage('image1')">Delete</button>
+				<button onclick="uploadImage('image1')">Upload</button>
+			</div>
+			<div class="grid-item">
+				<img src="images/image2.png" id="image2"/>
+				<button onclick="deleteImage('image2')">Delete</button>
+				<button onclick="uploadImage('image2')">Upload</button>
+			</div>
+			<div class="grid-item">
+				<img src="images/image3.png" id="image3"/>
+				<button onclick="deleteImage('image3')">Delete</button>
+				<button onclick="uploadImage('image3')">Upload</button>
+			</div>
+			<div class="grid-item">
+				<img src="images/image4.png" id="image4"/>
+				<button onclick="deleteImage('image4')">Delete</button>
+				<button onclick="uploadImage('image4')">Upload</button>
+			</div>
+		</div>
+	</main>
+
+	<footer>
+		<p>&copy; 2023 CLJ Development Team</p>
+	</footer>
+
+</body>
+</html>
