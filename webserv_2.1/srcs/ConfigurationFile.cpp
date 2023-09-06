@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/04 17:14:34 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/05 21:58:59 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/06 18:26:10 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,14 +26,16 @@ ConfigurationFile::~ConfigurationFile(void)
 void	ConfigurationFile::initializeConfFile(int ac, char **av)
 {
 	std::string	temp;
+	std::string	trimmedName;
 	extern char	**environ;
 
 	if (environ == NULL)
 		throw (ErrorEnvironmentVariables());
-	if (_checkBinaryName(av[0]) == -1)
+	if (_checkBinaryName(av[0], trimmedName) == -1)
 		throw (ErrorBinaryName());
-	if (_findAndValidateDirectory(environ, av) == -1)
+	if (_findAndValidateDirectory(environ, av, trimmedName) == -1)
 		throw (ErrorEnvironmentVariables());
+	std::cout << _serverExecutionPath << std::endl;
 	if (ac == 1)
 	{
 		temp.append(_serverExecutionPath);
@@ -41,10 +43,11 @@ void	ConfigurationFile::initializeConfFile(int ac, char **av)
 	}
 	else
 		temp = av[1];
+	_confFile.open(temp);
 	if (_confFile.fail() == true)
 		throw (ErrorOpeningConfFile());
 	if (_readFile() == 1)
-		throw (ErrorOpeningConfFile());
+		throw (ErrorOpeningConfFile());	
 	if (_parseConfFile() == -1)
 		throw (ErrorOpeningConfFile());
 	if (_checkInputConfFile() == 1)
@@ -56,10 +59,8 @@ void	ConfigurationFile::initializeConfFile(int ac, char **av)
 	return ;
 }
 
-int	ConfigurationFile::_checkBinaryName(char *name)
+int	ConfigurationFile::_checkBinaryName(char *name, std::string &trimmedName)
 {
-	std::string	trimmedName;
-
 	trimmedName = name;
 	while (trimmedName.find("/") != std::string::npos)
 		trimmedName = trimmedName.substr(trimmedName.find("/") + 1);
@@ -68,7 +69,7 @@ int	ConfigurationFile::_checkBinaryName(char *name)
 	return (-1);
 }
 
-int	ConfigurationFile::_findAndValidateDirectory(char **environ, char **av)
+int	ConfigurationFile::_findAndValidateDirectory(char **environ, char **av, std::string &trimmedName)
 {
 	size_t						len;
 	size_t						pos;
@@ -78,7 +79,7 @@ int	ConfigurationFile::_findAndValidateDirectory(char **environ, char **av)
 	len = arrayLength(environ);
 	if (len == 0)
 		return (-1);
-	if (_checkPathVariable(environ, av[0]) == 0) //This function checks if the path to our server is already defined in the enviroment variable PATH, and the user is calling our server directly.
+	if (_checkPathVariable(environ, trimmedName) == 0) //This function checks if the path to our server is already defined in the enviroment variable PATH, and the user is calling our server directly.
 		return (0);
 	pos = findWordInArray(environ, "PWD=");
 	if (pos == len)
@@ -90,12 +91,13 @@ int	ConfigurationFile::_findAndValidateDirectory(char **environ, char **av)
 	programName = _serverExecutionPath;
 	programName.append("/");
 	programName.append(av[0]);
-	if (_isPathValid(programName) == -1)
+	if (_isPathValid(programName, _serverExecutionPath) == -1)
 		return (-1);
+	trimString(_serverExecutionPath, '/');
 	return (0);
 }
 
-int	ConfigurationFile::_checkPathVariable(char **environ, char *name)
+int	ConfigurationFile::_checkPathVariable(char **environ, std::string &trimmedName)
 {
 	std::vector<std::string>	pathsEnvironment;
 	std::string					path;
@@ -113,7 +115,7 @@ int	ConfigurationFile::_checkPathVariable(char **environ, char *name)
 		path.clear();
 		path = *it;
 		path.append("/");
-		path.append(name);
+		path.append(trimmedName);
 		if (!access(path.c_str(), F_OK) && !access(path.c_str(), X_OK))
 		{
 			_serverExecutionPath = *it;
@@ -123,7 +125,7 @@ int	ConfigurationFile::_checkPathVariable(char **environ, char *name)
 	return (1);
 }
 
-int	ConfigurationFile::_isPathValid(std::string &programName)
+int	ConfigurationFile::_isPathValid(std::string &programName, std::string &recipient)
 {
 	std::string					temp;
 	std::string					tempDir;
@@ -154,27 +156,25 @@ int	ConfigurationFile::_isPathValid(std::string &programName)
 		{
 			temp = temp.substr((*it).size());
 			_removeDash(temp);
+			continue ;
 		}
 		else
-		{
 			finalPath.push_back((*it));
-			tempDir.clear();
-			for (iter it2 = finalPath.begin(); it2 != finalPath.end(); it2++)
-			{
-				tempDir.append("/");
-				tempDir.append((*it2));
-			}
-			if (access(tempDir.c_str(), F_OK))
-				return (-1);
-			if (stat(tempDir.c_str(), &st))
-				return (-1);
-			if (!S_ISDIR(st.st_mode))
-				break ;
+		tempDir.clear();
+		for (iter it2 = finalPath.begin(); it2 != finalPath.end(); it2++)
+		{
+			tempDir.append("/");
+			tempDir.append((*it2));
 		}
+		if (access(tempDir.c_str(), F_OK))
+			return (-1);
+		if (stat(tempDir.c_str(), &st))
+			return (-1);
+		if (!S_ISDIR(st.st_mode))
+			break ;
 		flag = 1;
 	}
-	trimString(tempDir, '/');
-	_serverExecutionPath = tempDir;
+	recipient = tempDir;
 	return (0);
 }
 
@@ -245,10 +245,12 @@ int	ConfigurationFile::_checkInputConfFile(void)
 		for (mainmap::iterator it = _tempMap.begin(); it != _tempMap.end(); it++)
 		{
 			if ((it->second.find("default") != it->second.end()) &&
-				(it->second["default"].compare("default") || it->second.size() > 1 || _countWords(it->second["default"]) > 1))
+				(it->second.find("default")->second.compare("default") || it->second.size() > 1 || _countWords(it->second.find("default")->second) > 1))
 				return (1);
 			_setupMandatory(it->first);
-			if (_checkKeys(it->first, _tempMap[it->first]) == -1)
+			if (_checkPathsDirectories(it->first, _tempMap) == -1)
+				return (1);
+			if (_checkKeys(it->first, _tempMap.find(it->first)->second) == -1)
 				return (1);
 		}
 		if (_tempMap.find("/cgi-bin") != _tempMap.end())
@@ -700,8 +702,6 @@ void	ConfigurationFile::_setupMandatory(std::string const &superkey)
 		_tempMap[superkey]["client_max_body_size"] = "1024";
 	if ((it->second.find("client_max_body_size") == it->second.end()) && ((it->second["allowed_methods"].find("DELETE ") != std::string::npos) || (it->second["allowed_methods"].find("DELETE\t") != std::string::npos) || (it->second["allowed_methods"].find("DELETE\0") != std::string::npos)))
 		_tempMap[superkey]["client_max_body_size"] = "1024";
-	if ((it->second.find("client_max_body_size") == it->second.end()) && ((it->second["allowed_methods"].find("PUT ") != std::string::npos) || (it->second["allowed_methods"].find("PUT\t") != std::string::npos) || (it->second["allowed_methods"].find("PUT\0") != std::string::npos)))
-		_tempMap[superkey]["client_max_body_size"] = "1024";
 	if ((it->second.find("client_max_body_size") != it->second.end()) && (!it->second["client_max_body_size"].compare("default")))
 		_tempMap[superkey]["client_max_body_size"] = "1024";
 	if (it->second.find("root") == it->second.end() || !it->second["root"].compare("default"))
@@ -710,9 +710,32 @@ void	ConfigurationFile::_setupMandatory(std::string const &superkey)
 	return ;
 }
 
-int	ConfigurationFile::_checkKeys(std::string const &name, submap seccion)
+int	ConfigurationFile::_checkPathsDirectories(std::string const &key, mainmap &tempMap)
+{
+	std::string	tempName;
+	std::string	tempFinal;
+
+	tempName.clear();
+	if (!tempMap.find(key)->second.find("root")->second.compare("./") || !tempMap.find(key)->second.find("root")->second.compare("/"))
+		tempMap[key]["root"] = _serverExecutionPath;
+	else
+	{
+		tempName.append(_serverExecutionPath);
+		tempName.append("/");
+		tempName.append(tempMap.find(key)->second.find("root")->second);
+		if (_isPathValid(tempName, tempFinal) == -1)
+			return (-1);
+		if (tempFinal.find(_serverExecutionPath) == std::string::npos)
+			return (-1);
+		tempMap[key]["root"] = tempFinal;
+	}
+	return (0);
+}
+
+int	ConfigurationFile::_checkKeys(std::string const &name, submap &seccion)
 {
 	std::vector<std::string>	keys;
+	std::vector<std::string>	tempSplit;
 	submap::iterator			it_map;
 	iter						it_vector;
 
@@ -731,7 +754,15 @@ int	ConfigurationFile::_checkKeys(std::string const &name, submap seccion)
 		keys.push_back("cgi_ext");
 		keys.push_back("cgi_path");
 	}
-	keys.push_back("client_max_body_size");
+	tempSplit = ft_split(seccion.find("allowed_methods")->second, ' ');
+	for (iter it = tempSplit.begin(); it != tempSplit.end(); it++)
+	{
+		if (!(*it).compare("POST") || !(*it).compare("DELETE"))
+		{
+			keys.push_back("client_max_body_size");
+			break ;
+		}
+	}
 	keys.push_back("index");
 	keys.push_back("return");
 	keys.push_back("root");
@@ -764,7 +795,7 @@ int	ConfigurationFile::_checkAmmountValues(void)
 					temp = ft_split(it2->second, ' ');
 					for (iter it3 = temp.begin(); it3 != temp.end(); it3++)
 					{
-						if (it3->compare("GET") && it3->compare("POST") && it3->compare("DELETE") && it3->compare("PUT"))
+						if (it3->compare("GET") && it3->compare("POST") && it3->compare("DELETE"))
 							return (-1);
 					}
 				}
@@ -780,7 +811,8 @@ int	ConfigurationFile::_checkAmmountValues(void)
 int	ConfigurationFile::_checkErrorPages(void)
 {
 	numbermap					error;
-	std::string					temp;
+	std::string					tempPrevious;
+	std::string					tempFinal;
 	std::vector<std::string>	split;
 	std::vector<std::string>	codeCheck;
 	size_t						i;
@@ -792,8 +824,8 @@ int	ConfigurationFile::_checkErrorPages(void)
 		return (-1);
 	if (_tempMap.find("/")->second.find("root") == _tempMap.find("/")->second.end())
 		return (-1);
-	temp = _tempMap.find("/")->second.find("error_page")->second;
-	split = ft_split(temp, ' ');
+	tempPrevious = _tempMap.find("/")->second.find("error_page")->second;
+	split = ft_split(tempPrevious, ' ');
 	if (split.size() % 2 == 1)
 		return (-1);
 	for (iter it = split.begin(); it != split.end(); it++)
@@ -812,16 +844,23 @@ int	ConfigurationFile::_checkErrorPages(void)
 		}
 		else
 		{
-			temp.clear();
-			temp = _tempMap.find("/")->second.find("root")->second + (*it);
-			if (access(temp.c_str(), F_OK))
+			tempPrevious.clear();
+			tempFinal.clear();
+			tempPrevious.append(_tempMap.find("/")->second.find("root")->second);
+			tempPrevious.append("/");
+			tempPrevious.append(*it);
+			if (_isPathValid(tempPrevious, tempFinal) == -1)
 				return (-1);
-			if (!stat(temp.c_str(), &st)) //This is to check if we are trying to put a directory as a error page. Because access gives a successful response in case of directory.
+			if (tempFinal.find(_tempMap.find("/")->second.find("root")->second) == std::string::npos)
+				return (-1);
+			if (access(tempFinal.c_str(), F_OK))
+				return (-1);
+			if (!stat(tempFinal.c_str(), &st)) //This is to check if we are trying to put a directory as a error page. Because access gives a successful response in case of directory.
 			{
 				if (S_ISDIR(st.st_mode))
 					return (-1);
 			}
-			error[code] = temp;
+			error[code] = tempFinal;
 		}
 		i++;
 	}

@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/01 11:30:33 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/05 21:45:48 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/06 16:46:25 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,10 +37,10 @@ private:
 
 	ConfigurationFile	&operator=(ConfigurationFile const &rhs);
 
-	int							_checkBinaryName(char *name);
-	int							_findAndValidateDirectory(char **environ, char **av);
-	int							_checkPathVariable(char **environ, char *name);
-	int							_isPathValid(std::string &programName);
+	int							_checkBinaryName(char *name, std::string &trimmedName);
+	int							_findAndValidateDirectory(char **environ, char **av, std::string &trimmedName);
+	int							_checkPathVariable(char **environ, std::string &trimmedName);
+	int							_isPathValid(std::string &programName, std::string &recipient);
 	void						_removeDash(std::string &input);
 	int							_readFile(void);
 	int							_parseConfFile(void);
@@ -55,7 +55,8 @@ private:
 	size_t						_countWords(std::string const &input);
 	int							_fillKeys(std::string &key, std::string &subkeys);
 	void						_setupMandatory(std::string const &superkey);
-	int							_checkKeys(std::string const &name, submap seccion);
+	int							_checkPathsDirectories(std::string const &key, mainmap &tempMap);
+	int							_checkKeys(std::string const &name, submap &seccion);
 	int							_checkAmmountValues(void);
 	int							_checkErrorPages(void);
 	int							_checkRepeatedCodes(std::vector<std::string> &split);
