@@ -29,8 +29,9 @@ Response::Response(Response const &other)
 		_content_length = other._content_length;
 		_content_type = other._content_type;
 		_http_res = other._http_res;
-		_responseCode = other._responseCode;
 		_responseString = other._responseString;
+		_responseCgiString = other._responseCgiString;
+		_responseCode = other._responseCode;
 	}
 	return ;
 }
@@ -42,6 +43,8 @@ Response &Response::operator=(Response const &other)
 		_content_length = other._content_length;
 		_content_type = other._content_type;
 		_http_res = other._http_res;
+		_responseString = other._responseString;
+		_responseCgiString = other._responseCgiString;
 		_responseCode = other._responseCode;
 	}
 	return (*this);
@@ -100,7 +103,7 @@ void	Response::makeResponse(Request& request)
 		{
 			std::string path = request.getPath().substr(1,request.getPath().length() - 1).c_str();
 			struct stat pathType;
-			std::cout << "STATS" << std::endl;
+			std::cout << "STATS path: " << path << std::endl;
 			if(stat(path.c_str(), &pathType) == 0)
 			{
 			std::cout << "STATS-CHECK" << std::endl;
@@ -115,10 +118,18 @@ void	Response::makeResponse(Request& request)
 						_buildAndPrintErrorResponse("File not found", 404);
 						return ;
 					}
+					std::string message;
 					while((entry = readdir(tmp)))
 					{
-						std::cout << entry->d_name << std::endl;
+						if(!std::strncmp(entry->d_name, ".", 1))
+							continue;
+						message.append("<h3><a href=\"").append(path).append("/").append(entry->d_name).append("\">");
+						message.append(entry->d_name);
+						message.append("</a></h3>");
+						std::cout << path << "/" << entry->d_name << std::endl;
 					}
+					_responseString = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: "
+						+ request.ft_itoa(message.size()) + "\r\nServer: JLC\r\n\r\n" + message;
 					return ;
 				}
 				else
@@ -241,6 +252,7 @@ void Response::clearResponse()
 	_content_type.clear();
 	_http_res.clear();
 	_responseString.clear();
+	_responseCgiString.clear();
 	_responseCode = 0;
 }
 

@@ -27,14 +27,20 @@ Request::Request(Request const &other)
 	if (this != &other)
 	{
 		_rawBody = other._rawBody;
+		_boundary = other._boundary;
+		_bodyStr = other._bodyStr;
+		_fileData = other._fileData;
 		_targetfile = other._targetfile;
 		_request_path = other._request_path;
 		_query = other._query;
 		_filename = other._filename;
+		_location = other._location;
 		_httpmethod = other._httpmethod;
+		_bodyType = other._bodyType;
 		_header_max_body_len = other._header_max_body_len;
 		_we_got_body_len = other._we_got_body_len;
 		_maxBodySizeFromConfigFile = other._maxBodySizeFromConfigFile;
+		_fileUpload = other._fileUpload;
 		_requestCode = other._requestCode;
 		_requestStatus = other._requestStatus;
 	}
@@ -46,14 +52,20 @@ Request &Request::operator=(Request const &other)
 	if (this != &other)
 	{
 		_rawBody = other._rawBody;
+		_boundary = other._boundary;
+		_bodyStr = other._bodyStr;
+		_fileData = other._fileData;
 		_targetfile = other._targetfile;
 		_request_path = other._request_path;
 		_query = other._query;
 		_filename = other._filename;
+		_location = other._location;
 		_httpmethod = other._httpmethod;
+		_bodyType = other._bodyType;
 		_header_max_body_len = other._header_max_body_len;
 		_we_got_body_len = other._we_got_body_len;
 		_maxBodySizeFromConfigFile = other._maxBodySizeFromConfigFile;
+		_fileUpload = other._fileUpload;
 		_requestCode = other._requestCode;
 		_requestStatus = other._requestStatus;
 	}
@@ -123,40 +135,37 @@ int Request::_saveQuery(std::string line, int i)
 	return (i);
 }
 
+//Invalid chars in header-name (),/:;<=>?@[\]{} as of RFC 7230 (Hypertext Transfer Protocol (HTTP/1.1): Message Syntax and Routing).
+//Invalid char in header-value DEL as of RFC 7230.
 int	Request::_checkHeaders(std::string &key, std::string &value)
 {
 	unsigned int i = 0;
-	//Invalid chars in header-name (),/:;<=>?@[\]{} as of RFC 7230 (Hypertext Transfer Protocol (HTTP/1.1): Message Syntax and Routing).
 	for(i = 0; i < key.length(); i++)
 	{
 		if(!((key[i] >= 33 && key[i] <= 39) || isalnum(key[i]) || (key[i] >= 42 && key[i] <= 46) || (key[i] >= 94 && key[i] <= 96) || key[i] == 124 ||  key[i] == 126))
 		{
-			return(_printRequestErrorMsg("Error in Check_headers", 418));
+			return(_printRequestErrorMsg("Invalid header key", 400));
 		}
 	}
-	//remove spaces from the key
 	while(i > 0 && key[i] == ' ')
 	{
 		i--;
 	}
 	key = key.substr(0, i);
 	i = 0;
-	//remove spaces from the value
 	while(value[i] == ' ')
 	{
 		i++;
 	}
 	value = value.substr(i, value.length());
 	i = 0;
-	//Invalid char in header-value DEL as of RFC 7230.
 	for(i = 0; i < value.length(); i++)
 	{
 		if(value[i] == 127)
 		{
-			return(_printRequestErrorMsg("Error in Check_headers", 418));
+			return(_printRequestErrorMsg("Invaid header value", 400));
 		}
 	}
-	//check that the ehader field has valid ending
 	if(value[value.length() - 1] != '\r')
 		return(_printRequestErrorMsg("Invalid header value: newline characters are not allowed in the middle of a header field value.", 400));
 	else
@@ -175,7 +184,7 @@ int Request::_validChar(int c)
 int Request::_validHttp(std::string line)
 {
 	if(line.compare("HTTP/1.1\r"))
-		return(_printRequestErrorMsg("Invalid HTTP request", 400));
+		return(_printRequestErrorMsg("Invalid HTTP request", 505));
 	return (0);
 }
 
@@ -641,14 +650,28 @@ std::string	Request::ft_itoa(int integer)
 
 void Request::clearRequest()
 {
-	HTTPMap.clear();
-	_header_max_body_len = 0;
-	_we_got_body_len = 0;
-	_requestCode = 0;
 	_rawBody.clear();
-	_body.clear();
+	_boundary.clear();
+	_bodyStr.clear();
+	_fileData.clear();
+	_targetfile.clear();
 	_request_path.clear();
 	_query.clear();
 	_filename.clear();
+	_location.clear();
+
+	_httpmethod = UNKNOWN;
 	_bodyType = NONE;
+	
+	_header_max_body_len = 0;
+	_we_got_body_len = 0;
+	_maxBodySizeFromConfigFile = 0;
+	_fileUpload = false;
+	_requestCode = 200;
+
+	HTTPMap.clear();
+	_serverMap.clear();
+	_configMap.clear();
+	_cgiMap.clear();
+	_body.clear();
 }
