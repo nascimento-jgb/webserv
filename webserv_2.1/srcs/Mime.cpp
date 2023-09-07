@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Mime.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/25 09:24:51 by leklund           #+#    #+#             */
-/*   Updated: 2023/08/24 07:02:57 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/04 18:43:42 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,4 +54,15 @@ std::string Mime::getMimeType(std::string path)
 	if(it != _mime_types.end())
 		return (it->second);
 	return ("text/plain");
+}
+
+int	Mime::isMimeInCgi(std::string &message, std::string &mimes)
+{
+	if (message.find("\r\n\r\n") == std::string::npos)
+		return (1);
+	mimes = message.substr(0, message.find("\r\n\r\n"));
+	if (mimes.find("Content-Type: ") == std::string::npos)
+		return (1);
+	message = message.substr(message.find("\r\n\r\n") + 4);
+	return (0);
 }

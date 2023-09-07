@@ -1,7 +1,7 @@
 #!/usr/bin/ruby
 
-puts "Content-Type: text/html; charset=UTF-8"
-puts
+puts "Content-Type: text/html; charset=UTF-8\r"
+puts "\r"
 puts "<!DOCTYPE html>"
 puts "<html>"
 puts "<head>"

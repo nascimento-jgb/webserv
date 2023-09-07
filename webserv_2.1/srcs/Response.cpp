@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:58:47 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/01 15:02:36 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/07 12:56:37 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,7 @@ void	Response::makeCgiResponse(Request& request)
 {
 	CgiHandler	cgi;
 	std::string	message;
+	std::string	mimes;
 
 	if (cgi.cgiInitialization(request) == -1)
 	{
@@ -64,7 +65,11 @@ void	Response::makeCgiResponse(Request& request)
 	else
 	{
 		message = cgi.fetchOutputCgi();
-		_responseCgiString = "HTTP/1.1 200 OK\r\n" + message;
+		if (_mimes.isMimeInCgi(message, mimes) == 0)
+			_responseCgiString = "HTTP/1.1 200 OK\r\n" + mimes + "\r\nContent-Length: " + \
+				ft_itoa(message.size()) + "\r\n\r\n" + message;
+		else
+			_responseCgiString = "HTTP/1.1 200 OK\r\n" + message;
 	}
 }
 
@@ -147,7 +152,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 						std::string fileContents = buffer.str();
 						_responseString = "HTTP/1.1 200 OK";
 						_responseString.append("\r\nContent-Type: ");
-						_responseString.append(mimes.getMimeType(path));
+						_responseString.append(_mimes.getMimeType(path));
 						_responseString.append("\r\nContent-Length: ");
 						_responseString.append(request.ft_itoa(fileContents.size()) + "\r\n\r\n" + fileContents);
 						file.close();
@@ -165,7 +170,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 	{
 		if(request.isFileUpload())
 		{
-			if(mimes.getMimeType(request.getFileName()) == "text/html")
+			if(_mimes.getMimeType(request.getFileName()) == "text/html")
 			{
 				_buildAndPrintErrorResponse("Sorry we do not allow user to POST Html files", 400, errorMap);
 				return ;
@@ -289,7 +294,7 @@ int	Response::_buildErrorPage(std::string error_page_path)
 		return (0);
 	}
 	_responseString.append("\r\nContent-Type: ");
-	_responseString.append(mimes.getMimeType(error_page_path));
+	_responseString.append(_mimes.getMimeType(error_page_path));
 	_responseString.append("\r\nContent-Length: ");
 	_responseString.append(ft_itoa(fileContents.size()) + "\r\n\r\n" + fileContents);
 	file.close();
