@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/01 11:30:33 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/06 16:46:25 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/07 12:46:22 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,8 +40,6 @@ private:
 	int							_checkBinaryName(char *name, std::string &trimmedName);
 	int							_findAndValidateDirectory(char **environ, char **av, std::string &trimmedName);
 	int							_checkPathVariable(char **environ, std::string &trimmedName);
-	int							_isPathValid(std::string &programName, std::string &recipient);
-	void						_removeDash(std::string &input);
 	int							_readFile(void);
 	int							_parseConfFile(void);
 	int							_checkInputConfFile(void);

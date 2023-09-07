@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/04 17:14:34 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/06 18:26:10 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/07 12:46:39 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,6 +75,8 @@ int	ConfigurationFile::_findAndValidateDirectory(char **environ, char **av, std:
 	size_t						pos;
 	std::vector<std::string>	split;
 	std::string					programName;
+	std::string					post;
+	struct stat					st;
 
 	len = arrayLength(environ);
 	if (len == 0)
@@ -91,7 +93,20 @@ int	ConfigurationFile::_findAndValidateDirectory(char **environ, char **av, std:
 	programName = _serverExecutionPath;
 	programName.append("/");
 	programName.append(av[0]);
-	if (_isPathValid(programName, _serverExecutionPath) == -1)
+	if (isPathValid(programName, _serverExecutionPath, post) == -1)
+		return (-1);
+	_serverExecutionPath.append("/");
+	_serverExecutionPath.append(post);
+	if (_serverExecutionPath.size() > 0)
+	{
+		if (_serverExecutionPath[_serverExecutionPath.size() - 1] == '/')
+			_serverExecutionPath = _serverExecutionPath.substr(0, (_serverExecutionPath.size() - 1));
+	}
+	if (access(_serverExecutionPath.c_str(), F_OK))
+		return (-1);
+	if (stat(_serverExecutionPath.c_str(), &st))
+		return (-1);
+	if (S_ISDIR(st.st_mode))
 		return (-1);
 	trimString(_serverExecutionPath, '/');
 	return (0);
@@ -123,65 +138,6 @@ int	ConfigurationFile::_checkPathVariable(char **environ, std::string &trimmedNa
 		}
 	}
 	return (1);
-}
-
-int	ConfigurationFile::_isPathValid(std::string &programName, std::string &recipient)
-{
-	std::string					temp;
-	std::string					tempDir;
-	std::vector<std::string>	split;
-	std::vector<std::string>	finalPath;
-	struct stat					st;
-	int							flag;
-	
-	temp = programName;
-	split = ft_split(temp, '/');
-	flag = 0;
-	if (split.size() == 0)
-		return (-1);
-	_removeDash(temp);
-	for (iter it = split.begin(); it != split.end(); it++)
-	{
-		if (flag == 0 && !(*it).compare(".."))
-			return (-1);
-		else if (!(*it).compare(".."))
-		{
-			finalPath.pop_back();
-			if (finalPath.size() == 0)
-				return (-1);
-			temp = temp.substr((*it).size());
-			_removeDash(temp);
-		}
-		else if (!(*it).compare("."))
-		{
-			temp = temp.substr((*it).size());
-			_removeDash(temp);
-			continue ;
-		}
-		else
-			finalPath.push_back((*it));
-		tempDir.clear();
-		for (iter it2 = finalPath.begin(); it2 != finalPath.end(); it2++)
-		{
-			tempDir.append("/");
-			tempDir.append((*it2));
-		}
-		if (access(tempDir.c_str(), F_OK))
-			return (-1);
-		if (stat(tempDir.c_str(), &st))
-			return (-1);
-		if (!S_ISDIR(st.st_mode))
-			break ;
-		flag = 1;
-	}
-	recipient = tempDir;
-	return (0);
-}
-
-void	ConfigurationFile::_removeDash(std::string &input)
-{
-	while (input[0] == '/')
-		input = input.substr(1);
 }
 
 int	ConfigurationFile::_readFile(void)
@@ -713,7 +669,10 @@ void	ConfigurationFile::_setupMandatory(std::string const &superkey)
 int	ConfigurationFile::_checkPathsDirectories(std::string const &key, mainmap &tempMap)
 {
 	std::string	tempName;
+	std::string	pre;
+	std::string	post;
 	std::string	tempFinal;
+	struct stat	st;
 
 	tempName.clear();
 	if (!tempMap.find(key)->second.find("root")->second.compare("./") || !tempMap.find(key)->second.find("root")->second.compare("/"))
@@ -723,8 +682,22 @@ int	ConfigurationFile::_checkPathsDirectories(std::string const &key, mainmap &t
 		tempName.append(_serverExecutionPath);
 		tempName.append("/");
 		tempName.append(tempMap.find(key)->second.find("root")->second);
-		if (_isPathValid(tempName, tempFinal) == -1)
+		if (isPathValid(tempName, pre, post) == -1)
 			return (-1);
+		pre.append("/");
+		pre.append(post);
+		if (_serverExecutionPath.size() > 0)
+		{
+			if (pre[pre.size() - 1] == '/')
+				pre = pre.substr(0, (pre.size() - 1));
+		}
+		if (access(pre.c_str(), F_OK))
+			return (-1);
+		if (stat(pre.c_str(), &st))
+			return (-1);
+		if (!S_ISDIR(st.st_mode))
+			return (-1);
+		tempFinal = pre;
 		if (tempFinal.find(_serverExecutionPath) == std::string::npos)
 			return (-1);
 		tempMap[key]["root"] = tempFinal;
@@ -813,6 +786,7 @@ int	ConfigurationFile::_checkErrorPages(void)
 	numbermap					error;
 	std::string					tempPrevious;
 	std::string					tempFinal;
+	std::string					post;
 	std::vector<std::string>	split;
 	std::vector<std::string>	codeCheck;
 	size_t						i;
@@ -849,8 +823,15 @@ int	ConfigurationFile::_checkErrorPages(void)
 			tempPrevious.append(_tempMap.find("/")->second.find("root")->second);
 			tempPrevious.append("/");
 			tempPrevious.append(*it);
-			if (_isPathValid(tempPrevious, tempFinal) == -1)
+			if (isPathValid(tempPrevious, tempFinal, post) == -1)
 				return (-1);
+			tempFinal.append("/");
+			tempFinal.append(post);
+			if (tempFinal.size() > 0)
+			{
+				if (tempFinal[tempFinal.size() - 1])
+					tempFinal = tempFinal.substr(0, (tempFinal.size() - 1));
+			}
 			if (tempFinal.find(_tempMap.find("/")->second.find("root")->second) == std::string::npos)
 				return (-1);
 			if (access(tempFinal.c_str(), F_OK))

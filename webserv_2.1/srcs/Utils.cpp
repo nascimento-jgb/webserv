@@ -343,4 +343,63 @@ size_t	arrayLength(char **array)
 	return (i);
 }
 
+void	removeDash(std::string &input)
+{
+	while (input[0] == '/')
+		input = input.substr(1);
+}
+
+int	isPathValid(std::string &programName, std::string &pre, std::string &post)
+{
+	std::string					temp;
+	std::string					tempDir;
+	std::vector<std::string>	split;
+	std::vector<std::string>	finalPath;
+	struct stat					st;
+	int							flag;
+	
+	temp = programName;
+	split = ft_split(temp, '/');
+	flag = 0;
+	if (split.size() == 0)
+		return (-1);
+	removeDash(temp);
+	for (std::vector<std::string>::iterator it = split.begin(); it != split.end(); it++)
+	{
+		if (flag == 0 && !(*it).compare(".."))
+			return (-1);
+		else if (!(*it).compare(".."))
+		{
+			finalPath.pop_back();
+			if (finalPath.size() == 0)
+				return (-1);
+		}
+		else if (!(*it).compare("."))
+		{
+			temp = temp.substr((*it).size());
+			removeDash(temp);
+			continue ;
+		}
+		else
+			finalPath.push_back((*it));
+		tempDir.clear();
+		temp = temp.substr((*it).size());
+		removeDash(temp);
+		for (std::vector<std::string>::iterator it2 = finalPath.begin(); it2 != finalPath.end(); it2++)
+		{
+			tempDir.append("/");
+			tempDir.append((*it2));
+		}
+		if (access(tempDir.c_str(), F_OK))
+			return (-1);
+		if (stat(tempDir.c_str(), &st))
+			return (-1);
+		if (!S_ISDIR(st.st_mode))
+			break ;
+		flag = 1;
+	}
+	pre = tempDir;
+	post = temp;
+	return (0);
+}
 

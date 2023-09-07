@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/22 09:21:24 by jonascim          #+#    #+#             */
-/*   Updated: 2023/09/05 13:48:48 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/07 12:47:02 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <unistd.h>
+#include <sys/stat.h>
 
 //Utilss
 int							ft_stoi(std::string str);
@@ -31,3 +33,4 @@ const char					*ft_inet_ntop(int af, const in_addr_t &addr, char *dst, socklen_t
 void						trimString(std::string &temp, char c);
 size_t						arrayLength(char **array);
 size_t						findWordInArray(char **array, std::string needle);
+int							isPathValid(std::string &programName, std::string &pre, std::string &post);
