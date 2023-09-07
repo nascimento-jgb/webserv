@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/25 10:24:25 by jonascim          #+#    #+#             */
-/*   Updated: 2023/09/04 17:28:00 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/07 14:33:36 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -341,10 +341,6 @@ void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap 
 	_findLocationMap(config);
 	_serverMap = config;
 	_configMap = config.find(_location)->second;
-	for (submap::iterator it = _configMap.begin(); it != _configMap.end(); it++)
-	{
-		std::cout << "The key is: [" << it->first << "]. And the value is [" << it->second << "]." << std::endl;
-	}
 	
 	if (!_location.compare("/cgi-bin"))
 		setRequestStatus(CGI);

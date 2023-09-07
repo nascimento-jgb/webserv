@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:33:04 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/05 12:57:41 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/07 15:03:27 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,8 +34,15 @@ CgiHandler::~CgiHandler(void)
 
 int	CgiHandler::cgiInitialization(Request &request)
 {
+	std::string	tempPath;
+
 	_cgiExecutable = request.getCgiMap();
-	if (_findPath(request) == -1)
+	tempPath.clear();
+	tempPath.append(request.getConfigMap().find("root")->second); //This should be temporal.
+	tempPath.append(request.getPath());
+	if (_getPathCgiScript(tempPath) == -1)
+		return (-1);
+	if (_findPath() == -1)
 		return (-1);
 	if (this->_fillMap(request) == -1)
 		return (-1);
@@ -53,12 +60,28 @@ int	CgiHandler::cgiInitialization(Request &request)
 	return (0);
 }
 
-int	CgiHandler::_findPath(Request &request)
+int	CgiHandler::_getPathCgiScript(std::string &fullPath)
+{
+	std::string	pre;
+	std::string	post;
+	struct stat	st;
+
+	if (isPathValid(fullPath, pre, post) == -1)
+		return (-1);
+	if (access(pre.c_str(), F_OK))
+		return (-1);
+	if (stat(pre.c_str(), &st))
+		return (-1);
+	_pathCgiScript = pre;
+	return (0);
+}
+
+int	CgiHandler::_findPath(void)
 {
 	std::string		ext;
 	size_t			index_dash;
 
-	ext = request.getPath().substr(1);
+	ext = _pathCgiScript;
 	if (_trimString(ext) == -1)
 		return (-1);
 	index_dash = findPosChar(ext, '/', ext.size());
@@ -66,7 +89,7 @@ int	CgiHandler::_findPath(Request &request)
 	if (_cgiExecutable.find(ext) == _cgiExecutable.end())
 		return (-1);
 	if (!ext.compare(".cgi") && _cgiExecutable.find(ext) != _cgiExecutable.end())
-		this->_path = this->_strdup_cpp(request.getPath().substr(1));
+		this->_path = this->_strdup_cpp(_pathCgiScript);
 	else
 		this->_path = this->_strdup_cpp(_cgiExecutable.find(ext)->second);
 	if (!this->_path)
@@ -99,6 +122,11 @@ int	CgiHandler::_trimString(std::string &temp)
 
 int	CgiHandler::_fillMap(Request &request)
 {
+	std::string	tempPath;
+
+	tempPath.clear();
+	tempPath.append(request.getConfigMap().find("root")->second); //Temporal solution.
+	tempPath.append(request.getPath());
 	if (request.getMethod() == UNKNOWN)
 		return (-1);
 	else if (request.getMethod() == GET)
@@ -111,11 +139,60 @@ int	CgiHandler::_fillMap(Request &request)
 	else if (request.getMethod() == DELETE)
 		this->_envVariables["REQUEST_METHOD"] = "DELETE";
 	this->_envVariables["GATEWAY_INTERFACE"] = "Webserv_JLC_CGI/1.0";
-	this->_envVariables["PATH_INFO"] = request.getPath();
+	if (_getPathInfo(tempPath, this->_envVariables["PATH_INFO"]))
+		return (-1);
+	if (_getPathTranslated(tempPath, this->_envVariables["PATH_TRANSLATED"]))
+		return (-1);
 	this->_envVariables["SERVER_NAME"] = request.getServerMap().find("/")->second.find("server_name")->second;
 	this->_envVariables["SERVER_PORT"] = request.getServerMap().find("/")->second.find("listen")->second;
 	this->_envVariables["SERVER_PROTOCOL"] = "HTTP/1.1";
 	this->_envVariables["SERVER_SOFTWARE"] = "Webserv_JLC/1.0";
+	return (0);
+}
+
+int	CgiHandler::_getPathInfo(std::string &fullPath, std::string &toWrite)
+{
+	std::string	pre;
+	std::string	post;
+	struct stat	st;
+
+	if (isPathValid(fullPath, pre, post) == -1)
+		return (-1);
+	if (access(pre.c_str(), F_OK))
+		return (-1);
+	if (stat(pre.c_str(), &st))
+		return (-1);
+	if (!post.size())
+	{
+		toWrite = "";
+		return (0);
+	}
+	toWrite.append("/");
+	toWrite.append(post);
+	return (0);
+}
+
+int	CgiHandler::_getPathTranslated(std::string &fullPath, std::string &toWrite)
+{
+	std::string	pre;
+	std::string	post;
+	//struct stat	st;
+
+	if (isPathValid(fullPath, pre, post) == -1)
+		return (-1);
+	if (!post.size())
+	{
+		toWrite = "";
+		return (0);
+	}
+	trimString(pre, '/');
+	toWrite.append(pre);
+	toWrite.append("/");
+	toWrite.append(post);
+	/*if (access(toWrite.c_str(), F_OK))
+		return (-1);
+	if (stat(toWrite.c_str(), &st))
+		return (-1);*/
 	return (0);
 }
 
@@ -199,7 +276,7 @@ int	CgiHandler::_createInstructions(void)
 	this->_cmd[size] = NULL;
 	if (size == 1)
 	{
-		this->_cmd[0] = _strdup_cpp(_envVariables.find("PATH_INFO")->second.substr(1));
+		this->_cmd[0] = _strdup_cpp(_pathCgiScript);
 		if (!this->_cmd[0])
 			return (-1);
 	}
@@ -208,7 +285,7 @@ int	CgiHandler::_createInstructions(void)
 		this->_cmd[0] = _strdup_cpp(_cgiExecutable.find(_extension)->second);
 		if (!this->_cmd[0])
 			return (-1);
-		this->_cmd[1] = _strdup_cpp(_envVariables.find("PATH_INFO")->second.substr(1));
+		this->_cmd[1] = _strdup_cpp(_pathCgiScript);
 		if (!this->_cmd[1])
 		{
 			delete this->_cmd[0];

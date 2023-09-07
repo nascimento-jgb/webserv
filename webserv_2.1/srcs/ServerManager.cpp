@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/22 12:42:37 by jonascim          #+#    #+#             */
-/*   Updated: 2023/09/04 18:34:34 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/07 14:33:21 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -191,10 +191,6 @@ void	ServerManager::readRequest(const int &fd, Client &client)
 	if (flag)
 	{
 		client.updateTime();
-		for (numbermap::iterator it = client.server.getErrorMap().begin(); it != client.server.getErrorMap().end(); it++)
-		{
-			std::cout << "key: " << it->first << ". value: " << it->second << "." << std::endl;
-		}
 		client.request.parseCreate(storage, tot_read, client.server.getConfigMap(), client.server.getCgiMap());
 		std::memset(buffer, 0, sizeof(buffer));
 	}
