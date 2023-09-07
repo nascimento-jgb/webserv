@@ -341,6 +341,11 @@ void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap 
 	_findLocationMap(config);
 	_serverMap = config;
 	_configMap = config.find(_location)->second;
+	for (submap::iterator it = _configMap.begin(); it != _configMap.end(); it++)
+	{
+		std::cout << "The key is: [" << it->first << "]. And the value is [" << it->second << "]." << std::endl;
+	}
+	
 	if (!_location.compare("/cgi-bin"))
 		setRequestStatus(CGI);
 	if (_checkMethodInLocation() != 0)

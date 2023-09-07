@@ -68,16 +68,13 @@ void	Response::makeCgiResponse(Request& request)
 	}
 }
 
-void	Response::makeResponse(Request& request)
+void	Response::makeResponse(Request& request, numbermap errorMap)
 {
 	_responseCode = request.getCode();
 
-	if(_responseCode != 200)
+	if(_responseCode >= 400)
 	{
-		Error errors;
-		std::string msg = "here we should display error page: " + ft_itoa(_responseCode);
-		_responseString = "HTTP/1.1 " + ft_itoa(_responseCode) + " " + errors.getErrorMsg(_responseCode) + "\r\nContent-Type: text/plain\r\nContent-Length: "
-		+ ft_itoa(msg.size()) + "\r\nServer: JLC\r\n\r\n" + msg;
+		_buildAndPrintErrorResponse("ERROR", _responseCode, errorMap);
 		return ;
 	}
 	if(request.getMethod() == GET)
@@ -113,9 +110,10 @@ void	Response::makeResponse(Request& request)
 					std::cout << "Lets List the dirs IF OKAY" << std::endl;
 					DIR				*tmp;
 					struct dirent	*entry;
-					if((tmp = opendir(path.c_str())) == NULL)
+					if((tmp = opendir(path.c_str())) == NULL || request.getConfigMap().find("autoindex")->second.find("on") == std::string::npos)
 					{
-						_buildAndPrintErrorResponse("File not found", 404);
+
+						_buildAndPrintErrorResponse("Error", 404, errorMap);
 						return ;
 					}
 					std::string message;
@@ -138,7 +136,7 @@ void	Response::makeResponse(Request& request)
 					std::ifstream file(path);
 					if(file.bad())
 					{
-						_buildAndPrintErrorResponse("File not found", 404);
+						_buildAndPrintErrorResponse("File not found", 404, errorMap);
 						return ;
 					}
 					else
@@ -158,7 +156,7 @@ void	Response::makeResponse(Request& request)
 			}
 			else
 			{
-				_buildAndPrintErrorResponse("path not found", 404);
+				_buildAndPrintErrorResponse("path not found", 404, errorMap);
 				return ;
 			}
 		}
@@ -169,7 +167,7 @@ void	Response::makeResponse(Request& request)
 		{
 			if(mimes.getMimeType(request.getFileName()) == "text/html")
 			{
-				_buildAndPrintErrorResponse("Sorry we do not allow user to POST Html files", 400);
+				_buildAndPrintErrorResponse("Sorry we do not allow user to POST Html files", 400, errorMap);
 				return ;
 			}
 			else
@@ -257,12 +255,43 @@ void Response::clearResponse()
 }
 
 
-void	Response::_buildAndPrintErrorResponse(std::string msg, int error_code)
+void	Response::_buildAndPrintErrorResponse(std::string msg, int error_code, numbermap errorMap)
 {
 	Error errors;
 
 	_responseCode = error_code;
 	std::cout << "\033[1;31m[" << error_code << "][" << errors.getErrorMsg(error_code) << "] " << msg << "\033[0m" << std::endl;
-	_responseString = "HTTP/1.1 " + ft_itoa(error_code) + " " + errors.getErrorMsg(error_code) + "\r\nContent-Type: text/plain\r\nContent-Length: "
-		+ ft_itoa(msg.size()) + "\r\nServer: JLC\r\n\r\n" + msg;
+	_responseString = "HTTP/1.1 " + ft_itoa(error_code) + " " + errors.getErrorMsg(error_code);
+	if(errorMap.find(error_code) != errorMap.end())
+	{
+		if(_buildErrorPage(errorMap.find(404)->second))
+			return ;
+	}
+	_responseString.append("\r\nContent-Type: text/plain\r\nContent-Length: "
+		+ ft_itoa(msg.size()) + "\r\nServer: JLC\r\n\r\n" + msg);
+}
+int	Response::_buildErrorPage(std::string error_page_path)
+{
+	std::cout << "tets" << std::endl;
+	if(error_page_path.empty())
+		return (0);
+	std::cout << "Error Page load: " << error_page_path << std::endl;
+	std::ifstream file(error_page_path);
+	if(file.bad())
+		return (0);
+	std::stringstream	buffer;
+
+	buffer << file.rdbuf();
+	std::string fileContents = buffer.str();
+	if(fileContents.empty())
+	{
+		file.close();
+		return (0);
+	}
+	_responseString.append("\r\nContent-Type: ");
+	_responseString.append(mimes.getMimeType(error_page_path));
+	_responseString.append("\r\nContent-Length: ");
+	_responseString.append(ft_itoa(fileContents.size()) + "\r\n\r\n" + fileContents);
+	file.close();
+	return (1);
 }

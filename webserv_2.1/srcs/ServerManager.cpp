@@ -231,7 +231,7 @@ void	ServerManager::readRequest(const int &fd, Client &client)
 			// addToSet(c.response._cgi_obj.pipe_in[1],  _fd_pool);
 		}
 		else
-			client.response.makeResponse(client.request);
+			client.response.makeResponse(client.request, client.server.getErrorMap());
 		client.request.setRequestStatus(WRITE);
 	}
 }
