@@ -38,7 +38,7 @@ class Response
 		Response &operator=(Response const &other);
 
 		void				_buildAndPrintErrorResponse(std::string msg, int error_code, numbermap errorMap);
-		int					_buildErrorPage(std::string error_page_path);
+		int					_loadFile(std::string error_page_path);
 		void				makeResponse(Request &request, numbermap errorMap);
 		void				makeCgiResponse(Request& request);
 		void 				_saveImageToFile(const std::string& filename, const std::string& imageData);

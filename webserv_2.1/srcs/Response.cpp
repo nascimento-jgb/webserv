@@ -79,26 +79,19 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 	}
 	if(request.getMethod() == GET)
 	{
+		std::string path;
 		std::time_t	cur_time = std::time(NULL);
 		std::tm		*local_time = std::gmtime(&cur_time);
 		char buffer[80];
 
 		std::strftime(buffer, sizeof(buffer), "%a, %d %b %Y %H:%M:%S GMT", local_time);
-		if(request.getPath() == "/")
+		if(request.getPath()[0] == '/')
 		{
-			std::string message = "This is your cool GET message!";
-			//////////////////////////////////////////////////////////
-			//														//
-			//					TESTING COOKIES!!!!!				//
-			//														//
-			//////////////////////////////////////////////////////////
-			_responseString = "HTTP/1.1 200 OK\r\nset-cookie: YourCookie=true\r\nContent-Type: text/plain\r\nContent-Length: "
-				+ request.ft_itoa(message.size()) + "\r\nServer: JLC\r\nDate: " + buffer + "\r\n\r\n" + message;
-			//////////////////////////////////////////////////////////
-		}
-		else
-		{
-			std::string path = request.getPath().substr(1,request.getPath().length() - 1).c_str();
+			if(request.getPath() != "/")
+				path = request.getPath().substr(1,request.getPath().length() - 1).c_str();
+			else
+				path = "/";
+
 			struct stat pathType;
 			std::cout << "STATS path: " << path << std::endl;
 			if(stat(path.c_str(), &pathType) == 0)
@@ -107,9 +100,31 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 
 				if(S_ISDIR(pathType.st_mode))
 				{
-					std::cout << "Lets List the dirs IF OKAY" << std::endl;
+					std::cout << "Lets List the dirs IF OKAY and there is no index" << std::endl;
+					if(request.getCgiMap().find("index") != request.getCgiMap().end())
+					{
+						std::string indexPath;
+						Error errors;
+						_responseString = "HTTP/1.1 " + ft_itoa(_responseCode) + " " + errors.getErrorMsg(_responseCode);
+						if(path != "/")
+							indexPath = path+"/"+request.getCgiMap().find("index")->second+".html";
+						else
+							indexPath = request.getCgiMap().find("index")->second + ".html";
+						if(!_loadFile(indexPath))
+						{
+
+							std::cout << "LOL her1e" << std::endl;
+							_responseString.clear();
+						}
+						else
+						{
+							std::cout << "LOL here2" << std::endl;
+							return ;
+						}
+					}
 					DIR				*tmp;
 					struct dirent	*entry;
+					std::cout << "Dir path: " << path << std::endl;
 					if((tmp = opendir(path.c_str())) == NULL || request.getConfigMap().find("autoindex")->second.find("on") == std::string::npos)
 					{
 
@@ -264,22 +279,23 @@ void	Response::_buildAndPrintErrorResponse(std::string msg, int error_code, numb
 	_responseString = "HTTP/1.1 " + ft_itoa(error_code) + " " + errors.getErrorMsg(error_code);
 	if(errorMap.find(error_code) != errorMap.end())
 	{
-		if(_buildErrorPage(errorMap.find(404)->second))
+		if(_loadFile(errorMap.find(404)->second))
 			return ;
 	}
 	_responseString.append("\r\nContent-Type: text/plain\r\nContent-Length: "
 		+ ft_itoa(msg.size()) + "\r\nServer: JLC\r\n\r\n" + msg);
 }
-int	Response::_buildErrorPage(std::string error_page_path)
+int	Response::_loadFile(std::string path)
 {
 	std::cout << "tets" << std::endl;
-	if(error_page_path.empty())
+	if(path.empty())
 		return (0);
-	std::cout << "Error Page load: " << error_page_path << std::endl;
-	std::ifstream file(error_page_path);
+	std::cout << "Error Page load: " << path << std::endl;
+	std::ifstream file(path);
 	if(file.bad())
 		return (0);
 	std::stringstream	buffer;
+	std::cout <<"WTF"<< std::endl;
 
 	buffer << file.rdbuf();
 	std::string fileContents = buffer.str();
@@ -288,10 +304,13 @@ int	Response::_buildErrorPage(std::string error_page_path)
 		file.close();
 		return (0);
 	}
+	std::cout <<"WTF2"<< std::endl;
+
 	_responseString.append("\r\nContent-Type: ");
-	_responseString.append(mimes.getMimeType(error_page_path));
+	_responseString.append(mimes.getMimeType(path));
 	_responseString.append("\r\nContent-Length: ");
 	_responseString.append(ft_itoa(fileContents.size()) + "\r\n\r\n" + fileContents);
 	file.close();
+	std::cout <<"DONE"<< std::endl;
 	return (1);
 }
