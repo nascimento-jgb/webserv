@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/01 11:30:33 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/01 18:14:51 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/07 12:46:22 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@ private:
 	size_t						_startPosition;
 	mainmap						_tempMap;
 	std::string					_stringFile;
+	std::string					_serverExecutionPath;
 	std::vector<paired>			_array;
 	std::vector<mainmap>		_confFileInformation; //This is the vector that has all the maps of the servers defined in the configuration file. getVectorConfFile function let us access to this variable.
 	std::vector<std::string>	_parsedFile;
@@ -36,6 +37,9 @@ private:
 
 	ConfigurationFile	&operator=(ConfigurationFile const &rhs);
 
+	int							_checkBinaryName(char *name, std::string &trimmedName);
+	int							_findAndValidateDirectory(char **environ, char **av, std::string &trimmedName);
+	int							_checkPathVariable(char **environ, std::string &trimmedName);
 	int							_readFile(void);
 	int							_parseConfFile(void);
 	int							_checkInputConfFile(void);
@@ -49,7 +53,8 @@ private:
 	size_t						_countWords(std::string const &input);
 	int							_fillKeys(std::string &key, std::string &subkeys);
 	void						_setupMandatory(std::string const &superkey);
-	int							_checkKeys(std::string const &name, submap seccion);
+	int							_checkPathsDirectories(std::string const &key, mainmap &tempMap);
+	int							_checkKeys(std::string const &name, submap &seccion);
 	int							_checkAmmountValues(void);
 	int							_checkErrorPages(void);
 	int							_checkRepeatedCodes(std::vector<std::string> &split);
@@ -60,6 +65,14 @@ private:
 
 public:
 
+	class	ErrorBinaryName : public std::exception
+	{
+		virtual const char	*what(void) const throw();
+	};
+	class	ErrorEnvironmentVariables : public std::exception
+	{
+		virtual const char	*what(void) const throw();
+	};
 	class	ErrorOpeningConfFile : public std::exception
 	{
 		virtual const char	*what(void) const throw();
