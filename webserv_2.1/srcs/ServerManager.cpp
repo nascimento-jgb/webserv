@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerManager.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/22 12:42:37 by jonascim          #+#    #+#             */
-/*   Updated: 2023/09/04 18:34:34 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/08 14:32:36 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,7 +89,7 @@ void ServerManager::initializeSets()
 
 	for (std::vector<Server>::iterator it = _serversClass.begin(); it != _serversClass.end(); ++it)
 	{
-		if (listen(it->getListenFd(), 512) == -1)
+		if (listen(it->getListenFd(), 20) == -1)
 		{
 			std::cout << "webserv: listen error: "<< strerror(errno) << " Closing...." << std::endl;
 			exit(EXIT_FAILURE);
@@ -178,24 +178,26 @@ void	ServerManager::readRequest(const int &fd, Client &client)
 	int			bytes_read;
 	int			tot_read = 0;
 	int			flag = 0;
-	std::string	storage;
+	std::stringstream	storage;
 
 	while((bytes_read = read(fd, buffer, MESSAGE_BUFFER)) > 0)
 	{
 		buffer[bytes_read] = '\0';
 		flag = 1;
 		tot_read += bytes_read;
-		storage.append(buffer, bytes_read);
+		// storage.append(buffer, bytes_read);
+		storage << buffer;
 		std::memset(buffer, 0, sizeof(buffer));
 	}
+	std::string storage_str = storage.str();
 	if (flag)
 	{
 		client.updateTime();
-		for (numbermap::iterator it = client.server.getErrorMap().begin(); it != client.server.getErrorMap().end(); it++)
-		{
-			std::cout << "key: " << it->first << ". value: " << it->second << "." << std::endl;
-		}
-		client.request.parseCreate(storage, tot_read, client.server.getConfigMap(), client.server.getCgiMap());
+		// for (numbermap::iterator it = client.server.getErrorMap().begin(); it != client.server.getErrorMap().end(); it++)
+		// {
+		// 	std::cout << "key: " << it->first << ". value: " << it->second << "." << std::endl;
+		// }
+		client.request.parseCreate(storage_str, tot_read, client.server.getConfigMap(), client.server.getCgiMap());
 		std::memset(buffer, 0, sizeof(buffer));
 	}
 	else if (!bytes_read)

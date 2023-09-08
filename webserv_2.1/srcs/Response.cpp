@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:58:47 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/07 12:56:37 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/08 14:09:48 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -304,15 +304,15 @@ int	Response::_loadFile(std::string path)
 
 	buffer << file.rdbuf();
 	std::string fileContents = buffer.str();
-	if(fileContents.empty())
-	{
-		file.close();
-		return (0);
-	}
-	std::cout <<"WTF2"<< std::endl;
+	// if(fileContents.empty())
+	// {
+	// 	file.close();
+	// 	return (0);
+	// }
+	// std::cout <<"WTF2"<< std::endl;
 
 	_responseString.append("\r\nContent-Type: ");
-	_responseString.append(_mimes.getMimeType(error_page_path));
+	_responseString.append(_mimes.getMimeType(path));
 	_responseString.append("\r\nContent-Length: ");
 	_responseString.append(ft_itoa(fileContents.size()) + "\r\n\r\n" + fileContents);
 	file.close();
