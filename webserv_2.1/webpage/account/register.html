@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, intial-scale=1.0">
-		<title>Login Page</title>
+		<title>Registration Page</title>
 
 		<!-- Link the external CSS file -->
 		<link rel="stylesheet" type="text/css" href="../css/styles.css">
@@ -26,15 +26,17 @@
 	</header>
 
 	<main>
-		<center> <h1> CLJ Login Form </h1> </center>
+		<center> <h1> CLJ Registration Form </h1> </center>
 		<form action = "../../cgi-bin/acc.py" method = "GET">
 			<div class="container">
 				<label>Username : </label>
 				<input type="text" placeholder="Enter Username" name="username" required>
 				<label>Password : </label>
 				<input type="password" placeholder="Enter Password" name="password" required>
-				<button type="submit">Login</button>
-				No Account?<a href="/register.html"> Register Here! </a>
+				<label>FirstName : </label>
+				<input type="text" placeholder="Enter FirstName" name="firstname" required>
+				<button type="submit">Register</button>
+				Already Have account?<a href="../../cgi-bin/acc.py"> Login </a>
 			</div>
 		</form>
 	</main>
