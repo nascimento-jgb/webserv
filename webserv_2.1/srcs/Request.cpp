@@ -230,7 +230,7 @@ int Request::_checkUri(std::string line)
 
 HttpMethod Request::_checkMethod(std::string line)
 {
-	std::cout << line << std::endl;
+	std::cout << "\n\n=============================================\n" << line << std::endl;
 	if(!line.compare(0, 4, "GET "))
 	{
 		if(_checkUri(line.substr(4)))
@@ -341,10 +341,10 @@ void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap 
 	_findLocationMap(config);
 	_serverMap = config;
 	_configMap = config.find(_location)->second;
-	// for (submap::iterator it = _configMap.begin(); it != _configMap.end(); it++)
-	// {
-	// 	std::cout << "The key is: [" << it->first << "]. And the value is [" << it->second << "]." << std::endl;
-	// }
+	for (submap::iterator it = _configMap.begin(); it != _configMap.end(); it++)
+	{
+		std::cout << "The key is: [" << it->first << "]. And the value is [" << it->second << "]." << std::endl;
+	}
 	// if(_configMap.find("index") != _configMap.end())
 	// {
 	// 	std::cout << "index file is: " << _configMap.find("index")->second << std::endl;
@@ -357,6 +357,18 @@ void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap 
 	if (_checkMethodInLocation() != 0)
 		return ;
 	std::cout << "=======\nConfig path and Info: " << _location << " : [" << _configMap.find("allowed_methods")->second << "]\n=======" << std::endl;
+	//////////////////////////////////
+	//
+	//		Check that root is valid
+	//		For now hard code tmp of
+	//		ROOT
+			_root = _configMap.find("root")->second; 
+			// _root = "webpage/";
+	// if(_root != "/")
+	// 	_request_path = _root + _request_path;
+
+	//
+	//////////////////////////////////
 	//goes trough each headerline
 	while (std::getline(iss, line))
 	{
@@ -381,6 +393,7 @@ void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap 
 			return ;
 		}
 	}
+	_request_path = _root + _request_path;
 	_bodyType = _checkBodyType();
 	if(_bodyType)
 	{
@@ -561,6 +574,12 @@ HttpMethod	Request::getMethod()
 {
 	return (_httpmethod);
 }
+
+std::string		Request::getRoot()
+{
+	return(_root);
+}
+
 
 std::string		Request::getBody()
 {

@@ -92,10 +92,16 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 		std::strftime(buffer, sizeof(buffer), "%a, %d %b %Y %H:%M:%S GMT", local_time);
 		if(request.getPath()[0] == '/')
 		{
-			if(request.getPath() != "/")
-				path = request.getPath().substr(1,request.getPath().length() - 1).c_str();
-			else
-				path = "/";
+			// if(request.getPath() != "/")
+			path = request.getPath();
+			// if(request.getPath() != "/")
+			// 	path = request.getPath().substr(1,request.getPath().length() - 1).c_str();
+			// else
+			// 	path = "/";
+			// if(request.getPath() != "/")
+			// 	path = request.getRoot() + request.getPath();
+			// else
+			// 	path = "/";
 
 			struct stat pathType;
 			std::cout << "STATS path: " << path << std::endl;
@@ -111,10 +117,16 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 						std::string indexPath;
 						Error errors;
 						_responseString = "HTTP/1.1 " + ft_itoa(_responseCode) + " " + errors.getErrorMsg(_responseCode);
+						// indexPath = path + request.getCgiMap().find("index")->second + ".html";
 						if(path != "/")
 							indexPath = path+"/"+request.getCgiMap().find("index")->second+".html";
 						else
 							indexPath = request.getCgiMap().find("index")->second + ".html";
+						// if(path != "/")
+						// 	indexPath = path + request.getCgiMap().find("index")->second + ".html";
+						// else
+						// 	indexPath = request.getCgiMap().find("index")->second + ".html";
+
 						if(!_loadFile(indexPath))
 						{
 

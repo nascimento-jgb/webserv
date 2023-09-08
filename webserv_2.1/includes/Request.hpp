@@ -43,6 +43,7 @@ enum	BodyType
 class Request
 {
 	private:
+		std::string		_root;
 		std::string		_rawBody;
 		std::string 	_boundary;
         std::string		_bodyStr;
@@ -100,6 +101,7 @@ class Request
 		bool			isFileUpload();
 		size_t			getBodyLen();
 		std::string		getBody();
+		std::string		getRoot();
 		std::string		getImageData();
 		std::string		getFileName();
 		HttpMethod		getMethod();
