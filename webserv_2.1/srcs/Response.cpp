@@ -302,6 +302,7 @@ void	Response::_buildAndPrintErrorResponse(std::string msg, int error_code, numb
 	_responseString.append("\r\nContent-Type: text/plain\r\nContent-Length: "
 		+ ft_itoa(msg.size()) + "\r\nServer: JLC\r\n\r\n" + msg);
 }
+
 int	Response::_loadFile(std::string path)
 {
 	std::cout << "tets" << std::endl;
@@ -316,12 +317,12 @@ int	Response::_loadFile(std::string path)
 
 	buffer << file.rdbuf();
 	std::string fileContents = buffer.str();
-	if(fileContents.empty())
-	{
-		file.close();
-		return (0);
-	}
-	std::cout <<"WTF2"<< std::endl;
+	// if(fileContents.empty())
+	// {
+	// 	file.close();
+	// 	return (0);
+	// }
+	// std::cout <<"WTF2"<< std::endl;
 
 	_responseString.append("\r\nContent-Type: ");
 	_responseString.append(_mimes.getMimeType(path));
