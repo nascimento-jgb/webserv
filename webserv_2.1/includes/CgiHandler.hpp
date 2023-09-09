@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:34:03 by corellan          #+#    #+#             */
-/*   Updated: 2023/08/30 14:47:21 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/07 14:18:14 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,17 +38,21 @@ private:
 	pid_t		_pid;
 	std::string	_output;
 	std::string	_extension;
+	std::string	_pathCgiScript;
 
 	CgiHandler(CgiHandler const &rhs);
 
 	CgiHandler	&operator=(CgiHandler &rhs);
 
+	int		_getPathCgiScript(std::string &fullPath);
 	int		_checkAccess(void);
-	int		_findPath(Request &request);
+	int		_findPath(void);
 	int		_trimString(std::string &temp);
 	int		_fillMap(Request &request);
 	char	**_getEnvInChar(void);
 	void	_deleteAllocFail(char **array);
+	int		_getPathInfo(std::string &fullPath, std::string &toWrite);
+	int		_getPathTranslated(std::string &fullPath, std::string &toWrite);
 	int		_createPipeAndFork(void);
 	int		_createInstructions(void);
 	int		_storeOutput(void);
