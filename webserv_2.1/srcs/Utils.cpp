@@ -390,7 +390,6 @@ int	isPathValid(std::string &programName, std::string &pre, std::string &post)
 			tempDir.append("/");
 			tempDir.append((*it2));
 		}
-		std::cout << "THIS IS TEMPDIR: " << tempDir << std::endl;
 		if (access(tempDir.c_str(), F_OK))
 			return (-1);
 		if (stat(tempDir.c_str(), &st))

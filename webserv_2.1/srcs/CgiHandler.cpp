@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:33:04 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/07 15:03:27 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/09 16:42:48 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ int	CgiHandler::cgiInitialization(Request &request)
 
 	_cgiExecutable = request.getCgiMap();
 	tempPath.clear();
-	tempPath.append(request.getConfigMap().find("root")->second); //This should be temporal.
+	std::cout << request.getPath() << std::endl;
 	tempPath.append(request.getPath());
 	if (_getPathCgiScript(tempPath) == -1)
 		return (-1);
@@ -125,17 +125,22 @@ int	CgiHandler::_fillMap(Request &request)
 	std::string	tempPath;
 
 	tempPath.clear();
-	tempPath.append(request.getConfigMap().find("root")->second); //Temporal solution.
 	tempPath.append(request.getPath());
 	if (request.getMethod() == UNKNOWN)
 		return (-1);
 	else if (request.getMethod() == GET)
 	{
 		this->_envVariables["REQUEST_METHOD"] = "GET";
-		this->_envVariables["QUERY_STRING"] = request.getQuery();
+		if (request.getQuery().size() != 0 && request.getQuery()[0] == '?')
+			this->_envVariables["QUERY_STRING"] = request.getQuery().substr(1);
+		else
+			this->_envVariables["QUERY_STRING"] = request.getQuery();
 	}
 	else if (request.getMethod() == POST)
+	{
 		this->_envVariables["REQUEST_METHOD"] = "POST";
+		this->_envVariables["CONTENT_LENGTH"] = ft_itoa(request.getBodyLen());
+	}
 	else if (request.getMethod() == DELETE)
 		this->_envVariables["REQUEST_METHOD"] = "DELETE";
 	this->_envVariables["GATEWAY_INTERFACE"] = "Webserv_JLC_CGI/1.0";
@@ -176,23 +181,20 @@ int	CgiHandler::_getPathTranslated(std::string &fullPath, std::string &toWrite)
 {
 	std::string	pre;
 	std::string	post;
-	//struct stat	st;
+	struct stat	st;
 
 	if (isPathValid(fullPath, pre, post) == -1)
 		return (-1);
-	if (!post.size())
-	{
-		toWrite = "";
-		return (0);
-	}
 	trimString(pre, '/');
 	toWrite.append(pre);
+	if (!post.size())
+		return (0);
 	toWrite.append("/");
 	toWrite.append(post);
-	/*if (access(toWrite.c_str(), F_OK))
+	if (access(toWrite.c_str(), F_OK))
 		return (-1);
 	if (stat(toWrite.c_str(), &st))
-		return (-1);*/
+		return (-1);
 	return (0);
 }
 
