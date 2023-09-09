@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/01 11:30:33 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/07 12:46:22 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/09 12:21:22 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,7 @@ private:
 	int							_fillKeys(std::string &key, std::string &subkeys);
 	void						_setupMandatory(std::string const &superkey);
 	int							_checkPathsDirectories(std::string const &key, mainmap &tempMap);
+	int							_checkRootAlias(std::string const &key, mainmap &tempMap);
 	int							_checkKeys(std::string const &name, submap &seccion);
 	int							_checkAmmountValues(void);
 	int							_checkErrorPages(void);

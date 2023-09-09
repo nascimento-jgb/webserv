@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/25 10:24:25 by jonascim          #+#    #+#             */
-/*   Updated: 2023/09/07 14:33:36 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/09 17:17:20 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -356,8 +356,8 @@ void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap 
 		setRequestStatus(CGI);
 	if (_checkMethodInLocation() != 0)
 		return ;
-	std::cout << "=======\nConfig path and Info: " << _location << " : [" << _configMap.find("allowed_methods")->second << "]\n=======" << std::endl;
-		std::cout << "=======\nConfig path and Info: " << _location << " : [" << _configMap.find("root")->second << "]\n=======" << std::endl;
+	std::cout << "=======\nMethods allowed: " << _location << " : [" << _configMap.find("allowed_methods")->second << "]\n=======" << std::endl;
+	std::cout << "=======\npath comming: " << _location << " : [" << _configMap.find("path")->second << "]\n=======" << std::endl;
 	//////////////////////////////////
 	//
 	//		Check that root is valid

@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/04 17:14:34 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/07 12:46:39 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/09 14:13:26 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -207,6 +207,8 @@ int	ConfigurationFile::_checkInputConfFile(void)
 			if (_checkPathsDirectories(it->first, _tempMap) == -1)
 				return (1);
 			if (_checkKeys(it->first, _tempMap.find(it->first)->second) == -1)
+				return (1);
+			if (_checkRootAlias(it->first, _tempMap) == -1)
 				return (1);
 		}
 		if (_tempMap.find("/cgi-bin") != _tempMap.end())
@@ -702,6 +704,58 @@ int	ConfigurationFile::_checkPathsDirectories(std::string const &key, mainmap &t
 			return (-1);
 		tempMap[key]["root"] = tempFinal;
 	}
+	return (0);
+}
+
+int	ConfigurationFile::_checkRootAlias(std::string const &key, mainmap &tempMap)
+{
+	std::string	pre;
+	std::string	post;
+	std::string	temp;
+	struct stat	st;
+
+	if (!(key.compare("/")) && (tempMap.find("/")->second.find("alias") != tempMap.find("/")->second.end()))
+		return (-1);
+	if (!(key.compare("/")) && (tempMap.find("/")->second.find("return") != tempMap.find("/")->second.end()))
+		return (-1);
+	if (!(key.compare("/cgi-bin")) && (tempMap.find("/cgi-bin")->second.find("alias") != tempMap.find("/cgi-bin")->second.end()))
+		return (-1);
+	if (!(key.compare("/cgi-bin")) && (tempMap.find("/cgi-bin")->second.find("return") != tempMap.find("/cgi-bin")->second.end()))
+		return (-1);
+	if (!(key.compare("/")))
+	{
+		tempMap.find("/")->second["path"] = tempMap.find("/")->second.find("root")->second;
+		return (0);
+	}
+	if (tempMap.find(key)->second.find("return") != tempMap.find(key)->second.end())
+	{
+		tempMap.find(key)->second["path"] = tempMap.find(key)->second.find("return")->second;
+		return (0);
+	}
+	if (tempMap.find(key)->second.find("alias") != tempMap.find(key)->second.end())
+	{
+		temp = tempMap.find(key)->second.find("root")->second;
+		temp.append("/");
+		temp.append(tempMap.find(key)->second.find("alias")->second);
+	}
+	else
+	{
+		temp = tempMap.find(key)->second.find("root")->second;
+		temp.append(key);
+	}
+	if (isPathValid(temp, pre, post) == -1)
+		return (-1);
+	if (temp.find(tempMap.find(key)->second.find("root")->second) == std::string::npos)
+		return (-1);
+	if (post.size() != 0)
+		return (-1);
+	if (access(pre.c_str(), F_OK))
+		return (-1);
+	if (stat(pre.c_str(), &st))
+		return (-1);
+	if (!S_ISDIR(st.st_mode))
+		return (-1);
+	tempMap.find(key)->second["path"] = temp;
 	return (0);
 }
 
