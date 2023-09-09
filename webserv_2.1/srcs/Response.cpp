@@ -79,9 +79,10 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 
 	if(_responseCode >= 400)
 	{
-		_buildAndPrintErrorResponse("ERROR", _responseCode, errorMap);
+		_printErrorAndRedirect("ERROR", _responseCode, errorMap);
 		return ;
 	}
+	_root = request.getRoot();
 	if(request.getMethod() == GET)
 	{
 		std::string path;
@@ -112,24 +113,24 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 				if(S_ISDIR(pathType.st_mode))
 				{
 					std::cout << "Lets List the dirs IF OKAY and there is no index" << std::endl;
-					if(request.getCgiMap().find("index") != request.getCgiMap().end())
+					if(request.getConfigMap().find("index") != request.getConfigMap().end())
 					{
+							std::cout << "=======\n index [" << request.getConfigMap().find("allowed_methods")->second << "]\n=======" << std::endl;
 						std::string indexPath;
 						Error errors;
 						_responseString = "HTTP/1.1 " + ft_itoa(_responseCode) + " " + errors.getErrorMsg(_responseCode);
-						// indexPath = path + request.getCgiMap().find("index")->second + ".html";
+						// indexPath = path + request.getConfigMap().find("index")->second + ".html";
 						if(path != "/")
-							indexPath = path+"/"+request.getCgiMap().find("index")->second+".html";
+							indexPath = path+"/"+request.getConfigMap().find("index")->second;
 						else
-							indexPath = request.getCgiMap().find("index")->second + ".html";
+							indexPath = request.getConfigMap().find("index")->second;
 						// if(path != "/")
-						// 	indexPath = path + request.getCgiMap().find("index")->second + ".html";
+						// 	indexPath = path + request.getConfigMap().find("index")->second + ".html";
 						// else
-						// 	indexPath = request.getCgiMap().find("index")->second + ".html";
+						// 	indexPath = request.getConfigMap().find("index")->second + ".html";
 
 						if(!_loadFile(indexPath))
 						{
-
 							std::cout << "LOL her1e" << std::endl;
 							_responseString.clear();
 						}
@@ -145,7 +146,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 					if((tmp = opendir(path.c_str())) == NULL || request.getConfigMap().find("autoindex")->second.find("on") == std::string::npos)
 					{
 
-						_buildAndPrintErrorResponse("Error", 404, errorMap);
+						_printErrorAndRedirect("Error", 404, errorMap);
 						return ;
 					}
 					std::string message;
@@ -153,10 +154,9 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 					{
 						if(!std::strncmp(entry->d_name, ".", 1))
 							continue;
-						message.append("<h3><a href=\"").append(path).append("/").append(entry->d_name).append("\">");
+						message.append("<h3><a href=\"").append(absoluteToRelativePath(_root, path)).append("/").append(entry->d_name).append("\">");
 						message.append(entry->d_name);
 						message.append("</a></h3>");
-						std::cout << path << "/" << entry->d_name << std::endl;
 					}
 					_responseString = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: "
 						+ request.ft_itoa(message.size()) + "\r\nServer: JLC\r\n\r\n" + message;
@@ -168,7 +168,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 					std::ifstream file(path);
 					if(file.bad())
 					{
-						_buildAndPrintErrorResponse("File not found", 404, errorMap);
+						_printErrorAndRedirect("File not found", 404, errorMap);
 						return ;
 					}
 					else
@@ -188,7 +188,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 			}
 			else
 			{
-				_buildAndPrintErrorResponse("path not found", 404, errorMap);
+				_printErrorAndRedirect("path not found", 404, errorMap);
 				return ;
 			}
 		}
@@ -199,7 +199,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 		{
 			if(_mimes.getMimeType(request.getFileName()) == "text/html")
 			{
-				_buildAndPrintErrorResponse("Sorry we do not allow user to POST Html files", 400, errorMap);
+				_printErrorAndRedirect("Sorry we do not allow user to POST Html files", 400, errorMap);
 				return ;
 			}
 			else
@@ -287,20 +287,23 @@ void Response::clearResponse()
 }
 
 
-void	Response::_buildAndPrintErrorResponse(std::string msg, int error_code, numbermap errorMap)
-{
-	Error errors;
 
-	_responseCode = error_code;
-	std::cout << "\033[1;31m[" << error_code << "][" << errors.getErrorMsg(error_code) << "] " << msg << "\033[0m" << std::endl;
-	_responseString = "HTTP/1.1 " + ft_itoa(error_code) + " " + errors.getErrorMsg(error_code);
-	if(errorMap.find(error_code) != errorMap.end())
-	{
-		if(_loadFile(errorMap.find(404)->second))
-			return ;
-	}
-	_responseString.append("\r\nContent-Type: text/plain\r\nContent-Length: "
-		+ ft_itoa(msg.size()) + "\r\nServer: JLC\r\n\r\n" + msg);
+void    Response::_printErrorAndRedirect(std::string msg, int error_code, numbermap errorMap)
+{
+    Error errors;
+
+    _responseCode = error_code;
+    std::cout << "\033[1;31m[" << error_code << "][" << errors.getErrorMsg(error_code) << "] " << msg << "\033[0m" << std::endl;
+    _responseString = "HTTP/1.1 302 Redirect\r\nSet-cookie: error=cookie\r\nLocation: ";
+
+    std::cout << "_redirect 1" << std::endl;
+    if(errorMap.find(error_code) != errorMap.end())
+    {
+        _responseString.append(absoluteToRelativePath(_root, errorMap.find(error_code)->second)).append("\r\n\r\n");
+        std::cout << _responseString << "\n" << std::endl;
+        return ;
+    }
+    std::cout << "_redirect opssii" << std::endl;
 }
 
 int	Response::_loadFile(std::string path)
@@ -310,7 +313,7 @@ int	Response::_loadFile(std::string path)
 		return (0);
 	std::cout << "Error Page load: " << path << std::endl;
 	std::ifstream file(path);
-	if(file.bad())
+	if(file.bad() || file.fail())
 		return (0);
 	std::stringstream	buffer;
 	std::cout <<"WTF"<< std::endl;
@@ -329,6 +332,6 @@ int	Response::_loadFile(std::string path)
 	_responseString.append("\r\nContent-Length: ");
 	_responseString.append(ft_itoa(fileContents.size()) + "\r\n\r\n" + fileContents);
 	file.close();
-	std::cout <<"DONE"<< std::endl;
+	std::cout <<"DONE : " << fileContents << std::endl;
 	return (1);
 }

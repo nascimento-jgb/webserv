@@ -357,6 +357,7 @@ void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap 
 	if (_checkMethodInLocation() != 0)
 		return ;
 	std::cout << "=======\nConfig path and Info: " << _location << " : [" << _configMap.find("allowed_methods")->second << "]\n=======" << std::endl;
+		std::cout << "=======\nConfig path and Info: " << _location << " : [" << _configMap.find("root")->second << "]\n=======" << std::endl;
 	//////////////////////////////////
 	//
 	//		Check that root is valid

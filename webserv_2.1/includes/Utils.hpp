@@ -34,3 +34,4 @@ void						trimString(std::string &temp, char c);
 size_t						arrayLength(char **array);
 size_t						findWordInArray(char **array, std::string needle);
 int							isPathValid(std::string &programName, std::string &pre, std::string &post);
+std::string					absoluteToRelativePath(std::string root, std::string absoluePath);
