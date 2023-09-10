@@ -12,7 +12,6 @@
 
 #include "../includes/Request.hpp"
 
-//Canonical Form
 Request::Request() : _requestStatus(READ) {
 	_requestCode = 0;
 	_bodyType = NONE;
@@ -78,7 +77,6 @@ int	Request::_checkValidBodySize(size_t max_len)
 {
 	_maxBodySizeFromConfigFile = ft_stoi(_configMap.find("client_max_body_size")->second);
 	size_t len = _we_got_body_len;
-	std::cout << "checking len: " << len << ", max_len: " << max_len << ", Config: " << _maxBodySizeFromConfigFile << std::endl;
 	if(_maxBodySizeFromConfigFile < max_len)
 		return(_printRequestErrorMsg("Request body is larger than accepted size", 400));
 	if(max_len > len)
@@ -251,7 +249,6 @@ HttpMethod Request::_checkMethod(std::string line)
 	}
 	else
 	{
-		std::cout << "IT IS NONE" << std::endl;
 		_printRequestErrorMsg("We dont support this Method", 405);
 		return(UNKNOWN);
 	}
@@ -341,35 +338,14 @@ void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap 
 	_findLocationMap(config);
 	_serverMap = config;
 	_configMap = config.find(_location)->second;
-	// for (submap::iterator it = _configMap.begin(); it != _configMap.end(); it++)
-	// {
-	// 	std::cout << "The key is: [" << it->first << "]. And the value is [" << it->second << "]." << std::endl;
-	// }
-	// if(_configMap.find("index") != _configMap.end())
-	// {
-	// 	std::cout << "index file is: " << _configMap.find("index")->second << std::endl;
-	// }
-	// else
-	// 	std::cout << "YOO WTF THERE IS NO INDEX" << std::endl;
-	
 	if (!_location.compare("/cgi-bin"))
 		setRequestStatus(CGI);
 	if (_checkMethodInLocation() != 0)
 		return ;
-	std::cout << "=======\nMethods allowed: " << _location << " : [" << _configMap.find("allowed_methods")->second << "]\n=======" << std::endl;
-	std::cout << "=======\npath comming: " << _location << " : [" << _configMap.find("path")->second << "]\n=======" << std::endl;
-	//////////////////////////////////
-	//
-	//		Check that root is valid
-	//		For now hard code tmp of
-	//		ROOT
-			_root = _configMap.find("root")->second; 
-			// _root = "webpage/";
-	// if(_root != "/")
-	// 	_request_path = _root + _request_path;
 
-	//
-	//////////////////////////////////
+	_rootRequest = _configMap.find("root")->second; 
+	_request_path = _rootRequest + _request_path;
+
 	//goes trough each headerline
 	while (std::getline(iss, line))
 	{
@@ -394,7 +370,6 @@ void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap 
 			return ;
 		}
 	}
-	_request_path = _root + _request_path;
 	_bodyType = _checkBodyType();
 	if(_bodyType)
 	{
@@ -446,7 +421,6 @@ int Request::_chunkedBodySave(int body_size)
 					break;
 				}
 				chunk = fromHexToDec(chunking);
-				std::cout << chunk << std::endl;
 				while(chunk && i < body_size)
 				{
 					chunk--;
@@ -469,6 +443,7 @@ int Request::_chunkedBodySave(int body_size)
 
 std::string Request::_removeBoundary(std::string &body, std::string &boundary)
 {
+
 	std::string buffer;
 	std::string uploadData;
 	bool isBoundary = false;
@@ -504,6 +479,11 @@ std::string Request::_removeBoundary(std::string &body, std::string &boundary)
 						size_t end = tmp1.find("\"");
 						if (end != std::string::npos)
 							_filename = buffer.substr(start + 10, end);
+						if(_filename.empty())
+						{
+							body.clear();
+							return (_filename);
+						}
 					}
 				}
 				else if (!buffer.compare(0, 1, "\r") && !_filename.empty())
@@ -528,6 +508,7 @@ std::string Request::_removeBoundary(std::string &body, std::string &boundary)
 		}
 	}
 	body.clear();
+
 	return (uploadData);
 }
 
@@ -545,8 +526,15 @@ int Request::_plainBodySave(int body_size)
 void Request::_parseFileData()
 {
 	std::string boundary = getHeader("content-type");
+
 	int tmp = boundary.find("--");
+	if(tmp == -1)
+	{
+		_printRequestErrorMsg("No boundary", 400);
+		return ;
+	}
 	boundary = boundary.substr(tmp);
+
 	std::string charBodylizedStr(_body.begin(), _body.end());
 	_fileData = _removeBoundary(charBodylizedStr, boundary);
 }
@@ -578,7 +566,7 @@ HttpMethod	Request::getMethod()
 
 std::string		Request::getRoot()
 {
-	return(_root);
+	return(_rootRequest);
 }
 
 
@@ -698,7 +686,7 @@ void Request::clearRequest()
 	_we_got_body_len = 0;
 	_maxBodySizeFromConfigFile = 0;
 	_fileUpload = false;
-	_requestCode = 200;
+	_requestCode = 0;
 
 	HTTPMap.clear();
 	_serverMap.clear();

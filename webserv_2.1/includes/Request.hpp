@@ -43,7 +43,7 @@ enum	BodyType
 class Request
 {
 	private:
-		std::string		_root;
+		std::string		_rootRequest;
 		std::string		_rawBody;
 		std::string 	_boundary;
         std::string		_bodyStr;
@@ -120,11 +120,6 @@ class Request
 		void			clearRequest();
 		std::string		ft_itoa(int integer);
 
-		// class HttpRequestErrorException : public std::exception
-		// {
-		// 	public:
-		// 		virtual const char *what() const throw();
-		// };
 };
 
 

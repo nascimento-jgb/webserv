@@ -42,7 +42,7 @@ class Response
 		int					_loadFile(std::string error_page_path);
 		void				makeResponse(Request &request, numbermap errorMap);
 		void				makeCgiResponse(Request& request);
-		void 				_saveImageToFile(const std::string& filename, const std::string& imageData);
+		int	 				_saveImageToFile(const std::string& filename, const std::string& imageData);
 		void 				clearResponse();
 		bool				fileExists (const std::string& f);
 
