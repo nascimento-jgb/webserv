@@ -321,12 +321,14 @@ void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap 
 			_parseFileData();
 		return ;
 	}
-	_body.clear();
 	clearRequest();
+
+
+
+
 	//saves the buffer as a file stream so we can manipulate the content with getline.
 	std::istringstream iss(buffer);
 	std::string line;
-
 	//saves the request.
 	std::getline(iss, line);
 	_httpmethod = _checkMethod(line);
@@ -342,6 +344,22 @@ void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap 
 		setRequestStatus(CGI);
 	if (_checkMethodInLocation() != 0)
 		return ;
+	if(_configMap.find("return") != _configMap.end())
+	{
+		std::cout << _configMap.find("return")->first << " : " << _configMap.find("return")->second << std::endl;
+		_request_path = _rootRequest + _configMap.find("return")->second;
+	}
+	else if(_configMap.find("alias") != _configMap.end())
+	{
+		std::cout << _configMap.find("alias")->first << " : " << _configMap.find("alias")->second << std::endl;
+ 
+	}
+	else if(_configMap.find("root") != _configMap.end())
+	{
+		std::cout << _configMap.find("root")->first << " : " << _configMap.find("root")->second << std::endl;
+	}
+	else
+		std::cout << "NONE path" << std::endl;
 
 	_rootRequest = _configMap.find("root")->second; 
 	_request_path = _rootRequest + _request_path;
