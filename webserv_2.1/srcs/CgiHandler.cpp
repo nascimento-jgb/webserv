@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:33:04 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/09 16:42:48 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/10 11:54:42 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -126,20 +126,24 @@ int	CgiHandler::_fillMap(Request &request)
 
 	tempPath.clear();
 	tempPath.append(request.getPath());
+	this->_envVariables["AUTH_TYPE"] = "basic";
+	this->_envVariables["HTTP_COOKIE"] = request.getHeader("cookie");
+	this->_envVariables["REDIRECT_STATUS"] = "200";
+	this->_envVariables["REMOTE_PORT"] = request.getServerMap().find("/")->second.find("listen")->second;
 	if (request.getMethod() == UNKNOWN)
 		return (-1);
 	else if (request.getMethod() == GET)
 	{
-		this->_envVariables["REQUEST_METHOD"] = "GET";
 		if (request.getQuery().size() != 0 && request.getQuery()[0] == '?')
 			this->_envVariables["QUERY_STRING"] = request.getQuery().substr(1);
 		else
 			this->_envVariables["QUERY_STRING"] = request.getQuery();
+		this->_envVariables["REQUEST_METHOD"] = "GET";
 	}
 	else if (request.getMethod() == POST)
 	{
-		this->_envVariables["REQUEST_METHOD"] = "POST";
 		this->_envVariables["CONTENT_LENGTH"] = ft_itoa(request.getBodyLen());
+		this->_envVariables["REQUEST_METHOD"] = "POST";
 	}
 	else if (request.getMethod() == DELETE)
 		this->_envVariables["REQUEST_METHOD"] = "DELETE";
@@ -152,6 +156,7 @@ int	CgiHandler::_fillMap(Request &request)
 	this->_envVariables["SERVER_PORT"] = request.getServerMap().find("/")->second.find("listen")->second;
 	this->_envVariables["SERVER_PROTOCOL"] = "HTTP/1.1";
 	this->_envVariables["SERVER_SOFTWARE"] = "Webserv_JLC/1.0";
+	std::cout << request.getHeader("content-type") << std::endl;
 	return (0);
 }
 

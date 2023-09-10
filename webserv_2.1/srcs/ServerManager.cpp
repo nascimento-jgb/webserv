@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerManager.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: leklund <leklund@student.hive.fi>          +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/09 11:26:08 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/09 11:26:09 by leklund          ###   ########.fr       */
+/*   Updated: 2023/09/10 11:00:33 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -236,7 +236,6 @@ void	ServerManager::writeToClient(const int &fd, Client &client)
 {
 	if (client.getCgiFlag() == 1)
 	{
-		std::cout << client.response.getCgiResponseString();
 		send(fd, client.response.getCgiResponseString().data(), client.response.getCgiResponseString().size(), 0);
 		client.setCgiFlag(0);
 	}
