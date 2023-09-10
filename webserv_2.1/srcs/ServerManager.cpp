@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerManager.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: leklund <leklund@student.hive.fi>          +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/09 11:26:08 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/09 11:26:09 by leklund          ###   ########.fr       */
+/*   Updated: 2023/09/10 12:53:10 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,7 +72,9 @@ void	ServerManager::runServers()
 		}
 		for (int fd = 0; fd <= _biggest_fd; ++fd)
 		{
-			if ((FD_ISSET(fd, &io_set) && _clients_map.count(fd)) || _clients_map.count(fd))
+			if ((FD_ISSET(fd, &io_set) && _clients_map.count(fd)) || _clients_map.count(fd) ||
+				(FD_ISSET(_clients_map[fd].response.cgiInstance.pipeInFd[1], &io_set) &&
+				FD_ISSET(_clients_map[fd].response.cgiInstance.pipeOutFd[0], &io_set)))
 				handleSocket(fd, _clients_map[fd]);
 			else if (FD_ISSET(fd, &io_set) && _servers_map.count(fd) && _clients_map.find(fd) == _clients_map.end())
 				acceptNewConnection(_servers_map.find(fd)->second);
@@ -89,7 +91,7 @@ void ServerManager::initializeSets()
 
 	for (std::vector<Server>::iterator it = _serversClass.begin(); it != _serversClass.end(); ++it)
 	{
-		if (listen(it->getListenFd(), 512) == -1)
+		if (listen(it->getListenFd(), 20) == -1)
 		{
 			std::cout << "webserv: listen error: "<< strerror(errno) << " Closing...." << std::endl;
 			exit(EXIT_FAILURE);
@@ -223,8 +225,9 @@ void	ServerManager::readRequest(const int &fd, Client &client)
 		if (client.request.getStatus() == CGI)
 		{
 			client.setCgiFlag(1);
+			addToSet(client.response.cgiInstance.pipeInFd[1], _fd_pool);
+			addToSet(client.response.cgiInstance.pipeOutFd[0], _fd_pool);
 			client.response.makeCgiResponse(client.request);
-			// addToSet(c.response._cgi_obj.pipe_in[1],  _fd_pool);
 		}
 		else
 			client.response.makeResponse(client.request, client.server.getErrorMap());
@@ -241,9 +244,7 @@ void	ServerManager::writeToClient(const int &fd, Client &client)
 		client.setCgiFlag(0);
 	}
 	else
-	{
 		send(fd, client.response.getResponseString().data(), client.response.getResponseString().size(), 0);
-	}
 	client.clearClient();
 	client.request.setRequestStatus(READ);
 }

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:58:58 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/04 15:02:37 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/10 12:54:23 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 # include "Mime.hpp"
 
 class Request;
+class CgiHandler;
 
 class Response
 {
@@ -37,6 +38,8 @@ class Response
 		~Response();
 		Response(Response const &other);
 		Response &operator=(Response const &other);
+
+		CgiHandler			cgiInstance;
 
 		void				_printErrorAndRedirect(std::string msg, int error_code, numbermap errorMap);
 		int					_loadFile(std::string error_page_path);

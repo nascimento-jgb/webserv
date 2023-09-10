@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:58:47 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/08 14:09:48 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/10 12:53:18 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,11 +51,10 @@ Response &Response::operator=(Response const &other)
 
 void	Response::makeCgiResponse(Request& request)
 {
-	CgiHandler	cgi;
 	std::string	message;
 	std::string	mimes;
 
-	if (cgi.cgiInitialization(request) == -1)
+	if (cgiInstance.cgiInitialization(request) == -1)
 	{
 		message = "Error executing CGI script";
 		_responseCgiString = "HTTP/1.1 400 NOT OK\r\nContent-Type: text/plain\r\nContent-Length: "
@@ -63,7 +62,7 @@ void	Response::makeCgiResponse(Request& request)
 	}
 	else
 	{
-		message = cgi.fetchOutputCgi();
+		message = cgiInstance.fetchOutputCgi();
 		if (_mimes.isMimeInCgi(message, mimes) == 0)
 			_responseCgiString = "HTTP/1.1 200 OK\r\n" + mimes + "\r\nContent-Length: " + \
 				ft_itoa(message.size()) + "\r\n\r\n" + message;
