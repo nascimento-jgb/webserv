@@ -75,13 +75,22 @@ void	Response::makeCgiResponse(Request& request)
 void	Response::makeResponse(Request& request, numbermap errorMap)
 {
 	_responseCode = request.getCode();
+	_root = request.getRoot();
+	_rootErrorPages = request.getRootErrorPages();
 
+	if(_responseCode == 302)
+	{
+    	Error errors;
+		std::cout << "\033[1;31m[" << _responseCode << "][" << errors.getErrorMsg(_responseCode) << "] " << "we redirecting here" << "\033[0m" << std::endl;
+		_responseString = "HTTP/1.1 302 Redirect\r\nLocation: ";
+		_responseString.append(request.getRelativePath()).append("\r\n\r\n");
+		return ;
+	}
 	if(_responseCode >= 400)
 	{
 		_printErrorAndRedirect("ERROR", _responseCode, errorMap);
 		return ;
 	}
-	_root = request.getRoot();
 	if(request.getMethod() == GET)
 	{
 		std::string path;
@@ -93,7 +102,6 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 		if(request.getPath()[0] == '/')
 		{
 			path = request.getPath();
-
 			struct stat pathType;
 			if(stat(path.c_str(), &pathType) == 0)
 			{
@@ -108,21 +116,15 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 							indexPath = path+"/"+request.getConfigMap().find("index")->second;
 						else
 							indexPath = request.getConfigMap().find("index")->second;
-
 						if(!_loadFile(indexPath))
-						{
 							_responseString.clear();
-						}
 						else
-						{
 							return ;
-						}
 					}
 					DIR				*tmp;
 					struct dirent	*entry;
 					if((tmp = opendir(path.c_str())) == NULL || request.getConfigMap().find("autoindex")->second.find("on") == std::string::npos)
 					{
-
 						_printErrorAndRedirect("Error", 404, errorMap);
 						return ;
 					}
@@ -277,7 +279,7 @@ void    Response::_printErrorAndRedirect(std::string msg, int error_code, number
 
     if(errorMap.find(error_code) != errorMap.end())
     {
-        _responseString.append(absoluteToRelativePath(_root, errorMap.find(error_code)->second)).append("\r\n\r\n");
+        _responseString.append(absoluteToRelativePath(_rootErrorPages, errorMap.find(error_code)->second)).append("\r\n\r\n");
         return ;
     }
 	_responseString.clear();

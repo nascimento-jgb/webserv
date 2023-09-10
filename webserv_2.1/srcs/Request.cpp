@@ -259,6 +259,11 @@ void	Request::_findLocationMap(mainmap &config)
 	std::string			temp;
 	mainmap::iterator	it;
 
+	if (_request_path.size() == 0)
+	{
+		_location = "/";
+		return ;
+	}
 	temp = _request_path;
 	while (1)
 	{
@@ -332,37 +337,40 @@ void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap 
 	//saves the request.
 	std::getline(iss, line);
 	_httpmethod = _checkMethod(line);
-	if(_httpmethod == UNKNOWN)
-		return ;
 	_configMap.clear();
 	_cgiMap.clear();
 	_cgiMap = cgi;
 	_findLocationMap(config);
 	_serverMap = config;
 	_configMap = config.find(_location)->second;
+	_rootRequest = _configMap.find("root")->second;
+	_rootErrorPages = config.find("/")->second.find("root")->second;
+	if(_httpmethod == UNKNOWN)
+		return ;
 	if (!_location.compare("/cgi-bin"))
 		setRequestStatus(CGI);
 	if (_checkMethodInLocation() != 0)
 		return ;
+
+
 	if(_configMap.find("return") != _configMap.end())
 	{
-		std::cout << _configMap.find("return")->first << " : " << _configMap.find("return")->second << std::endl;
-		_request_path = _rootRequest + _configMap.find("return")->second;
+		_request_path = _rootRequest + "/" + _configMap.find("return")->second;
+		_relativePathRequest = absoluteToRelativePath(_rootRequest, _request_path);
+		_requestCode = 302;
+		return ;
 	}
 	else if(_configMap.find("alias") != _configMap.end())
 	{
-		std::cout << _configMap.find("alias")->first << " : " << _configMap.find("alias")->second << std::endl;
- 
+		_request_path = _request_path.substr(_location.length());
+		_request_path = _configMap.find("path")->second + _request_path;
+		_relativePathRequest = absoluteToRelativePath(_rootRequest, _request_path);
 	}
 	else if(_configMap.find("root") != _configMap.end())
 	{
-		std::cout << _configMap.find("root")->first << " : " << _configMap.find("root")->second << std::endl;
+		_request_path = _rootRequest + _request_path;
+		_relativePathRequest = absoluteToRelativePath(_rootRequest, _request_path);
 	}
-	else
-		std::cout << "NONE path" << std::endl;
-
-	_rootRequest = _configMap.find("root")->second; 
-	_request_path = _rootRequest + _request_path;
 
 	//goes trough each headerline
 	while (std::getline(iss, line))
@@ -582,10 +590,22 @@ HttpMethod	Request::getMethod()
 	return (_httpmethod);
 }
 
+std::string		Request::getRelativePath()
+{
+	return(_relativePathRequest);
+}
+
+
 std::string		Request::getRoot()
 {
 	return(_rootRequest);
 }
+
+std::string		Request::getRootErrorPages()
+{
+	return(_rootErrorPages);
+}
+
 
 
 std::string		Request::getBody()

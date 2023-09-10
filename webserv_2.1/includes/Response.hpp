@@ -29,6 +29,7 @@ class Response
 		std::string			_responseString;
 		std::string			_responseCgiString;
 		std::string			_root;
+		std::string			_rootErrorPages;
 		int					_responseCode;
 		Mime				_mimes;
 

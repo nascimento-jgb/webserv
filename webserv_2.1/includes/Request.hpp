@@ -44,6 +44,8 @@ class Request
 {
 	private:
 		std::string		_rootRequest;
+		std::string		_rootErrorPages;
+		std::string		_relativePathRequest;
 		std::string		_rawBody;
 		std::string 	_boundary;
         std::string		_bodyStr;
@@ -102,6 +104,8 @@ class Request
 		size_t			getBodyLen();
 		std::string		getBody();
 		std::string		getRoot();
+		std::string		getRootErrorPages();
+		std::string		getRelativePath();
 		std::string		getImageData();
 		std::string		getFileName();
 		HttpMethod		getMethod();

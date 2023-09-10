@@ -407,9 +407,6 @@ int	isPathValid(std::string &programName, std::string &pre, std::string &post)
 std::string	absoluteToRelativePath(std::string root, std::string absoluePath)
 {
 	int rootLen = root.length();
-	std::cout  << "root :" << root << std::endl;
-	std::cout  << "absoluePath :" << absoluePath << std::endl;
 	std::string relativePath = absoluePath.substr(rootLen, absoluePath.length());
-	std::cout << "Relative :" << relativePath << std::endl;
 	return(relativePath);
 }
