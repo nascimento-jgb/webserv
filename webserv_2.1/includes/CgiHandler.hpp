@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CgiHandler.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:34:03 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/07 14:18:14 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/10 14:31:35 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,8 +21,14 @@ class	CgiHandler
 {
 public:
 
+	int	pipeInFd[2];
+	int	pipeOutFd[2];
+
 	CgiHandler(void);
+	CgiHandler(CgiHandler const &other);
 	~CgiHandler(void);
+
+	CgiHandler	&operator=(CgiHandler const &other);
 
 	int			cgiInitialization(Request &request);
 	std::string	fetchOutputCgi(void) const;
@@ -34,15 +40,10 @@ private:
 	char		**_env;
 	char		**_cmd;
 	char		*_path;
-	int			_fd[2];
 	pid_t		_pid;
 	std::string	_output;
 	std::string	_extension;
 	std::string	_pathCgiScript;
-
-	CgiHandler(CgiHandler const &rhs);
-
-	CgiHandler	&operator=(CgiHandler &rhs);
 
 	int		_getPathCgiScript(std::string &fullPath);
 	int		_checkAccess(void);
@@ -50,6 +51,7 @@ private:
 	int		_trimString(std::string &temp);
 	int		_fillMap(Request &request);
 	char	**_getEnvInChar(void);
+	char	**_cloneCmd(char **otherCmd);
 	void	_deleteAllocFail(char **array);
 	int		_getPathInfo(std::string &fullPath, std::string &toWrite);
 	int		_getPathTranslated(std::string &fullPath, std::string &toWrite);

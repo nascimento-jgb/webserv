@@ -72,9 +72,9 @@ void	ServerManager::runServers()
 		}
 		for (int fd = 0; fd <= _biggest_fd; ++fd)
 		{
-			if ((FD_ISSET(fd, &io_set) && _clients_map.count(fd)) || _clients_map.count(fd) ||
-				(FD_ISSET(_clients_map[fd].response.cgiInstance.pipeInFd[1], &io_set) &&
-				FD_ISSET(_clients_map[fd].response.cgiInstance.pipeOutFd[0], &io_set)))
+			if ((FD_ISSET(fd, &io_set) && _clients_map.count(fd)) || _clients_map.count(fd)) //||
+				// (FD_ISSET(_clients_map[fd].response.cgiInstance.pipeInFd[1], &io_set) &&
+				// FD_ISSET(_clients_map[fd].response.cgiInstance.pipeOutFd[0], &io_set)))
 				handleSocket(fd, _clients_map[fd]);
 			else if (FD_ISSET(fd, &io_set) && _servers_map.count(fd) && _clients_map.find(fd) == _clients_map.end())
 				acceptNewConnection(_servers_map.find(fd)->second);
@@ -225,8 +225,8 @@ void	ServerManager::readRequest(const int &fd, Client &client)
 		if (client.request.getStatus() == CGI)
 		{
 			client.setCgiFlag(1);
-			addToSet(client.response.cgiInstance.pipeInFd[1], _fd_pool);
-			addToSet(client.response.cgiInstance.pipeOutFd[0], _fd_pool);
+			// addToSet(client.response.cgiInstance.pipeInFd[1], _fd_pool);
+			// addToSet(client.response.cgiInstance.pipeOutFd[0], _fd_pool);
 			client.response.makeCgiResponse(client.request);
 		}
 		else
@@ -287,5 +287,3 @@ void ServerManager::removeFromSet(const int i, fd_set &old_set)
 	if (i == _biggest_fd)
 		_biggest_fd--;
 }
-
-
