@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:33:04 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/10 11:54:42 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/10 14:18:21 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,82 @@ CgiHandler::CgiHandler(void)
 	this->_path = NULL;
 	this->_env = NULL;
 	this->_cmd = NULL;
+	pipeInFd[0] = -1;
+	pipeInFd[1] = -1;
+	pipeOutFd[0] = -1;
+	pipeOutFd[1] = -1;
 	return ;
+}
+
+CgiHandler::CgiHandler(CgiHandler const &other)
+{
+	if (this != &other)
+		*this = other;
+	return ;
+}
+
+CgiHandler	&CgiHandler::operator=(CgiHandler const &other)
+{
+	if (this != &other)
+	{
+		pipeInFd[0] = other.pipeInFd[0];
+		pipeInFd[1] = other.pipeInFd[1];
+		pipeOutFd[0] = other.pipeOutFd[0];
+		pipeOutFd[1] = other.pipeOutFd[1];
+		_envVariables = other._envVariables;
+		_cgiExecutable = other._cgiExecutable;
+		_pid = other._pid;
+		_output = other._output;
+		_extension = other._extension;
+		_pathCgiScript = other._pathCgiScript;
+		if (_path != NULL)
+			delete [] _path;
+		if (other._path != NULL)
+			_path = _strdup_cpp(other._path);
+		else
+			_path = NULL;
+		if (_env != NULL)
+			_deleteAllocFail(_env);
+		if (other._env != NULL)
+			_env = _getEnvInChar();
+		else
+			_env = NULL;
+		if (_cmd != NULL)
+			_deleteAllocFail(_cmd);
+		if (other._cmd != NULL)
+			_cmd = _cloneCmd(other._cmd);
+		else
+			_cmd = NULL;
+	}
+	return (*this);
+}
+
+char	**CgiHandler::_cloneCmd(char **otherCmd)
+{
+	size_t	i;
+	char	**cmd;
+
+	i = 0;
+	cmd = NULL;
+	if (otherCmd == NULL)
+		return (NULL);
+	while (otherCmd[i])
+		i++;
+	try
+	{
+		cmd = new char*[i + 1];
+	}
+	catch(const std::exception &e)
+	{
+		return (NULL);
+	}
+	cmd[i] = NULL;
+	while (otherCmd[i])
+	{
+		cmd[i] = _strdup_cpp(otherCmd[i]);
+		i++;
+	}
+	return (cmd);
 }
 
 CgiHandler::~CgiHandler(void)
@@ -307,7 +382,7 @@ int	CgiHandler::_createPipeAndFork(void)
 	int	status;
 
 	status = 0;
-	if (pipe(this->_fd) < 0)
+	if (pipe(this->pipeOutFd) < 0)
 	{
 		std::perror("Webserv");
 		return (-1);
@@ -320,9 +395,9 @@ int	CgiHandler::_createPipeAndFork(void)
 	}
 	if (this->_pid == 0)
 	{
-		dup2(this->_fd[1], STDOUT_FILENO);
-		close(this->_fd[1]);
-		close(this->_fd[0]);
+		dup2(this->pipeOutFd[1], STDOUT_FILENO);
+		close(this->pipeOutFd[1]);
+		close(this->pipeOutFd[0]);
 		if (execve(this->_path, this->_cmd, this->_env) < 0)
 		{
 			std::perror("Webserv");
@@ -338,10 +413,10 @@ int	CgiHandler::_createPipeAndFork(void)
 	else
 	{
 		waitpid(this->_pid, &status, 0);
-		close(this->_fd[1]);
+		close(this->pipeOutFd[1]);
 		if (WIFSIGNALED(status) > 0)
 		{
-			close(this->_fd[0]);
+			close(this->pipeOutFd[0]);
 			return (-1);
 		}
 	}
@@ -359,7 +434,7 @@ int	CgiHandler::_storeOutput(void)
 	std::memset(buffer, 0, 2);
 	while (ret > 0)
 	{
-		ret = read(this->_fd[0], buffer, 1);
+		ret = read(this->pipeOutFd[0], buffer, 1);
 		if (ret > 0)
 		{
 			buffer[1] = '\0';
@@ -372,7 +447,7 @@ int	CgiHandler::_storeOutput(void)
 				this->_output += buffer;
 		}
 	}
-	close(this->_fd[0]);
+	close(this->pipeOutFd[0]);
 	if (ret < 0)
 	{
 		std::perror("Webserv");
