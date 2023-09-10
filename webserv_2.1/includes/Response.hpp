@@ -28,6 +28,7 @@ class Response
 		std::string			_http_res;
 		std::string			_responseString;
 		std::string			_responseCgiString;
+		std::string			_root;
 		int					_responseCode;
 		Mime				_mimes;
 
@@ -37,11 +38,11 @@ class Response
 		Response(Response const &other);
 		Response &operator=(Response const &other);
 
-		void				_buildAndPrintErrorResponse(std::string msg, int error_code, numbermap errorMap);
+		void				_printErrorAndRedirect(std::string msg, int error_code, numbermap errorMap);
 		int					_loadFile(std::string error_page_path);
 		void				makeResponse(Request &request, numbermap errorMap);
 		void				makeCgiResponse(Request& request);
-		void 				_saveImageToFile(const std::string& filename, const std::string& imageData);
+		int	 				_saveImageToFile(const std::string& filename, const std::string& imageData);
 		void 				clearResponse();
 		bool				fileExists (const std::string& f);
 

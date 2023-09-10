@@ -241,7 +241,9 @@ void	ServerManager::writeToClient(const int &fd, Client &client)
 		client.setCgiFlag(0);
 	}
 	else
+	{
 		send(fd, client.response.getResponseString().data(), client.response.getResponseString().size(), 0);
+	}
 	client.clearClient();
 	client.request.setRequestStatus(READ);
 }

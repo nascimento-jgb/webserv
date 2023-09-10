@@ -12,7 +12,6 @@
 
 #include "../includes/Response.hpp"
 
-//Canonical Form
 Response::Response()
 {
 	_content_length = 0;
@@ -79,9 +78,10 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 
 	if(_responseCode >= 400)
 	{
-		_buildAndPrintErrorResponse("ERROR", _responseCode, errorMap);
+		_printErrorAndRedirect("ERROR", _responseCode, errorMap);
 		return ;
 	}
+	_root = request.getRoot();
 	if(request.getMethod() == GET)
 	{
 		std::string path;
@@ -92,60 +92,38 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 		std::strftime(buffer, sizeof(buffer), "%a, %d %b %Y %H:%M:%S GMT", local_time);
 		if(request.getPath()[0] == '/')
 		{
-			// if(request.getPath() != "/")
 			path = request.getPath();
-			// if(request.getPath() != "/")
-			// 	path = request.getPath().substr(1,request.getPath().length() - 1).c_str();
-			// else
-			// 	path = "/";
-			// if(request.getPath() != "/")
-			// 	path = request.getRoot() + request.getPath();
-			// else
-			// 	path = "/";
 
 			struct stat pathType;
-			std::cout << "STATS path: " << path << std::endl;
 			if(stat(path.c_str(), &pathType) == 0)
 			{
-			std::cout << "STATS-CHECK" << std::endl;
-
 				if(S_ISDIR(pathType.st_mode))
 				{
-					std::cout << "Lets List the dirs IF OKAY and there is no index" << std::endl;
-					if(request.getCgiMap().find("index") != request.getCgiMap().end())
+					if(request.getConfigMap().find("index") != request.getConfigMap().end())
 					{
 						std::string indexPath;
 						Error errors;
 						_responseString = "HTTP/1.1 " + ft_itoa(_responseCode) + " " + errors.getErrorMsg(_responseCode);
-						// indexPath = path + request.getCgiMap().find("index")->second + ".html";
 						if(path != "/")
-							indexPath = path+"/"+request.getCgiMap().find("index")->second+".html";
+							indexPath = path+"/"+request.getConfigMap().find("index")->second;
 						else
-							indexPath = request.getCgiMap().find("index")->second + ".html";
-						// if(path != "/")
-						// 	indexPath = path + request.getCgiMap().find("index")->second + ".html";
-						// else
-						// 	indexPath = request.getCgiMap().find("index")->second + ".html";
+							indexPath = request.getConfigMap().find("index")->second;
 
 						if(!_loadFile(indexPath))
 						{
-
-							std::cout << "LOL her1e" << std::endl;
 							_responseString.clear();
 						}
 						else
 						{
-							std::cout << "LOL here2" << std::endl;
 							return ;
 						}
 					}
 					DIR				*tmp;
 					struct dirent	*entry;
-					std::cout << "Dir path: " << path << std::endl;
 					if((tmp = opendir(path.c_str())) == NULL || request.getConfigMap().find("autoindex")->second.find("on") == std::string::npos)
 					{
 
-						_buildAndPrintErrorResponse("Error", 404, errorMap);
+						_printErrorAndRedirect("Error", 404, errorMap);
 						return ;
 					}
 					std::string message;
@@ -153,10 +131,9 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 					{
 						if(!std::strncmp(entry->d_name, ".", 1))
 							continue;
-						message.append("<h3><a href=\"").append(path).append("/").append(entry->d_name).append("\">");
+						message.append("<h3><a href=\"").append(absoluteToRelativePath(_root, path)).append("/").append(entry->d_name).append("\">");
 						message.append(entry->d_name);
 						message.append("</a></h3>");
-						std::cout << path << "/" << entry->d_name << std::endl;
 					}
 					_responseString = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: "
 						+ request.ft_itoa(message.size()) + "\r\nServer: JLC\r\n\r\n" + message;
@@ -164,11 +141,10 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 				}
 				else
 				{
-					std::cout << "IS FILE" << std::endl;
 					std::ifstream file(path);
 					if(file.bad())
 					{
-						_buildAndPrintErrorResponse("File not found", 404, errorMap);
+						_printErrorAndRedirect("File not found", 404, errorMap);
 						return ;
 					}
 					else
@@ -188,7 +164,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 			}
 			else
 			{
-				_buildAndPrintErrorResponse("path not found", 404, errorMap);
+				_printErrorAndRedirect("path not found", 404, errorMap);
 				return ;
 			}
 		}
@@ -199,7 +175,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 		{
 			if(_mimes.getMimeType(request.getFileName()) == "text/html")
 			{
-				_buildAndPrintErrorResponse("Sorry we do not allow user to POST Html files", 400, errorMap);
+				_printErrorAndRedirect("Sorry we do not allow user to POST Html files", 400, errorMap);
 				return ;
 			}
 			else
@@ -209,13 +185,16 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 					pathAndSource.append("/");
 				pathAndSource.append(request.getFileName());
 				pathAndSource = pathAndSource.substr(1, pathAndSource.length());
-				std::cout << "POST FILE\n========================\n" << pathAndSource << "\n========================" << std::endl;
-				_saveImageToFile(pathAndSource, request.getImageData());
+				if(_saveImageToFile(pathAndSource, request.getImageData()))
+					_printErrorAndRedirect("Failed to save the File.", 400, errorMap);
+				else
+				{
+					std::string message = "upload successful";
+					_responseString = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: "
+						+ request.ft_itoa(message.size()) + "\r\nServer: JLC\r\n\r\n" + message;
+				}
 			}
 		}
-		std::string message = "This is your cool POST message!";
-		_responseString = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: "
-			+ request.ft_itoa(message.size()) + "\r\n\r\n" + message;
 	}
 	else if(request.getMethod() == DELETE)
 	{
@@ -250,18 +229,18 @@ bool Response::fileExists (const std::string& f)
 }
 
 
-void Response::_saveImageToFile(const std::string& filename, const std::string& imageData)
+int Response::_saveImageToFile(const std::string& filename, const std::string& imageData)
 {
 	std::ofstream file(filename.c_str(), std::ios::binary);
 	if (file)
 	{
-		file.write(imageData.c_str(), imageData.length());
+		file << imageData;
 		file.close();
-		std::cout << "File saved successfully." << std::endl;
+		if(file.fail())
+			return (1);
+		return (0);
 	}
-	else {
-		std::cout << "Failed to save the File." << std::endl;
-	}
+	return (1);
 }
 
 
@@ -287,48 +266,42 @@ void Response::clearResponse()
 }
 
 
-void	Response::_buildAndPrintErrorResponse(std::string msg, int error_code, numbermap errorMap)
-{
-	Error errors;
 
-	_responseCode = error_code;
-	std::cout << "\033[1;31m[" << error_code << "][" << errors.getErrorMsg(error_code) << "] " << msg << "\033[0m" << std::endl;
+void    Response::_printErrorAndRedirect(std::string msg, int error_code, numbermap errorMap)
+{
+    Error errors;
+
+    _responseCode = error_code;
+    std::cout << "\033[1;31m[" << error_code << "][" << errors.getErrorMsg(error_code) << "] " << msg << "\033[0m" << std::endl;
+    _responseString = "HTTP/1.1 302 Redirect\r\nSet-cookie: error=cookie\r\nLocation: ";
+
+    if(errorMap.find(error_code) != errorMap.end())
+    {
+        _responseString.append(absoluteToRelativePath(_root, errorMap.find(error_code)->second)).append("\r\n\r\n");
+        return ;
+    }
+	_responseString.clear();
 	_responseString = "HTTP/1.1 " + ft_itoa(error_code) + " " + errors.getErrorMsg(error_code);
-	if(errorMap.find(error_code) != errorMap.end())
-	{
-		if(_loadFile(errorMap.find(404)->second))
-			return ;
-	}
 	_responseString.append("\r\nContent-Type: text/plain\r\nContent-Length: "
 		+ ft_itoa(msg.size()) + "\r\nServer: JLC\r\n\r\n" + msg);
 }
 
 int	Response::_loadFile(std::string path)
 {
-	std::cout << "tets" << std::endl;
 	if(path.empty())
 		return (0);
-	std::cout << "Error Page load: " << path << std::endl;
 	std::ifstream file(path);
-	if(file.bad())
+	if(file.bad() || file.fail())
 		return (0);
 	std::stringstream	buffer;
-	std::cout <<"WTF"<< std::endl;
 
 	buffer << file.rdbuf();
 	std::string fileContents = buffer.str();
-	// if(fileContents.empty())
-	// {
-	// 	file.close();
-	// 	return (0);
-	// }
-	// std::cout <<"WTF2"<< std::endl;
 
 	_responseString.append("\r\nContent-Type: ");
 	_responseString.append(_mimes.getMimeType(path));
 	_responseString.append("\r\nContent-Length: ");
 	_responseString.append(ft_itoa(fileContents.size()) + "\r\n\r\n" + fileContents);
 	file.close();
-	std::cout <<"DONE"<< std::endl;
 	return (1);
 }
