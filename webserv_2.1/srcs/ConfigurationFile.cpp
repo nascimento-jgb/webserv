@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/04 17:14:34 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/09 14:13:26 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/10 10:54:08 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -755,7 +755,7 @@ int	ConfigurationFile::_checkRootAlias(std::string const &key, mainmap &tempMap)
 		return (-1);
 	if (!S_ISDIR(st.st_mode))
 		return (-1);
-	tempMap.find(key)->second["path"] = temp;
+	tempMap.find(key)->second["path"] = pre;
 	return (0);
 }
 

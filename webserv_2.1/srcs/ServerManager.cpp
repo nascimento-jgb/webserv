@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/09 11:26:08 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/10 12:53:10 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/10 14:27:00 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -239,7 +239,6 @@ void	ServerManager::writeToClient(const int &fd, Client &client)
 {
 	if (client.getCgiFlag() == 1)
 	{
-		std::cout << client.response.getCgiResponseString();
 		send(fd, client.response.getCgiResponseString().data(), client.response.getCgiResponseString().size(), 0);
 		client.setCgiFlag(0);
 	}
