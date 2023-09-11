@@ -50,6 +50,7 @@ class ServerManager
 		//Utils
 		void		addToSet(const int i, fd_set  &new_set);
 		void		removeFromSet(const int i, fd_set &old_set);
+		void		removePipeInFromSet(const int i, fd_set &old_set);
 
 	public:
 

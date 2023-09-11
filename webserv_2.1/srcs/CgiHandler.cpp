@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:33:04 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/11 18:40:05 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/11 21:10:25 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,7 +101,7 @@ CgiHandler::~CgiHandler(void)
 	return ;
 }
 
-int	CgiHandler::cgiInitialization(Request &request)
+int	CgiHandler::cgiInitialization(Request &request, fd_set &fdPool, int &biggestFd)
 {
 	std::string	tempPath;
 
@@ -122,7 +122,7 @@ int	CgiHandler::cgiInitialization(Request &request)
 		return (-1);
 	if (this->_createInstructions() == -1)
 		return (-1);
-	if (this->_createPipeAndFork(request) == -1)
+	if (this->_createPipeAndFork(request, fdPool, biggestFd) == -1)
 		return (-1);
 	if (this->_storeOutput() == -1)
 		return (-1);
@@ -381,17 +381,28 @@ int	CgiHandler::_createInstructions(void)
 	return (0);
 }
 
-int	CgiHandler::_createPipeAndFork(Request &request)
+int	CgiHandler::_createPipeAndFork(Request &request, fd_set &fdPool, int &biggestFd)
 {
 	std::string	bodyInfo;
 	int			status;
 
 	status = 0;
+	if (pipe(pipeInFd) < 0)
+	{
+		std::perror("Webserv");
+		return (-1);
+	}
+	if (pipe(pipeOutFd) < 0)
+	{
+		std::perror("Webserv");
+		return (-1);
+	}
 	bodyInfo = request.getBody();
 	if (!bodyInfo.empty())
 		write(pipeInFd[1], "\0", 1);
 	else
 		write(pipeInFd[1], bodyInfo.c_str(), bodyInfo.size());
+	_addToSetCGI(pipeInFd[1], fdPool, biggestFd);
 	this->_pid = fork();
 	if (this->_pid == -1)
 	{
@@ -420,14 +431,14 @@ int	CgiHandler::_createPipeAndFork(Request &request)
 	}
 	else
 	{
-		waitpid(this->_pid, &status, 0);
-		close(this->pipeOutFd[1]);
+		_addToSetCGI(this->pipeOutFd[0], fdPool, biggestFd);
 		close(this->pipeInFd[0]);
+		close(this->pipeOutFd[1]);
+		std::cout << "This is the value of FD_ISSET before: " << FD_ISSET(this->pipeOutFd[0], &fdPool) << std::endl;
+		waitpid(this->_pid, &status, 0);
+		std::cout << "This is the value of FD_ISSET after: " << FD_ISSET(this->pipeOutFd[0], &fdPool) << std::endl;
 		if (WIFSIGNALED(status) > 0 || WEXITSTATUS(status) != 0)
-		{
-			// close(this->pipeOutFd[0]);
 			return (-1);
-		}
 	}
 	return (0);
 }
@@ -463,6 +474,13 @@ int	CgiHandler::_storeOutput(void)
 		return (-1);
 	}
 	return (0);
+}
+
+void	CgiHandler::_addToSetCGI(const int i, fd_set &new_set, int &biggestFd)
+{
+	FD_SET(i, &new_set);
+	if (i > biggestFd)
+		biggestFd = i;
 }
 
 char	*CgiHandler::_strdup_cpp(const char *str)

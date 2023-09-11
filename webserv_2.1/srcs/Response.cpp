@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:58:47 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/11 15:09:12 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/11 20:10:27 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,12 +49,12 @@ Response &Response::operator=(Response const &other)
 	return (*this);
 }
 
-void	Response::makeCgiResponse(Request& request)
+void	Response::makeCgiResponse(Request& request, fd_set &fdPool, int &biggestFd)
 {
 	std::string	message;
 	std::string	mimes;
 
-	if (cgiInstance.cgiInitialization(request) == -1)
+	if (cgiInstance.cgiInitialization(request, fdPool, biggestFd) == -1)
 	{
 		message = "Error executing CGI script";
 		_responseCgiString = "HTTP/1.1 400 NOT OK\r\nContent-Type: text/plain\r\nContent-Length: "
