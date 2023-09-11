@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CgiHandler.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:33:04 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/11 10:23:35 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/11 14:35:14 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -419,7 +419,7 @@ int	CgiHandler::_createPipeAndFork(Request &request)
 		waitpid(this->_pid, &status, 0);
 		close(this->pipeOutFd[1]);
 		close(this->pipeInFd[0]);
-		if (WIFSIGNALED(status) > 0)
+		if (WIFSIGNALED(status) > 0 || WEXITSTATUS(status) != 0)
 		{
 			// close(this->pipeOutFd[0]);
 			return (-1);
