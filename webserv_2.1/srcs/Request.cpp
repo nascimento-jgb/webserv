@@ -442,6 +442,7 @@ int Request::_chunkedBodySave(int body_size)
 				i += 2;
 				if(chunking == "0")
 				{
+					_bodyStr = std::string(_bodyVector.begin(), _bodyVector.end());
 					_bodyType = NONE;
 					_requestCode = 200;
 					break;
@@ -450,7 +451,7 @@ int Request::_chunkedBodySave(int body_size)
 				while(chunk && i < body_size)
 				{
 					chunk--;
-					_body.push_back(_rawBody[i]);
+					_bodyVector.push_back(_rawBody[i]);
 					i++;
 				}
 				i += 2;
@@ -540,12 +541,13 @@ std::string Request::_removeBoundary(std::string &body, std::string &boundary)
 
 int Request::_plainBodySave(int body_size)
 {
-	_body.clear();
-	_body.resize(body_size);
-	for (unsigned int i = 0; i < _body.size(); i++)
+	_bodyVector.clear();
+	_bodyVector.resize(body_size);
+	for (unsigned int i = 0; i < _bodyVector.size(); i++)
 	{
-		_body[i] = _rawBody[i];
+		_bodyVector[i] = _rawBody[i];
 	}
+	_bodyStr = std::string(_bodyVector.begin(), _bodyVector.end());
 	return(0);
 }
 
@@ -561,7 +563,7 @@ void Request::_parseFileData()
 	}
 	boundary = boundary.substr(tmp);
 
-	std::string charBodylizedStr(_body.begin(), _body.end());
+	std::string charBodylizedStr(_bodyVector.begin(), _bodyVector.end());
 	_fileData = _removeBoundary(charBodylizedStr, boundary);
 }
 
@@ -730,5 +732,5 @@ void Request::clearRequest()
 	_serverMap.clear();
 	_configMap.clear();
 	_cgiMap.clear();
-	_body.clear();
+	_bodyVector.clear();
 }

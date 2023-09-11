@@ -68,7 +68,7 @@ class Request
 		mainmap								_serverMap;
 		submap								_configMap;
 		submap								_cgiMap;
-		std::vector<u_int8_t>				_body;
+		std::vector<u_int8_t>				_bodyVector;
 
 		int				_checkValidBodySize(size_t max_len);
 		int				_checkHeaders(std::string &key, std::string &value);
