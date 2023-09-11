@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:33:04 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/11 18:30:08 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/11 18:40:05 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,12 +98,6 @@ char	**CgiHandler::_cloneCmd(char **otherCmd)
 
 CgiHandler::~CgiHandler(void)
 {
-	if (this->_path)
-		delete [] this->_path;
-	if (this->_env)
-		this->_deleteAllocFail(this->_env);
-	if (this->_cmd)
-		this->_deleteAllocFail(this->_cmd);
 	return ;
 }
 
@@ -132,6 +126,15 @@ int	CgiHandler::cgiInitialization(Request &request)
 		return (-1);
 	if (this->_storeOutput() == -1)
 		return (-1);
+	if (this->_path)
+		delete [] this->_path;
+	if (this->_env)
+		this->_deleteAllocFail(this->_env);
+	if (this->_cmd)
+		this->_deleteAllocFail(this->_cmd);
+	this->_path = NULL;
+	this->_env = NULL;
+	this->_cmd = NULL;
 	return (0);
 }
 

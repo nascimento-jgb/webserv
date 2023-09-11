@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/25 09:24:51 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/11 15:01:49 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/11 18:36:57 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,6 @@ std::string Mime::getMimeType(std::string path)
 
 int	Mime::isMimeInCgi(std::string &message, std::string &mimes)
 {
-	std::cout << message << std::endl;
 	if (message.find("\r\n\r\n") == std::string::npos)
 		return (1);
 	mimes = message.substr(0, message.find("\r\n\r\n"));
