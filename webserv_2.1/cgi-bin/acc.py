@@ -35,7 +35,7 @@ class UserDataBase:
 			pickle.dump(self, f)
 
 def printAccPage(session):
-	print("Content-Type: text/html\r\n")
+	print("Content-Type: text/html\r\n\r")
 	print("<html>")
 	print("<head>")
 	print("<title>Account Page</title>")
@@ -48,7 +48,7 @@ def printAccPage(session):
 	print("</html>")
 
 def printUserMsg(msg):
-	print("Content-Type: text/html\r\n")
+	print("Content-Type: text/html\r\n\r")
 	print("<html>")
 	print("<head>")
 	print("<title>USER MSG</title>")
@@ -60,7 +60,7 @@ def printUserMsg(msg):
 	print("</html>")
 
 def printLogin():
-	print("Content-Type: text/html\r\n")
+	print("Content-Type: text/html\r\n\r")
 	print("<html> ")
 	print("<head>")
 	print("<meta charset=\"UTF-8\" name=\"viewport\" content=\"width=device-width, initial-scale=1\">")
