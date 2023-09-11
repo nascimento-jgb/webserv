@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/09 11:26:08 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/10 14:27:00 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/11 10:23:43 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,9 +72,7 @@ void	ServerManager::runServers()
 		}
 		for (int fd = 0; fd <= _biggest_fd; ++fd)
 		{
-			if ((FD_ISSET(fd, &io_set) && _clients_map.count(fd)) || _clients_map.count(fd)) //||
-				// (FD_ISSET(_clients_map[fd].response.cgiInstance.pipeInFd[1], &io_set) &&
-				// FD_ISSET(_clients_map[fd].response.cgiInstance.pipeOutFd[0], &io_set)))
+			if ((FD_ISSET(fd, &io_set) && _clients_map.count(fd)) || _clients_map.count(fd))
 				handleSocket(fd, _clients_map[fd]);
 			else if (FD_ISSET(fd, &io_set) && _servers_map.count(fd) && _clients_map.find(fd) == _clients_map.end())
 				acceptNewConnection(_servers_map.find(fd)->second);
@@ -225,8 +223,18 @@ void	ServerManager::readRequest(const int &fd, Client &client)
 		if (client.request.getStatus() == CGI)
 		{
 			client.setCgiFlag(1);
-			// addToSet(client.response.cgiInstance.pipeInFd[1], _fd_pool);
-			// addToSet(client.response.cgiInstance.pipeOutFd[0], _fd_pool);
+			if (pipe(client.response.cgiInstance.pipeInFd) < 0)
+			{
+				std::perror("Webserv");
+				// return (-1);
+			}
+			if (pipe(client.response.cgiInstance.pipeOutFd) < 0)
+			{
+				std::perror("Webserv");
+				// return (-1);
+			}
+			addToSet(client.response.cgiInstance.pipeInFd[1], _fd_pool);
+			addToSet(client.response.cgiInstance.pipeOutFd[0], _fd_pool);
 			client.response.makeCgiResponse(client.request);
 		}
 		else
@@ -240,6 +248,10 @@ void	ServerManager::writeToClient(const int &fd, Client &client)
 	if (client.getCgiFlag() == 1)
 	{
 		send(fd, client.response.getCgiResponseString().data(), client.response.getCgiResponseString().size(), 0);
+		removeFromSet(client.response.cgiInstance.pipeInFd[1], _fd_pool);
+		removeFromSet(client.response.cgiInstance.pipeOutFd[0], _fd_pool);
+		close(client.response.cgiInstance.pipeInFd[1]);
+		close(client.response.cgiInstance.pipeOutFd[0]);
 		client.setCgiFlag(0);
 	}
 	else
@@ -275,6 +287,7 @@ void	ServerManager::closeConnection(const int i)
 //Add a new socket fd to the pool set
 void	ServerManager::addToSet(const int i, fd_set &new_set)
 {
+	std::cout << "fd of the pipe being printed" << i << std::endl;
 	FD_SET(i, &new_set);
 	if (i > _biggest_fd)
 		_biggest_fd = i;

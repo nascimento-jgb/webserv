@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CgiHandler.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:33:04 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/10 14:18:21 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/11 10:23:35 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,7 +128,7 @@ int	CgiHandler::cgiInitialization(Request &request)
 		return (-1);
 	if (this->_createInstructions() == -1)
 		return (-1);
-	if (this->_createPipeAndFork() == -1)
+	if (this->_createPipeAndFork(request) == -1)
 		return (-1);
 	if (this->_storeOutput() == -1)
 		return (-1);
@@ -377,16 +377,17 @@ int	CgiHandler::_createInstructions(void)
 	return (0);
 }
 
-int	CgiHandler::_createPipeAndFork(void)
+int	CgiHandler::_createPipeAndFork(Request &request)
 {
-	int	status;
+	std::string	bodyInfo;
+	int			status;
 
 	status = 0;
-	if (pipe(this->pipeOutFd) < 0)
-	{
-		std::perror("Webserv");
-		return (-1);
-	}
+	bodyInfo = request.getBody();
+	if (!bodyInfo.empty())
+		write(pipeInFd[1], "\0", 1);
+	else
+		write(pipeInFd[1], bodyInfo.c_str(), bodyInfo.size());
 	this->_pid = fork();
 	if (this->_pid == -1)
 	{
@@ -396,8 +397,11 @@ int	CgiHandler::_createPipeAndFork(void)
 	if (this->_pid == 0)
 	{
 		dup2(this->pipeOutFd[1], STDOUT_FILENO);
+		dup2(this->pipeInFd[0], STDIN_FILENO);
 		close(this->pipeOutFd[1]);
 		close(this->pipeOutFd[0]);
+		close(this->pipeInFd[1]);
+		close(this->pipeInFd[0]);
 		if (execve(this->_path, this->_cmd, this->_env) < 0)
 		{
 			std::perror("Webserv");
@@ -414,9 +418,10 @@ int	CgiHandler::_createPipeAndFork(void)
 	{
 		waitpid(this->_pid, &status, 0);
 		close(this->pipeOutFd[1]);
+		close(this->pipeInFd[0]);
 		if (WIFSIGNALED(status) > 0)
 		{
-			close(this->pipeOutFd[0]);
+			// close(this->pipeOutFd[0]);
 			return (-1);
 		}
 	}
@@ -447,7 +452,7 @@ int	CgiHandler::_storeOutput(void)
 				this->_output += buffer;
 		}
 	}
-	close(this->pipeOutFd[0]);
+	// close(this->pipeOutFd[0]);
 	if (ret < 0)
 	{
 		std::perror("Webserv");
