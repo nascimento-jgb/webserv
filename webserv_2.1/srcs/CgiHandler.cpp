@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:33:04 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/11 14:35:14 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/11 18:30:08 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -200,6 +200,7 @@ int	CgiHandler::_fillMap(Request &request)
 	std::string	tempPath;
 
 	tempPath.clear();
+	_envVariables.clear();
 	tempPath.append(request.getPath());
 	this->_envVariables["AUTH_TYPE"] = "basic";
 	this->_envVariables["HTTP_COOKIE"] = request.getHeader("cookie");
