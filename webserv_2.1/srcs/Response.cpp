@@ -196,6 +196,8 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 				}
 			}
 		}
+		else
+			_printErrorAndRedirect("Error in POST body.", 400, errorMap);
 	}
 	else if(request.getMethod() == DELETE)
 	{
