@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:58:47 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/11 09:56:48 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/11 15:09:12 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,8 +66,12 @@ void	Response::makeCgiResponse(Request& request)
 		if (_mimes.isMimeInCgi(message, mimes) == 0)
 			_responseCgiString = "HTTP/1.1 200 OK\r\n" + mimes + "\r\nContent-Length: " + \
 				ft_itoa(message.size()) + "\r\n\r\n" + message;
-		else
-			_responseCgiString = "HTTP/1.1 200 OK\r\n" + message;
+		else //This else resolves when it fails the recognition of Content-Type seccion in the header of the CGI response.
+		{
+			message = "Error executing CGI script";
+			_responseCgiString = "HTTP/1.1 400 NOT OK\r\nContent-Type: text/plain\r\nContent-Length: "
+			+ ft_itoa(message.size()) + "\r\n\r\n" + message;
+		}
 	}
 }
 

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CgiHandler.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:33:04 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/11 10:23:35 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/11 18:40:05 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,12 +98,6 @@ char	**CgiHandler::_cloneCmd(char **otherCmd)
 
 CgiHandler::~CgiHandler(void)
 {
-	if (this->_path)
-		delete [] this->_path;
-	if (this->_env)
-		this->_deleteAllocFail(this->_env);
-	if (this->_cmd)
-		this->_deleteAllocFail(this->_cmd);
 	return ;
 }
 
@@ -132,6 +126,15 @@ int	CgiHandler::cgiInitialization(Request &request)
 		return (-1);
 	if (this->_storeOutput() == -1)
 		return (-1);
+	if (this->_path)
+		delete [] this->_path;
+	if (this->_env)
+		this->_deleteAllocFail(this->_env);
+	if (this->_cmd)
+		this->_deleteAllocFail(this->_cmd);
+	this->_path = NULL;
+	this->_env = NULL;
+	this->_cmd = NULL;
 	return (0);
 }
 
@@ -200,6 +203,7 @@ int	CgiHandler::_fillMap(Request &request)
 	std::string	tempPath;
 
 	tempPath.clear();
+	_envVariables.clear();
 	tempPath.append(request.getPath());
 	this->_envVariables["AUTH_TYPE"] = "basic";
 	this->_envVariables["HTTP_COOKIE"] = request.getHeader("cookie");
@@ -419,7 +423,7 @@ int	CgiHandler::_createPipeAndFork(Request &request)
 		waitpid(this->_pid, &status, 0);
 		close(this->pipeOutFd[1]);
 		close(this->pipeInFd[0]);
-		if (WIFSIGNALED(status) > 0)
+		if (WIFSIGNALED(status) > 0 || WEXITSTATUS(status) != 0)
 		{
 			// close(this->pipeOutFd[0]);
 			return (-1);
