@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:33:04 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/12 11:21:37 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/12 21:17:39 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -211,6 +211,7 @@ int	CgiHandler::_fillMap(Request &request)
 	_envVariables.clear();
 	tempPath.append(request.getPath());
 	this->_envVariables["AUTH_TYPE"] = "basic";
+	this->_envVariables["DOCUMENT_ROOT"] = request.getServerMap().find("/cgi-bin")->second.find("server_path")->second;
 	this->_envVariables["HTTP_COOKIE"] = request.getHeader("cookie");
 	this->_envVariables["REDIRECT_STATUS"] = "200";
 	this->_envVariables["REMOTE_PORT"] = request.getServerMap().find("/")->second.find("listen")->second;
@@ -227,6 +228,7 @@ int	CgiHandler::_fillMap(Request &request)
 	else if (request.getMethod() == POST)
 	{
 		this->_envVariables["CONTENT_LENGTH"] = ft_itoa(request.getBodyLen());
+		this->_envVariables["CONTENT_TYPE"] = request.getHeader("content-type");
 		this->_envVariables["REQUEST_METHOD"] = "POST";
 	}
 	else if (request.getMethod() == DELETE)
@@ -236,11 +238,11 @@ int	CgiHandler::_fillMap(Request &request)
 		return (-1);
 	if (_getPathTranslated(tempPath, this->_envVariables["PATH_TRANSLATED"]))
 		return (-1);
+	this->_envVariables["SCRIPT_FILENAME"] = _pathCgiScript;
 	this->_envVariables["SERVER_NAME"] = request.getServerMap().find("/")->second.find("server_name")->second;
 	this->_envVariables["SERVER_PORT"] = request.getServerMap().find("/")->second.find("listen")->second;
 	this->_envVariables["SERVER_PROTOCOL"] = "HTTP/1.1";
 	this->_envVariables["SERVER_SOFTWARE"] = "Webserv_CLJ/1.0";
-	std::cout << request.getHeader("content-type") << std::endl;
 	return (0);
 }
 
