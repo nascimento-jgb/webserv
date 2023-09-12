@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:58:47 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/12 13:28:52 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/12 16:46:39 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,6 @@ void	Response::makeCgiResponse(Request& request, fd_set &fdPool, int &biggestFd)
 	else
 	{
 		message = cgiInstance.fetchOutputCgi();
-		std::cout << message << std::endl;
 		if (_mimes.isMimeInCgi(message, mimes, status) == 0)
 			_responseCgiString = status + mimes + "\r\nContent-Length: " + \
 				ft_itoa(message.size()) + "\r\n\r\n" + message;
@@ -199,7 +198,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 				{
 					std::string message = "upload successful";
 					_responseString = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: "
-						+ request.ft_itoa(message.size()) + "\r\nServer: JLC\r\n\r\n" + message;
+						+ request.ft_itoa(message.size()) + "\r\nServer: CLJ\r\n\r\n" + message;
 				}
 			}
 		}
@@ -213,7 +212,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
             _responseCode = 204;
 			std::string message = "File not found";
 			_responseString = "HTTP/1.1 204 Not Found\r\nContent-Type: text/plain\r\nContent-Length: "
-				+ request.ft_itoa(message.size()) + "\r\nServer: JLC\r\n\r\n" + message;
+				+ request.ft_itoa(message.size()) + "\r\nServer: CLJ\r\n\r\n" + message;
             return ;
         }
         if (remove(path.c_str()) != 0 )
@@ -221,12 +220,12 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
             _responseCode = 500;
 			std::string message = "cant remove this file";
 			_responseString = "HTTP/1.1 500 Not Removable\r\nContent-Type: text/plain\r\nContent-Length: "
-				+ request.ft_itoa(message.size()) + "\r\nServer: JLC\r\n\r\n" + message;
+				+ request.ft_itoa(message.size()) + "\r\nServer: CLJ\r\n\r\n" + message;
             return ;
         }
 		std::string message = "Delete done";
 			_responseString = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: "
-				+ request.ft_itoa(message.size()) + "\r\nServer: JLC\r\n\r\n" + message;
+				+ request.ft_itoa(message.size()) + "\r\nServer: CLJ\r\n\r\n" + message;
 	}
 	return ;
 }
@@ -291,7 +290,7 @@ void    Response::_printErrorAndRedirect(std::string msg, int error_code, number
 	_responseString.clear();
 	_responseString = "HTTP/1.1 " + ft_itoa(error_code) + " " + errors.getErrorMsg(error_code);
 	_responseString.append("\r\nContent-Type: text/plain\r\nContent-Length: "
-		+ ft_itoa(msg.size()) + "\r\nServer: JLC\r\n\r\n" + msg);
+		+ ft_itoa(msg.size()) + "\r\nServer: CLJ\r\n\r\n" + msg);
 }
 
 int	Response::_loadFile(std::string path)

@@ -11,13 +11,15 @@ import os
 # -fsanitize=address -g -static-libsan
 class Session:
 	def __init__(self, name):
+		print("name:", name, "\r")	
 		self.name = name
+		print("Session name:", self.name, "\r")
 		self.sid = hashlib.sha1(str(time.time()).encode("utf-8")).hexdigest()
 		session_dir = 'sessions'
 		os.makedirs(session_dir, exist_ok=True)  # This line creates the directory if it doesn't exist
 		session_file_path = session_dir + '/session_' + self.sid
-		print("Session ID:", self.sid)
-		print("Session File Path:", session_file_path)
+		print("Session ID:", self.sid, "\r")
+		print("Session File Path:", session_file_path, "\r")
 		with open(session_file_path, 'wb') as f:
 			pickle.dump(self, f)
 	def getSid(self):
@@ -107,8 +109,9 @@ def handleLogin():
 		else:
 			cookies.clear()
 			cookies["SID"] = session.getSid()
-			cookies["SID"]["expires"] = 120 # Session Expires after 2 mins
+			cookies["SID"]["expires"] = 1 # Session Expires after 1 second
 			print("HTTP/1.1 302 Found\r")
+			print("Content-Type: text/plain\r")
 			print(cookies.output())
 			print("location: acc.py\r")
 			print("\r\n\r")
@@ -136,7 +139,7 @@ if 'HTTP_COOKIE' in os.environ:
 	cookies.load(os.environ["HTTP_COOKIE"])
 
 	if "SID" in cookies:
-		print("Your Session ID is", cookies["SID"].value,file=sys.stderr)
+		print("Your SPCEIAL Session ID is", cookies["SID"].value,file=sys.stderr)
 		with open('sessions/session_'+ cookies["SID"].value, 'rb') as f:
 			sess = pickle.load(f)
 		printAccPage(sess)
