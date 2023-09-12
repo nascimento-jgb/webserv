@@ -105,14 +105,14 @@ def handleLogin():
 		if(session == None):
 			printUserMsg("Failed To Login, Username or Password is wrong!")
 		else:
-			print("Correct Crenditals :D", file=sys.stderr)
 			cookies.clear()
 			cookies["SID"] = session.getSid()
 			cookies["SID"]["expires"] = 120 # Session Expires after 2 mins
-			print("HTTP/1.1 200 OK")
+			print("HTTP/1.1 302 Found\r")
 			print(cookies.output())
-			print("location: acc.py")
-			print("\r\n")
+			print("location: acc.py\r")
+			print("\r\n\r")
+			print("Correct Crenditals :D", file=sys.stderr)
 	else :
 		if os.path.exists('user_database'):
 			with open('user_database', 'rb') as f:

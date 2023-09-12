@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/09 11:26:08 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/11 20:45:15 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/12 13:11:07 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ void	ServerManager::setupServers(std::vector<mainmap> &servers, std::vector<size
 	it_ports = _serversPorts.begin();
 	it_cgi = _cgiServers.begin();
 	it_error = _error.begin();
-	for(std::vector<mainmap>::iterator it = _servers.begin(); it != _servers.end(); ++it)
+	for (std::vector<mainmap>::iterator it = _servers.begin(); it != _servers.end(); ++it)
 	{
 		Server	temp;
 
@@ -236,10 +236,16 @@ void	ServerManager::writeToClient(const int &fd, Client &client)
 	if (client.getCgiFlag() == 1)
 	{
 		send(fd, client.response.getCgiResponseString().data(), client.response.getCgiResponseString().size(), 0);
-		removeFromSet(client.response.cgiInstance.pipeOutFd[0], _fd_pool);
-		removePipeInFromSet(client.response.cgiInstance.pipeInFd[1], _fd_pool);	
-		close(client.response.cgiInstance.pipeOutFd[0]);
-		close(client.response.cgiInstance.pipeInFd[1]);
+		if (client.response.cgiInstance.pipesSuccessful == true)
+		{
+			if (client.response.cgiInstance.forkSuccessful == true)
+			{
+				removeFromSet(client.response.cgiInstance.pipeOutFd[0], _fd_pool);
+				close(client.response.cgiInstance.pipeOutFd[0]);
+			}
+			removeFromSet(client.response.cgiInstance.pipeInFd[1], _fd_pool);
+			close(client.response.cgiInstance.pipeInFd[1]);
+		}	
 		client.setCgiFlag(0);
 	}
 	else
@@ -288,9 +294,3 @@ void ServerManager::removeFromSet(const int i, fd_set &old_set)
 		_biggest_fd--;
 }
 
-void ServerManager::removePipeInFromSet(const int i, fd_set &old_set)
-{
-	FD_CLR(i, &old_set);
-	if (i == _biggest_fd)
-		_biggest_fd -= 2;
-}

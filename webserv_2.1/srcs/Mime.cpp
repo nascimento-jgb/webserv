@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/25 09:24:51 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/11 18:36:57 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/12 13:26:53 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,13 +56,43 @@ std::string Mime::getMimeType(std::string path)
 	return ("text/plain");
 }
 
-int	Mime::isMimeInCgi(std::string &message, std::string &mimes)
+int	Mime::isMimeInCgi(std::string &message, std::string &mimes, std::string &status)
 {
+	std::vector<std::string>	split;
+	std::vector<std::string>	temp;
+	int							i;
+
+	i = 0;
 	if (message.find("\r\n\r\n") == std::string::npos)
 		return (1);
 	mimes = message.substr(0, message.find("\r\n\r\n"));
 	if (mimes.find("Content-Type: ") == std::string::npos)
 		return (1);
+	if (mimes.find("HTTP/1.1 ") != std::string::npos)
+	{
+		split = ft_split(mimes, "\r\n");
+		for (iter it = split.begin(); it != split.end(); it++)
+		{
+			temp.clear();
+			temp = ft_split((*it), '\n');
+			if (temp.size() != 1)
+				return (1);
+			if (it->find("HTTP/1.1 ") != std::string::npos)
+			{
+				status = *it;
+				temp.clear();
+				temp = temp = ft_split(status, ' ');
+				if (temp.size() != 3 || i != 0)
+					return (1);
+				status.append("\r\n");
+				break ;
+			}
+			i++;
+		}
+		message = message.substr(message.find("\r\n") + 2);
+	}
+	else
+		status = "HTTP/1.1 200 OK\r\n";
 	message = message.substr(message.find("\r\n\r\n") + 4);
 	return (0);
 }

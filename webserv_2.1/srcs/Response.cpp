@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:58:47 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/11 20:10:27 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/12 13:28:52 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,7 @@ void	Response::makeCgiResponse(Request& request, fd_set &fdPool, int &biggestFd)
 {
 	std::string	message;
 	std::string	mimes;
+	std::string	status;
 
 	if (cgiInstance.cgiInitialization(request, fdPool, biggestFd) == -1)
 	{
@@ -63,8 +64,9 @@ void	Response::makeCgiResponse(Request& request, fd_set &fdPool, int &biggestFd)
 	else
 	{
 		message = cgiInstance.fetchOutputCgi();
-		if (_mimes.isMimeInCgi(message, mimes) == 0)
-			_responseCgiString = "HTTP/1.1 200 OK\r\n" + mimes + "\r\nContent-Length: " + \
+		std::cout << message << std::endl;
+		if (_mimes.isMimeInCgi(message, mimes, status) == 0)
+			_responseCgiString = status + mimes + "\r\nContent-Length: " + \
 				ft_itoa(message.size()) + "\r\n\r\n" + message;
 		else //This else resolves when it fails the recognition of Content-Type seccion in the header of the CGI response.
 		{
@@ -73,6 +75,7 @@ void	Response::makeCgiResponse(Request& request, fd_set &fdPool, int &biggestFd)
 			+ ft_itoa(message.size()) + "\r\n\r\n" + message;
 		}
 	}
+	std::cout << _responseCgiString << std::endl;
 }
 
 void	Response::makeResponse(Request& request, numbermap errorMap)
