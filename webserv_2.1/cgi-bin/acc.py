@@ -112,6 +112,7 @@ def handleLogin():
 			print("HTTP/1.1 200 OK")
 			print(cookies.output())
 			print("location: acc.py")
+			print("Content-Type: text/html\r")
 			print("\r\n")
 	else :
 		if os.path.exists('user_database'):

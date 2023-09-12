@@ -35,7 +35,7 @@ int main (int argc, char **argv)
 	}
 	else
 	{
-		std::cout << "Error: Not possivle to initalize server. Wrong amount of parameters." << std::endl;
+		std::cout << "Error: Not possible to initalize server. Wrong amount of parameters." << std::endl;
 		return(1);
 	}
 	return (0);
