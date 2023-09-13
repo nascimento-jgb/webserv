@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:33:04 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/13 19:50:41 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/13 19:59:24 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -234,7 +234,7 @@ int	CgiHandler::_fillMap(Request &request)
 	}
 	else if (request.getMethod() == DELETE)
 		this->_envVariables["REQUEST_METHOD"] = "DELETE";
-	this->_envVariables["GATEWAY_INTERFACE"] = "Webserv_CLJ_CGI/1.0";
+	this->_envVariables["GATEWAY_INTERFACE"] = "CGI/1.1";
 	if (_getPathInfo(tempPath, this->_envVariables["PATH_INFO"]))
 		return (-1);
 	if (_getPathTranslated(tempPath, this->_envVariables["PATH_TRANSLATED"]))
