@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:33:04 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/12 21:17:39 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/13 09:46:48 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -408,12 +408,12 @@ int	CgiHandler::_createPipeAndFork(Request &request, fd_set &fdPool, int &bigges
 		std::perror("Webserv");
 		return (-1);
 	}
+	_addToSetCGI(pipeInFd[1], fdPool, biggestFd);
 	bodyInfo = request.getBody();
 	if (!bodyInfo.empty())
 		write(pipeInFd[1], "\0", 1);
 	else
 		write(pipeInFd[1], bodyInfo.c_str(), bodyInfo.size());
-	_addToSetCGI(pipeInFd[1], fdPool, biggestFd);
 	this->_pid = fork();
 	if (this->_pid == -1)
 	{
@@ -497,7 +497,6 @@ int	CgiHandler::_storeOutput(void)
 				this->_output += buffer;
 		}
 	}
-	// close(this->pipeOutFd[0]);
 	if (ret < 0)
 	{
 		std::perror("Webserv");
