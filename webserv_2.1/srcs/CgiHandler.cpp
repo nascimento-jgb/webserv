@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:33:04 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/13 09:46:48 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/13 19:50:41 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -213,6 +213,7 @@ int	CgiHandler::_fillMap(Request &request)
 	this->_envVariables["AUTH_TYPE"] = "basic";
 	this->_envVariables["DOCUMENT_ROOT"] = request.getServerMap().find("/cgi-bin")->second.find("server_path")->second;
 	this->_envVariables["HTTP_COOKIE"] = request.getHeader("cookie");
+	this->_envVariables["HTTP_USER_AGENT"] = request.getHeader("user-agent");
 	this->_envVariables["REDIRECT_STATUS"] = "200";
 	this->_envVariables["REMOTE_PORT"] = request.getServerMap().find("/")->second.find("listen")->second;
 	if (request.getMethod() == UNKNOWN)
