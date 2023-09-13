@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:58:47 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/12 16:46:39 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/13 18:13:01 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,7 +74,6 @@ void	Response::makeCgiResponse(Request& request, fd_set &fdPool, int &biggestFd)
 			+ ft_itoa(message.size()) + "\r\n\r\n" + message;
 		}
 	}
-	std::cout << _responseCgiString << std::endl;
 }
 
 void	Response::makeResponse(Request& request, numbermap errorMap)
