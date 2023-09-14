@@ -679,10 +679,6 @@ std::string Request::getHeader(std::string header)
 {
 	std::string header_lower = header;
 	to_lower(header_lower);
-	for (submap::iterator it = HTTPMap.begin(); it != HTTPMap.end(); it++)
-	{
-		std::cout << "key:" << it->first << ". value:" << it->second << std::endl;
-	}
 	if(HTTPMap.count(header_lower))
 		return (HTTPMap[header_lower]);
 	return("");
