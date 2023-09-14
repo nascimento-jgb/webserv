@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:58:47 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/13 18:13:01 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/14 13:04:55 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,29 +49,56 @@ Response &Response::operator=(Response const &other)
 	return (*this);
 }
 
-void	Response::makeCgiResponse(Request& request, fd_set &fdPool, int &biggestFd)
+void	Response::makeCgiResponse(Request& request, fd_set &fdPool, int &biggestFd, numbermap &errorMap)
 {
 	std::string	message;
 	std::string	mimes;
 	std::string	status;
+	int			returnValue;
 
-	if (cgiInstance.cgiInitialization(request, fdPool, biggestFd) == -1)
+	_rootErrorPages = request.getRootErrorPages();
+	returnValue = cgiInstance.cgiInitialization(request, fdPool, biggestFd);
+	switch (returnValue)
 	{
-		message = "Error executing CGI script";
-		_responseCgiString = "HTTP/1.1 400 NOT OK\r\nContent-Type: text/plain\r\nContent-Length: "
-		+ ft_itoa(message.size()) + "\r\n\r\n" + message;
-	}
-	else
-	{
-		message = cgiInstance.fetchOutputCgi();
-		if (_mimes.isMimeInCgi(message, mimes, status) == 0)
-			_responseCgiString = status + mimes + "\r\nContent-Length: " + \
-				ft_itoa(message.size()) + "\r\n\r\n" + message;
-		else //This else resolves when it fails the recognition of Content-Type seccion in the header of the CGI response.
+		case NOTFOUND:
 		{
-			message = "Error executing CGI script";
-			_responseCgiString = "HTTP/1.1 400 NOT OK\r\nContent-Type: text/plain\r\nContent-Length: "
-			+ ft_itoa(message.size()) + "\r\n\r\n" + message;
+			_printErrorAndRedirect("PATH NOT FOUND", 404, errorMap, _responseCgiString);
+			break ;
+		}
+		case NOPERMISSION:
+		{
+			_printErrorAndRedirect("PERMISSION DENIED", 403, errorMap, _responseCgiString);
+			break ;
+		}
+		case UNKNOWNMETHOD:
+		{
+			_printErrorAndRedirect("UNKNOWN METHOD", 405, errorMap, _responseCgiString);
+			break ;
+		}
+		case SERVERERROR:
+		{
+			_printErrorAndRedirect("INTERNAL SERVER ERROR", 500, errorMap, _responseCgiString);
+			break ;
+		}
+		case NOTIMPLEMENTED:
+		{
+			_printErrorAndRedirect("NOT IMPLEMENTED", 501, errorMap, _responseCgiString);
+			break ;
+		}
+		case OK:
+		{
+			message = cgiInstance.fetchOutputCgi();
+			if (_mimes.isMimeInCgi(message, mimes, status) == OK)
+				_responseCgiString = status + mimes + "\r\nContent-Length: " + \
+					ft_itoa(message.size()) + "\r\n\r\n" + message;
+			else //This else resolves when it fails the recognition of Content-Type seccion in the header of the CGI response.
+				_printErrorAndRedirect("", 500, errorMap, _responseCgiString);
+			break ;
+		}
+		default:
+		{
+			_printErrorAndRedirect("TEAPOT", 418, errorMap, _responseCgiString);
+			break;
 		}
 	}
 }
@@ -92,7 +119,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 	}
 	if(_responseCode >= 400)
 	{
-		_printErrorAndRedirect("ERROR", _responseCode, errorMap);
+		_printErrorAndRedirect("ERROR", _responseCode, errorMap, _responseString);
 		return ;
 	}
 	if(request.getMethod() == GET)
@@ -129,7 +156,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 					struct dirent	*entry;
 					if((tmp = opendir(path.c_str())) == NULL || request.getConfigMap().find("autoindex")->second.find("on") == std::string::npos)
 					{
-						_printErrorAndRedirect("Error", 404, errorMap);
+						_printErrorAndRedirect("Error", 404, errorMap, _responseString);
 						return ;
 					}
 					std::string message;
@@ -150,7 +177,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 					std::ifstream file(path);
 					if(file.bad())
 					{
-						_printErrorAndRedirect("File not found", 404, errorMap);
+						_printErrorAndRedirect("File not found", 404, errorMap, _responseString);
 						return ;
 					}
 					else
@@ -170,7 +197,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 			}
 			else
 			{
-				_printErrorAndRedirect("path not found", 404, errorMap);
+				_printErrorAndRedirect("path not found", 404, errorMap, _responseString);
 				return ;
 			}
 		}
@@ -181,7 +208,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 		{
 			if(_mimes.getMimeType(request.getFileName()) == "text/html")
 			{
-				_printErrorAndRedirect("Sorry we do not allow user to POST Html files", 400, errorMap);
+				_printErrorAndRedirect("Sorry we do not allow user to POST Html files", 400, errorMap, _responseString);
 				return ;
 			}
 			else
@@ -192,7 +219,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 				pathAndSource.append(request.getFileName());
 				pathAndSource = pathAndSource.substr(1, pathAndSource.length());
 				if(_saveImageToFile(pathAndSource, request.getImageData()))
-					_printErrorAndRedirect("Failed to save the File.", 400, errorMap);
+					_printErrorAndRedirect("Failed to save the File.", 400, errorMap, _responseString);
 				else
 				{
 					std::string message = "upload successful";
@@ -202,7 +229,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 			}
 		}
 		else
-			_printErrorAndRedirect("Error in POST body.", 400, errorMap);
+			_printErrorAndRedirect("Error in POST body.", 400, errorMap, _responseString);
 	}
 	else if(request.getMethod() == DELETE)
 	{
@@ -275,22 +302,22 @@ void Response::clearResponse()
 
 
 
-void    Response::_printErrorAndRedirect(std::string msg, int error_code, numbermap errorMap)
+void    Response::_printErrorAndRedirect(std::string msg, int error_code, numbermap errorMap, std::string &response)
 {
     Error errors;
 
     _responseCode = error_code;
     std::cout << "\033[1;31m[" << error_code << "][" << errors.getErrorMsg(error_code) << "] " << msg << "\033[0m" << std::endl;
-    _responseString = "HTTP/1.1 302 Redirect\r\nSet-cookie: error=cookie\r\nLocation: ";
+    response = "HTTP/1.1 302 Redirect\r\nSet-cookie: error=cookie\r\nLocation: ";
 
     if(errorMap.find(error_code) != errorMap.end())
     {
-        _responseString.append(absoluteToRelativePath(_rootErrorPages, errorMap.find(error_code)->second)).append("\r\n\r\n");
-        return ;
+        response.append(absoluteToRelativePath(_rootErrorPages, errorMap.find(error_code)->second)).append("\r\n\r\n");
+		return ;
     }
-	_responseString.clear();
-	_responseString = "HTTP/1.1 " + ft_itoa(error_code) + " " + errors.getErrorMsg(error_code);
-	_responseString.append("\r\nContent-Type: text/plain\r\nContent-Length: "
+	response.clear();
+	response = "HTTP/1.1 " + ft_itoa(error_code) + " " + errors.getErrorMsg(error_code);
+	response.append("\r\nContent-Type: text/plain\r\nContent-Length: "
 		+ ft_itoa(msg.size()) + "\r\nServer: CLJ\r\n\r\n" + msg);
 }
 

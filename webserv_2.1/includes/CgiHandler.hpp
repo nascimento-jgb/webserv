@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:34:03 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/12 10:48:21 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/14 11:01:43 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,17 @@
 
 # include "Webserver.hpp"
 
-class Request;
+enum	errorCgi
+{
+	OK,
+	NOTFOUND,
+	NOPERMISSION,
+	UNKNOWNMETHOD,
+	SERVERERROR,
+	NOTIMPLEMENTED
+};
+
+class	Request;
 
 class	CgiHandler
 {
