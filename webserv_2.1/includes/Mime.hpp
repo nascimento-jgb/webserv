@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/25 09:24:38 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/04 17:47:10 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/12 12:53:23 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ class Mime
 		~Mime();
 
 		std::string getMimeType(std::string ending);
-		int			isMimeInCgi(std::string &message, std::string &mimes);
+		int			isMimeInCgi(std::string &message, std::string &mimes, std::string &status);
 };
 
 

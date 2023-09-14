@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/25 10:24:25 by jonascim          #+#    #+#             */
-/*   Updated: 2023/09/10 11:54:58 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/13 13:48:35 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -679,6 +679,10 @@ std::string Request::getHeader(std::string header)
 {
 	std::string header_lower = header;
 	to_lower(header_lower);
+	for (submap::iterator it = HTTPMap.begin(); it != HTTPMap.end(); it++)
+	{
+		std::cout << "key:" << it->first << ". value:" << it->second << std::endl;
+	}
 	if(HTTPMap.count(header_lower))
 		return (HTTPMap[header_lower]);
 	return("");

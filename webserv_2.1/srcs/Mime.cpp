@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/25 09:24:51 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/11 18:36:57 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/12 16:43:31 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,13 +56,43 @@ std::string Mime::getMimeType(std::string path)
 	return ("text/plain");
 }
 
-int	Mime::isMimeInCgi(std::string &message, std::string &mimes)
+int	Mime::isMimeInCgi(std::string &message, std::string &mimes, std::string &status)
 {
+	std::vector<std::string>	split;
+	std::vector<std::string>	tempCheck;
+	std::string					tempMimes;
+
 	if (message.find("\r\n\r\n") == std::string::npos)
 		return (1);
 	mimes = message.substr(0, message.find("\r\n\r\n"));
 	if (mimes.find("Content-Type: ") == std::string::npos)
 		return (1);
+	if (mimes.find("HTTP/1.1 ") != std::string::npos)
+	{
+		split = ft_split(mimes, "\r\n");
+		for (iter it = split.begin(); it != split.end(); it++)
+		{
+			if (it->find("HTTP/1.1 ") != std::string::npos)
+			{
+				tempCheck.clear();
+				tempCheck = ft_split((*it), '\n');
+				if (tempCheck.size() != 1)
+					return (1);
+				status = *it;
+				tempCheck.clear();
+				tempCheck = ft_split(status, ' ');
+				if (tempCheck.size() != 3)
+					return (1);
+				status.append("\r\n");
+				break ;
+			}
+		}
+		tempMimes = mimes.substr(0, mimes.find(status));
+		tempMimes.append(mimes.substr(mimes.find(status) + status.size()));
+		mimes = tempMimes;
+	}
+	else
+		status = "HTTP/1.1 200 OK\r\n";
 	message = message.substr(message.find("\r\n\r\n") + 4);
 	return (0);
 }

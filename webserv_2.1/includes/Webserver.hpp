@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 08:51:04 by jonascim          #+#    #+#             */
-/*   Updated: 2023/09/03 09:40:15 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/12 10:11:31 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 # define WEBSERV_HPP
 
 #define CONNECTION_TIMEOUT 60 //in seconds 219677  218777
+#define CGI_TIMEOUT 15
 #define INET_ADDRSTRLEN 16
 #define MESSAGE_BUFFER 4
 
@@ -40,6 +41,7 @@
 #include <unistd.h>
 #include <cstdlib>
 #include <csignal>
+#include <ctime>
 #include <fcntl.h>
 #include <utility>
 #include <stdexcept>

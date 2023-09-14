@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CgiHandler.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:34:03 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/11 10:15:15 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/12 10:48:21 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,8 +21,10 @@ class	CgiHandler
 {
 	public:
 
-		int	pipeInFd[2];
-		int	pipeOutFd[2];
+		bool	pipesSuccessful;
+		bool	forkSuccessful;
+		int		pipeInFd[2];
+		int		pipeOutFd[2];
 
 		CgiHandler(void);
 		CgiHandler(CgiHandler const &other);
@@ -30,7 +32,7 @@ class	CgiHandler
 
 		CgiHandler	&operator=(CgiHandler const &other);
 
-		int			cgiInitialization(Request &request);
+		int			cgiInitialization(Request &request, fd_set &fdPool, int &biggestFd);
 		std::string	fetchOutputCgi(void) const;
 
 	private:
@@ -55,7 +57,9 @@ class	CgiHandler
 		void	_deleteAllocFail(char **array);
 		int		_getPathInfo(std::string &fullPath, std::string &toWrite);
 		int		_getPathTranslated(std::string &fullPath, std::string &toWrite);
-		int		_createPipeAndFork(Request &request);
+		int		_createPipeAndFork(Request &request, fd_set &fdPool, int &biggestFd);
+		void	_addToSetCGI(const int i, fd_set &new_set, int &biggestFd);
+		void	_timerCgi(int &status);
 		int		_createInstructions(void);
 		int		_storeOutput(void);
 		char	*_strdup_cpp(const char *str);

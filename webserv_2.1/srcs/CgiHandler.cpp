@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:33:04 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/11 18:40:05 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/13 19:59:24 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,8 @@ CgiHandler::CgiHandler(void)
 	pipeInFd[1] = -1;
 	pipeOutFd[0] = -1;
 	pipeOutFd[1] = -1;
+	pipesSuccessful = true;
+	forkSuccessful = true;
 	return ;
 }
 
@@ -40,6 +42,8 @@ CgiHandler	&CgiHandler::operator=(CgiHandler const &other)
 		pipeInFd[1] = other.pipeInFd[1];
 		pipeOutFd[0] = other.pipeOutFd[0];
 		pipeOutFd[1] = other.pipeOutFd[1];
+		pipesSuccessful = other.pipesSuccessful;
+		forkSuccessful = other.forkSuccessful;
 		_envVariables = other._envVariables;
 		_cgiExecutable = other._cgiExecutable;
 		_pid = other._pid;
@@ -101,13 +105,14 @@ CgiHandler::~CgiHandler(void)
 	return ;
 }
 
-int	CgiHandler::cgiInitialization(Request &request)
+int	CgiHandler::cgiInitialization(Request &request, fd_set &fdPool, int &biggestFd)
 {
 	std::string	tempPath;
 
+	pipesSuccessful = true;
+	forkSuccessful = true;
 	_cgiExecutable = request.getCgiMap();
 	tempPath.clear();
-	std::cout << request.getPath() << std::endl;
 	tempPath.append(request.getPath());
 	if (_getPathCgiScript(tempPath) == -1)
 		return (-1);
@@ -122,7 +127,7 @@ int	CgiHandler::cgiInitialization(Request &request)
 		return (-1);
 	if (this->_createInstructions() == -1)
 		return (-1);
-	if (this->_createPipeAndFork(request) == -1)
+	if (this->_createPipeAndFork(request, fdPool, biggestFd) == -1)
 		return (-1);
 	if (this->_storeOutput() == -1)
 		return (-1);
@@ -206,7 +211,9 @@ int	CgiHandler::_fillMap(Request &request)
 	_envVariables.clear();
 	tempPath.append(request.getPath());
 	this->_envVariables["AUTH_TYPE"] = "basic";
+	this->_envVariables["DOCUMENT_ROOT"] = request.getServerMap().find("/cgi-bin")->second.find("server_path")->second;
 	this->_envVariables["HTTP_COOKIE"] = request.getHeader("cookie");
+	this->_envVariables["HTTP_USER_AGENT"] = request.getHeader("user-agent");
 	this->_envVariables["REDIRECT_STATUS"] = "200";
 	this->_envVariables["REMOTE_PORT"] = request.getServerMap().find("/")->second.find("listen")->second;
 	if (request.getMethod() == UNKNOWN)
@@ -222,20 +229,21 @@ int	CgiHandler::_fillMap(Request &request)
 	else if (request.getMethod() == POST)
 	{
 		this->_envVariables["CONTENT_LENGTH"] = ft_itoa(request.getBodyLen());
+		this->_envVariables["CONTENT_TYPE"] = request.getHeader("content-type");
 		this->_envVariables["REQUEST_METHOD"] = "POST";
 	}
 	else if (request.getMethod() == DELETE)
 		this->_envVariables["REQUEST_METHOD"] = "DELETE";
-	this->_envVariables["GATEWAY_INTERFACE"] = "Webserv_JLC_CGI/1.0";
+	this->_envVariables["GATEWAY_INTERFACE"] = "CGI/1.1";
 	if (_getPathInfo(tempPath, this->_envVariables["PATH_INFO"]))
 		return (-1);
 	if (_getPathTranslated(tempPath, this->_envVariables["PATH_TRANSLATED"]))
 		return (-1);
+	this->_envVariables["SCRIPT_FILENAME"] = _pathCgiScript;
 	this->_envVariables["SERVER_NAME"] = request.getServerMap().find("/")->second.find("server_name")->second;
 	this->_envVariables["SERVER_PORT"] = request.getServerMap().find("/")->second.find("listen")->second;
 	this->_envVariables["SERVER_PROTOCOL"] = "HTTP/1.1";
-	this->_envVariables["SERVER_SOFTWARE"] = "Webserv_JLC/1.0";
-	std::cout << request.getHeader("content-type") << std::endl;
+	this->_envVariables["SERVER_SOFTWARE"] = "Webserv_CLJ/1.0";
 	return (0);
 }
 
@@ -381,12 +389,27 @@ int	CgiHandler::_createInstructions(void)
 	return (0);
 }
 
-int	CgiHandler::_createPipeAndFork(Request &request)
+int	CgiHandler::_createPipeAndFork(Request &request, fd_set &fdPool, int &biggestFd)
 {
 	std::string	bodyInfo;
 	int			status;
 
 	status = 0;
+	if (pipe(pipeInFd) < 0)
+	{
+		pipesSuccessful = false;
+		std::perror("Webserv");
+		return (-1);
+	}
+	if (pipe(pipeOutFd) < 0)
+	{
+		pipesSuccessful = false;
+		close(pipeInFd[0]);
+		close(pipeInFd[1]);
+		std::perror("Webserv");
+		return (-1);
+	}
+	_addToSetCGI(pipeInFd[1], fdPool, biggestFd);
 	bodyInfo = request.getBody();
 	if (!bodyInfo.empty())
 		write(pipeInFd[1], "\0", 1);
@@ -395,6 +418,10 @@ int	CgiHandler::_createPipeAndFork(Request &request)
 	this->_pid = fork();
 	if (this->_pid == -1)
 	{
+		forkSuccessful = false;
+		close(pipeInFd[0]);
+		close(pipeOutFd[0]);
+		close(pipeOutFd[1]);
 		std::perror("Webserv");
 		return (-1);
 	}
@@ -420,16 +447,31 @@ int	CgiHandler::_createPipeAndFork(Request &request)
 	}
 	else
 	{
-		waitpid(this->_pid, &status, 0);
-		close(this->pipeOutFd[1]);
+		_addToSetCGI(this->pipeOutFd[0], fdPool, biggestFd);
 		close(this->pipeInFd[0]);
+		close(this->pipeOutFd[1]);
+		_timerCgi(status);
 		if (WIFSIGNALED(status) > 0 || WEXITSTATUS(status) != 0)
-		{
-			// close(this->pipeOutFd[0]);
 			return (-1);
-		}
 	}
 	return (0);
+}
+
+void	CgiHandler::_timerCgi(int &status)
+{
+	time_t	start;
+	int		waitResult;
+
+	start = std::time(NULL);
+	while (difftime(std::time(NULL), start) <= CGI_TIMEOUT)
+	{
+		waitResult = waitpid(this->_pid, &status, WNOHANG);
+		if (waitResult > 0)
+			return ;
+	}
+	kill(this->_pid, SIGKILL);
+	waitpid(this->_pid, &status, 0);
+	return ;
 }
 
 int	CgiHandler::_storeOutput(void)
@@ -456,13 +498,19 @@ int	CgiHandler::_storeOutput(void)
 				this->_output += buffer;
 		}
 	}
-	// close(this->pipeOutFd[0]);
 	if (ret < 0)
 	{
 		std::perror("Webserv");
 		return (-1);
 	}
 	return (0);
+}
+
+void	CgiHandler::_addToSetCGI(const int i, fd_set &new_set, int &biggestFd)
+{
+	FD_SET(i, &new_set);
+	if (i > biggestFd)
+		biggestFd = i;
 }
 
 char	*CgiHandler::_strdup_cpp(const char *str)

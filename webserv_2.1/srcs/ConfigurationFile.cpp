@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/04 17:14:34 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/10 10:54:08 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/12 21:10:46 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -210,6 +210,8 @@ int	ConfigurationFile::_checkInputConfFile(void)
 				return (1);
 			if (_checkRootAlias(it->first, _tempMap) == -1)
 				return (1);
+			if (!it->first.compare("/cgi-bin"))
+				_tempMap[it->first]["server_path"] = _serverExecutionPath;
 		}
 		if (_tempMap.find("/cgi-bin") != _tempMap.end())
 			_cgiStates.push_back(true);
