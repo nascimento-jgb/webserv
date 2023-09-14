@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:58:58 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/11 20:06:38 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/14 12:48:59 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,10 +42,10 @@ class Response
 
 		CgiHandler			cgiInstance;
 
-		void				_printErrorAndRedirect(std::string msg, int error_code, numbermap errorMap);
+		void				_printErrorAndRedirect(std::string msg, int error_code, numbermap errorMap, std::string &response);
 		int					_loadFile(std::string error_page_path);
 		void				makeResponse(Request &request, numbermap errorMap);
-		void				makeCgiResponse(Request& request, fd_set &fdPool, int &biggestFd);
+		void				makeCgiResponse(Request& request, fd_set &fdPool, int &biggestFd, numbermap &errorMap);
 		int	 				_saveImageToFile(const std::string& filename, const std::string& imageData);
 		void 				clearResponse();
 		bool				fileExists (const std::string& f);

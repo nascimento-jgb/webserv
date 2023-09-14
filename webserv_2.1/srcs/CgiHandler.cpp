@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:33:04 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/13 19:59:24 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/14 12:42:32 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,29 +108,37 @@ CgiHandler::~CgiHandler(void)
 int	CgiHandler::cgiInitialization(Request &request, fd_set &fdPool, int &biggestFd)
 {
 	std::string	tempPath;
+	int			status;
 
 	pipesSuccessful = true;
 	forkSuccessful = true;
 	_cgiExecutable = request.getCgiMap();
 	tempPath.clear();
 	tempPath.append(request.getPath());
-	if (_getPathCgiScript(tempPath) == -1)
-		return (-1);
-	if (_findPath() == -1)
-		return (-1);
-	if (this->_fillMap(request) == -1)
-		return (-1);
-	if (this->_checkAccess() == -1)
-		return (-1);
+	status = _getPathCgiScript(tempPath);
+	if (status != OK)
+		return (status);
+	status = _findPath();
+	if (status != OK)
+		return (status);
+	status = _fillMap(request);
+	if (status != OK)
+		return (status);
+	status = _checkAccess();
+	if (status != OK)
+		return (status);
 	this->_env = _getEnvInChar();
 	if (!this->_env)
-		return (-1);
-	if (this->_createInstructions() == -1)
-		return (-1);
-	if (this->_createPipeAndFork(request, fdPool, biggestFd) == -1)
-		return (-1);
-	if (this->_storeOutput() == -1)
-		return (-1);
+		return (SERVERERROR);
+	status = _createInstructions();
+	if (status != OK)
+		return (status);
+	status = _createPipeAndFork(request, fdPool, biggestFd);
+	if (status != OK)
+		return (status);
+	status = _storeOutput();
+	if (status != OK)
+		return (status);
 	if (this->_path)
 		delete [] this->_path;
 	if (this->_env)
@@ -140,7 +148,7 @@ int	CgiHandler::cgiInitialization(Request &request, fd_set &fdPool, int &biggest
 	this->_path = NULL;
 	this->_env = NULL;
 	this->_cmd = NULL;
-	return (0);
+	return (OK);
 }
 
 int	CgiHandler::_getPathCgiScript(std::string &fullPath)
@@ -150,13 +158,13 @@ int	CgiHandler::_getPathCgiScript(std::string &fullPath)
 	struct stat	st;
 
 	if (isPathValid(fullPath, pre, post) == -1)
-		return (-1);
+		return (NOTFOUND);
 	if (access(pre.c_str(), F_OK))
-		return (-1);
+		return (NOTFOUND);
 	if (stat(pre.c_str(), &st))
-		return (-1);
+		return (NOTFOUND);
 	_pathCgiScript = pre;
-	return (0);
+	return (OK);
 }
 
 int	CgiHandler::_findPath(void)
@@ -165,20 +173,20 @@ int	CgiHandler::_findPath(void)
 	size_t			index_dash;
 
 	ext = _pathCgiScript;
-	if (_trimString(ext) == -1)
-		return (-1);
+	if (_trimString(ext) == NOTFOUND)
+		return (NOTFOUND);
 	index_dash = findPosChar(ext, '/', ext.size());
 	ext = ext.substr(0, index_dash);
 	if (_cgiExecutable.find(ext) == _cgiExecutable.end())
-		return (-1);
+		return (NOTIMPLEMENTED);
 	if (!ext.compare(".cgi") && _cgiExecutable.find(ext) != _cgiExecutable.end())
 		this->_path = this->_strdup_cpp(_pathCgiScript);
 	else
 		this->_path = this->_strdup_cpp(_cgiExecutable.find(ext)->second);
 	if (!this->_path)
-		return (-1);
+		return (SERVERERROR);
 	_extension = ext;
-	return (0);
+	return (OK);
 }
 
 int	CgiHandler::_trimString(std::string &temp)
@@ -190,7 +198,7 @@ int	CgiHandler::_trimString(std::string &temp)
 	if (temp.size() > 0)
 		index = (temp.size() - 1);
 	else
-		return (-1);
+		return (NOTFOUND);
 	while (index > 0 && temp[index] != '.')
 	{
 		index--;
@@ -198,9 +206,9 @@ int	CgiHandler::_trimString(std::string &temp)
 			flag = 1;
 	}
 	if (index == 0 && flag == 0)
-		return (-1);
+		return (NOTFOUND);
 	temp = temp.substr(index);
-	return (0);
+	return (OK);
 }
 
 int	CgiHandler::_fillMap(Request &request)
@@ -217,7 +225,7 @@ int	CgiHandler::_fillMap(Request &request)
 	this->_envVariables["REDIRECT_STATUS"] = "200";
 	this->_envVariables["REMOTE_PORT"] = request.getServerMap().find("/")->second.find("listen")->second;
 	if (request.getMethod() == UNKNOWN)
-		return (-1);
+		return (UNKNOWNMETHOD);
 	else if (request.getMethod() == GET)
 	{
 		if (request.getQuery().size() != 0 && request.getQuery()[0] == '?')
@@ -235,16 +243,16 @@ int	CgiHandler::_fillMap(Request &request)
 	else if (request.getMethod() == DELETE)
 		this->_envVariables["REQUEST_METHOD"] = "DELETE";
 	this->_envVariables["GATEWAY_INTERFACE"] = "CGI/1.1";
-	if (_getPathInfo(tempPath, this->_envVariables["PATH_INFO"]))
+	if (_getPathInfo(tempPath, this->_envVariables["PATH_INFO"])) //Come back later
 		return (-1);
-	if (_getPathTranslated(tempPath, this->_envVariables["PATH_TRANSLATED"]))
+	if (_getPathTranslated(tempPath, this->_envVariables["PATH_TRANSLATED"])) // Come back later
 		return (-1);
 	this->_envVariables["SCRIPT_FILENAME"] = _pathCgiScript;
 	this->_envVariables["SERVER_NAME"] = request.getServerMap().find("/")->second.find("server_name")->second;
 	this->_envVariables["SERVER_PORT"] = request.getServerMap().find("/")->second.find("listen")->second;
 	this->_envVariables["SERVER_PROTOCOL"] = "HTTP/1.1";
 	this->_envVariables["SERVER_SOFTWARE"] = "Webserv_CLJ/1.0";
-	return (0);
+	return (OK);
 }
 
 int	CgiHandler::_getPathInfo(std::string &fullPath, std::string &toWrite)
@@ -262,11 +270,11 @@ int	CgiHandler::_getPathInfo(std::string &fullPath, std::string &toWrite)
 	if (!post.size())
 	{
 		toWrite = "";
-		return (0);
+		return (OK);
 	}
 	toWrite.append("/");
 	toWrite.append(post);
-	return (0);
+	return (OK);
 }
 
 int	CgiHandler::_getPathTranslated(std::string &fullPath, std::string &toWrite)
@@ -280,7 +288,7 @@ int	CgiHandler::_getPathTranslated(std::string &fullPath, std::string &toWrite)
 	trimString(pre, '/');
 	toWrite.append(pre);
 	if (!post.size())
-		return (0);
+		return (OK);
 	toWrite.append("/");
 	toWrite.append(post);
 	if (access(toWrite.c_str(), F_OK))
@@ -365,25 +373,26 @@ int	CgiHandler::_createInstructions(void)
 	catch(const std::exception& e)
 	{
 		std::cerr << e.what() << std::endl;
-		return (-1);
+		return (SERVERERROR);
 	}
 	this->_cmd[size] = NULL;
 	if (size == 1)
 	{
 		this->_cmd[0] = _strdup_cpp(_pathCgiScript);
 		if (!this->_cmd[0])
-			return (-1);
+			return (SERVERERROR);
 	}
 	else
 	{
 		this->_cmd[0] = _strdup_cpp(_cgiExecutable.find(_extension)->second);
 		if (!this->_cmd[0])
-			return (-1);
+			return (SERVERERROR);
 		this->_cmd[1] = _strdup_cpp(_pathCgiScript);
 		if (!this->_cmd[1])
 		{
 			delete this->_cmd[0];
-			return (-1);
+			this->_cmd[0] = NULL;
+			return (SERVERERROR);
 		}
 	}
 	return (0);
@@ -399,7 +408,7 @@ int	CgiHandler::_createPipeAndFork(Request &request, fd_set &fdPool, int &bigges
 	{
 		pipesSuccessful = false;
 		std::perror("Webserv");
-		return (-1);
+		return (SERVERERROR);
 	}
 	if (pipe(pipeOutFd) < 0)
 	{
@@ -407,7 +416,7 @@ int	CgiHandler::_createPipeAndFork(Request &request, fd_set &fdPool, int &bigges
 		close(pipeInFd[0]);
 		close(pipeInFd[1]);
 		std::perror("Webserv");
-		return (-1);
+		return (SERVERERROR);
 	}
 	_addToSetCGI(pipeInFd[1], fdPool, biggestFd);
 	bodyInfo = request.getBody();
@@ -423,7 +432,7 @@ int	CgiHandler::_createPipeAndFork(Request &request, fd_set &fdPool, int &bigges
 		close(pipeOutFd[0]);
 		close(pipeOutFd[1]);
 		std::perror("Webserv");
-		return (-1);
+		return (SERVERERROR);
 	}
 	if (this->_pid == 0)
 	{
@@ -452,9 +461,9 @@ int	CgiHandler::_createPipeAndFork(Request &request, fd_set &fdPool, int &bigges
 		close(this->pipeOutFd[1]);
 		_timerCgi(status);
 		if (WIFSIGNALED(status) > 0 || WEXITSTATUS(status) != 0)
-			return (-1);
+			return (SERVERERROR);
 	}
-	return (0);
+	return (OK);
 }
 
 void	CgiHandler::_timerCgi(int &status)
@@ -501,9 +510,9 @@ int	CgiHandler::_storeOutput(void)
 	if (ret < 0)
 	{
 		std::perror("Webserv");
-		return (-1);
+		return (SERVERERROR);
 	}
-	return (0);
+	return (OK);
 }
 
 void	CgiHandler::_addToSetCGI(const int i, fd_set &new_set, int &biggestFd)

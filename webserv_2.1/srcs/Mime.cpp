@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/25 09:24:51 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/12 16:43:31 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/14 12:25:15 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,10 +63,10 @@ int	Mime::isMimeInCgi(std::string &message, std::string &mimes, std::string &sta
 	std::string					tempMimes;
 
 	if (message.find("\r\n\r\n") == std::string::npos)
-		return (1);
+		return (5);
 	mimes = message.substr(0, message.find("\r\n\r\n"));
 	if (mimes.find("Content-Type: ") == std::string::npos)
-		return (1);
+		return (5);
 	if (mimes.find("HTTP/1.1 ") != std::string::npos)
 	{
 		split = ft_split(mimes, "\r\n");
@@ -77,12 +77,12 @@ int	Mime::isMimeInCgi(std::string &message, std::string &mimes, std::string &sta
 				tempCheck.clear();
 				tempCheck = ft_split((*it), '\n');
 				if (tempCheck.size() != 1)
-					return (1);
+					return (5);
 				status = *it;
 				tempCheck.clear();
 				tempCheck = ft_split(status, ' ');
 				if (tempCheck.size() != 3)
-					return (1);
+					return (5);
 				status.append("\r\n");
 				break ;
 			}
