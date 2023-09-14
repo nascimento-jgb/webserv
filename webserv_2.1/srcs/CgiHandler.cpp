@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:33:04 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/14 12:42:32 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/14 21:41:10 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -404,26 +404,28 @@ int	CgiHandler::_createPipeAndFork(Request &request, fd_set &fdPool, int &bigges
 	int			status;
 
 	status = 0;
-	if (pipe(pipeInFd) < 0)
-	{
-		pipesSuccessful = false;
-		std::perror("Webserv");
-		return (SERVERERROR);
-	}
 	if (pipe(pipeOutFd) < 0)
 	{
 		pipesSuccessful = false;
-		close(pipeInFd[0]);
-		close(pipeInFd[1]);
 		std::perror("Webserv");
 		return (SERVERERROR);
 	}
-	_addToSetCGI(pipeInFd[1], fdPool, biggestFd);
+	if (pipe(pipeInFd) < 0)
+	{
+		pipesSuccessful = false;
+		close(pipeOutFd[0]);
+		close(pipeOutFd[1]);
+		std::perror("Webserv");
+		return (SERVERERROR);
+	}
+	_addToSetCgi(pipeInFd[1], fdPool, biggestFd);
 	bodyInfo = request.getBody();
 	if (!bodyInfo.empty())
 		write(pipeInFd[1], "\0", 1);
 	else
 		write(pipeInFd[1], bodyInfo.c_str(), bodyInfo.size());
+	_removeFromSetCgi(pipeInFd[1], fdPool, biggestFd);
+	close(pipeInFd[1]);
 	this->_pid = fork();
 	if (this->_pid == -1)
 	{
@@ -440,7 +442,6 @@ int	CgiHandler::_createPipeAndFork(Request &request, fd_set &fdPool, int &bigges
 		dup2(this->pipeInFd[0], STDIN_FILENO);
 		close(this->pipeOutFd[1]);
 		close(this->pipeOutFd[0]);
-		close(this->pipeInFd[1]);
 		close(this->pipeInFd[0]);
 		if (execve(this->_path, this->_cmd, this->_env) < 0)
 		{
@@ -456,7 +457,7 @@ int	CgiHandler::_createPipeAndFork(Request &request, fd_set &fdPool, int &bigges
 	}
 	else
 	{
-		_addToSetCGI(this->pipeOutFd[0], fdPool, biggestFd);
+		_addToSetCgi(this->pipeOutFd[0], fdPool, biggestFd);
 		close(this->pipeInFd[0]);
 		close(this->pipeOutFd[1]);
 		_timerCgi(status);
@@ -515,11 +516,18 @@ int	CgiHandler::_storeOutput(void)
 	return (OK);
 }
 
-void	CgiHandler::_addToSetCGI(const int i, fd_set &new_set, int &biggestFd)
+void	CgiHandler::_addToSetCgi(const int i, fd_set &new_set, int &biggestFd)
 {
 	FD_SET(i, &new_set);
 	if (i > biggestFd)
 		biggestFd = i;
+}
+
+void CgiHandler::_removeFromSetCgi(const int i, fd_set &old_set, int &biggestFd)
+{
+	FD_CLR(i, &old_set);
+	if (i == biggestFd)
+		biggestFd -= 3;
 }
 
 char	*CgiHandler::_strdup_cpp(const char *str)

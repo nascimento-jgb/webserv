@@ -77,7 +77,7 @@ def printLogin():
     print("<nav>")
     print("<ul class=\"nav-pills\">")
     print("<li><a href=\"../index.html\">Home</a></li>")
-    print("<li><a href=\"../account/index.html\">Account</a></li>")
+    print("<li><a href=\"account.py\">Account</a></li>")
     print("<li><a href=\"../services/index.html\">Services</a></li>")
     print("<li><a href=\"../gallery/index.html\">Gallery</a></li>")
     print("</ul>")

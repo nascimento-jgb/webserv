@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/09 11:26:08 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/14 12:39:41 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/14 21:17:55 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -236,16 +236,11 @@ void	ServerManager::writeToClient(const int &fd, Client &client)
 	if (client.getCgiFlag() == 1)
 	{
 		send(fd, client.response.getCgiResponseString().data(), client.response.getCgiResponseString().size(), 0);
-		if (client.response.cgiInstance.pipesSuccessful == true)
+		if (client.response.cgiInstance.forkSuccessful == true)
 		{
-			if (client.response.cgiInstance.forkSuccessful == true)
-			{
-				removeFromSet(client.response.cgiInstance.pipeOutFd[0], _fd_pool);
-				close(client.response.cgiInstance.pipeOutFd[0]);
-			}
-			removeFromSet(client.response.cgiInstance.pipeInFd[1], _fd_pool);
-			close(client.response.cgiInstance.pipeInFd[1]);
-		}	
+			removeFromSet(client.response.cgiInstance.pipeOutFd[0], _fd_pool);
+			close(client.response.cgiInstance.pipeOutFd[0]);
+		}
 		client.setCgiFlag(0);
 	}
 	else
