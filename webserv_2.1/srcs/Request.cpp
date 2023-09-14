@@ -78,11 +78,11 @@ int	Request::_checkValidBodySize(size_t max_len)
 	_maxBodySizeFromConfigFile = ft_stoi(_configMap.find("client_max_body_size")->second);
 	size_t len = _we_got_body_len;
 	if(_maxBodySizeFromConfigFile < max_len)
-		return(_printRequestErrorMsg("Request body is larger than accepted size", 400));
+		return(_printRequestErrorMsg("Request body is larger than accepted size", 413));
 	if(max_len > len)
 		return(_printRequestErrorMsg("Request body is too short or missing.", 400));
 	else if(max_len < len)
-		return(_printRequestErrorMsg("Request body is too long.", 400));
+		return(_printRequestErrorMsg("Request body is too long.", 413));
 	return(0);
 }
 
@@ -104,7 +104,7 @@ BodyType	Request::_checkBodyType()
 		}
 		else
 		{
-			_printRequestErrorMsg("we dont ahndle this encoding", 501);
+			_printRequestErrorMsg("we dont handle this encoding", 501);
 			return(INVALID);
 		}
 	}
@@ -317,7 +317,7 @@ void	Request::_trimString(std::string &temp)
 
 void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap &cgi)
 {
-
+	std::cout << buffer << std::endl;
 	if(_bodyType == CHUNKED)
 	{
 		_rawBody = buffer;
@@ -617,6 +617,10 @@ std::string		Request::getBody()
 	return(_bodyStr);
 }
 
+std::string		Request::getRequestErrorMessage()
+{
+	return(_requestErrorMessage);
+}
 
 std::string		Request::getImageData()
 {
@@ -698,7 +702,7 @@ int	Request::_printRequestErrorMsg(std::string msg, int error_code)
 {
 	Error errors;
 	_requestCode = error_code;
-	std::cout << "\033[1;31m[" << error_code << "][" << errors.getErrorMsg(error_code) << "] " << msg << "\033[0m" << std::endl;
+	_requestErrorMessage = msg;
 	return(error_code);
 }
 

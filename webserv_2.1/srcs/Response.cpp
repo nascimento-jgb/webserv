@@ -92,7 +92,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 	}
 	if(_responseCode >= 400)
 	{
-		_printErrorAndRedirect("ERROR", _responseCode, errorMap);
+		_printErrorAndRedirect(request.getRequestErrorMessage(), _responseCode, errorMap);
 		return ;
 	}
 	if(request.getMethod() == GET)
@@ -202,7 +202,11 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 			}
 		}
 		else
-			_printErrorAndRedirect("Error in POST body.", 400, errorMap);
+		{
+			std::string message = "You Posted: " + request.getBody();
+			_responseString = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: "
+				+ request.ft_itoa(message.size()) + "\r\nServer: CLJ\r\n\r\n" + message;
+		}
 	}
 	else if(request.getMethod() == DELETE)
 	{
