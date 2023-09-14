@@ -119,7 +119,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 	}
 	if(_responseCode >= 400)
 	{
-		_printErrorAndRedirect("ERROR", _responseCode, errorMap);
+		_printErrorAndRedirect("ERROR", _responseCode, errorMap, _responseString);
 		return ;
 	}
 	if(request.getMethod() == GET)
@@ -229,7 +229,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 			}
 		}
 		else
-			_printErrorAndRedirect("Error in POST body.", 400, errorMap);
+			_printErrorAndRedirect("Error in POST body.", 400, errorMap, _responseString);
 	}
 	else if(request.getMethod() == DELETE)
 	{
