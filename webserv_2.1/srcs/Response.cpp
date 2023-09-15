@@ -6,13 +6,12 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:58:47 by leklund           #+#    #+#             */
-/*   Updated: 2023/08/25 11:40:34 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/15 09:07:02 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/Response.hpp"
 
-//Canonical Form
 Response::Response()
 {
 	_content_length = 0;
@@ -29,8 +28,9 @@ Response::Response(Response const &other)
 		_content_length = other._content_length;
 		_content_type = other._content_type;
 		_http_res = other._http_res;
-		_responseCode = other._responseCode;
 		_responseString = other._responseString;
+		_responseCgiString = other._responseCgiString;
+		_responseCode = other._responseCode;
 	}
 	return ;
 }
@@ -42,82 +42,252 @@ Response &Response::operator=(Response const &other)
 		_content_length = other._content_length;
 		_content_type = other._content_type;
 		_http_res = other._http_res;
+		_responseString = other._responseString;
+		_responseCgiString = other._responseCgiString;
 		_responseCode = other._responseCode;
 	}
 	return (*this);
 }
 
-void Response::makeResponse(Request& request, int write_socket)
+void	Response::makeCgiResponse(Request& request, fd_set &fdPool, int &biggestFd, numbermap &errorMap)
+{
+	std::string	message;
+	std::string	mimes;
+	std::string	status;
+	int			returnValue;
+
+	_rootErrorPages = request.getRootErrorPages();
+	returnValue = cgiInstance.cgiInitialization(request, fdPool, biggestFd);
+	switch (returnValue)
+	{
+		case NOTFOUND:
+		{
+			_printErrorAndRedirect("PATH NOT FOUND", 404, errorMap, _responseCgiString);
+			break ;
+		}
+		case NOPERMISSION:
+		{
+			_printErrorAndRedirect("PERMISSION DENIED", 403, errorMap, _responseCgiString);
+			break ;
+		}
+		case UNKNOWNMETHOD:
+		{
+			_printErrorAndRedirect("UNKNOWN METHOD", 405, errorMap, _responseCgiString);
+			break ;
+		}
+		case SERVERERROR:
+		{
+			_printErrorAndRedirect("INTERNAL SERVER ERROR", 500, errorMap, _responseCgiString);
+			break ;
+		}
+		case NOTIMPLEMENTED:
+		{
+			_printErrorAndRedirect("NOT IMPLEMENTED", 501, errorMap, _responseCgiString);
+			break ;
+		}
+		case OK:
+		{
+			message = cgiInstance.fetchOutputCgi();
+			if (_mimes.isMimeInCgi(message, mimes, status) == OK)
+				_responseCgiString = status + mimes + "\r\nContent-Length: " + \
+					ft_itoa(message.size()) + "\r\n\r\n" + message;
+			else //This else resolves when it fails the recognition of Content-Type seccion in the header of the CGI response.
+				_printErrorAndRedirect("", 500, errorMap, _responseCgiString);
+			break ;
+		}
+		default:
+		{
+			_printErrorAndRedirect("TEAPOT", 418, errorMap, _responseCgiString);
+			break;
+		}
+	}
+}
+
+void	Response::makeResponse(Request& request, numbermap errorMap)
 {
 	_responseCode = request.getCode();
+	_root = request.getRoot();
+	_rootErrorPages = request.getRootErrorPages();
 
-	(void)write_socket;
-	std::cout << "_responseCode: " << _responseCode << "Path-2: [" << request.getPath() << "]" << "method = " << request.getMethod() << std::endl;
-	if(_responseCode != 200)
+	if(_responseCode == 302)
 	{
-		printResponseErrorMsg("yoo this should not be checked here", 418);
+    	Error errors;
+		std::cout << "\033[1;31m[" << _responseCode << "][" << errors.getErrorMsg(_responseCode) << "] " << "we redirecting here" << "\033[0m" << std::endl;
+		_responseString = "HTTP/1.1 302 Redirect\r\nLocation: ";
+		_responseString.append(request.getRelativePath()).append("\r\n\r\n");
+		return ;
+	}
+	if(_responseCode >= 400)
+	{
+		_printErrorAndRedirect("ERROR", _responseCode, errorMap, _responseString);
 		return ;
 	}
 	if(request.getMethod() == GET)
 	{
-		// std::cout << "it is GET\n";Date: Sun, 30 Jul 2023 04:51:23 GMT\r\n
+		std::string path;
 		std::time_t	cur_time = std::time(NULL);
 		std::tm		*local_time = std::gmtime(&cur_time);
 		char buffer[80];
 
 		std::strftime(buffer, sizeof(buffer), "%a, %d %b %Y %H:%M:%S GMT", local_time);
-		std::cout << buffer << std::endl;
-		if(request.getPath() == "/")
+		if(request.getPath()[0] == '/')
 		{
-			std::string message = "This is your cool GET message!";
-			_responseString = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: "
-				+ request.ft_itoa(message.size()) + "\r\nServer: JLC\r\nDate: " + buffer + "\r\n\r\n" + message;
-		}
-		// else if(request.getPath() == "/favicon.ico")
-		// 	return ;
-		else if(!request.getPath().compare(0,1, "/"))
-		{
-			// std::cout << "THERE is a path\n";
-			std::ifstream file(request.getPath().substr(1,request.getPath().length() - 1).c_str());
-			if(!file)
+			path = request.getPath();
+			struct stat pathType;
+			if(stat(path.c_str(), &pathType) == 0)
 			{
-				// std::cout << "Failed to open file\n";
-				printResponseErrorMsg("File not found", 404);
-				std::string message = "File not found";
-				_responseString = "HTTP/1.1 404 NOT found\r\nContent-Type: text/plain\r\nContent-Length: "
-				+ request.ft_itoa(message.size()) + "\r\n\r\n" + message;
+				if(S_ISDIR(pathType.st_mode))
+				{
+					if(request.getConfigMap().find("index") != request.getConfigMap().end())
+					{
+						std::string indexPath;
+						Error errors;
+						_responseString = "HTTP/1.1 " + ft_itoa(_responseCode) + " " + errors.getErrorMsg(_responseCode);
+						if(path != "/")
+							indexPath = path+"/"+request.getConfigMap().find("index")->second;
+						else
+							indexPath = request.getConfigMap().find("index")->second;
+						if(!_loadFile(indexPath))
+							_responseString.clear();
+						else
+							return ;
+					}
+					DIR				*tmp;
+					struct dirent	*entry;
+					if((tmp = opendir(path.c_str())) == NULL || request.getConfigMap().find("autoindex")->second.find("on") == std::string::npos)
+					{
+						_printErrorAndRedirect("Error", 404, errorMap, _responseString);
+						return ;
+					}
+					std::string message;
+					while((entry = readdir(tmp)))
+					{
+						if(!std::strncmp(entry->d_name, ".", 1))
+							continue;
+						message.append("<h3><a href=\"").append(absoluteToRelativePath(_root, path)).append("/").append(entry->d_name).append("\">");
+						message.append(entry->d_name);
+						message.append("</a></h3>");
+					}
+					_responseString = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: "
+						+ request.ft_itoa(message.size()) + "\r\nServer: JLC\r\n\r\n" + message;
+					return ;
+				}
+				else
+				{
+					std::ifstream file(path);
+					if(file.bad())
+					{
+						_printErrorAndRedirect("File not found", 404, errorMap, _responseString);
+						return ;
+					}
+					else
+					{
+						std::stringstream	buffer;
+
+						buffer << file.rdbuf();
+						std::string fileContents = buffer.str();
+						_responseString = "HTTP/1.1 200 OK";
+						_responseString.append("\r\nContent-Type: ");
+						_responseString.append(_mimes.getMimeType(path));
+						_responseString.append("\r\nContent-Length: ");
+						_responseString.append(request.ft_itoa(fileContents.size()) + "\r\n\r\n" + fileContents);
+						file.close();
+					}
+				}
 			}
 			else
 			{
-				Mime				mimes;
-				std::stringstream	buffer;
-
-				buffer << file.rdbuf();
-				std::string fileContents = buffer.str();
-				// std::cout << "File contents: " << fileContents << '\n';\r\nContent-Type: text/html
-				_responseString = "HTTP/1.1 200 OK";
-				_responseString.append("\r\nContent-Type: ");
-				_responseString.append(mimes.getMimeType(request.getPath().substr(request.getPath().rfind(".", std::string::npos))));
-				_responseString.append("\r\nContent-Length: ");
-				_responseString.append(request.ft_itoa(fileContents.size()) + "\r\n\r\n" + fileContents);
-				file.close();
+				_printErrorAndRedirect("path not found", 404, errorMap, _responseString);
+				return ;
 			}
 		}
 	}
 	else if(request.getMethod() == POST)
 	{
-		std::cout << "POST Response" << std::endl;
-		std::string message = "This is your cool POST message!";
-		_responseString = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: "
-			+ request.ft_itoa(message.size()) + "\r\n\r\n" + message;
+		if(request.isFileUpload())
+		{
+			if(_mimes.getMimeType(request.getFileName()) == "text/html")
+			{
+				_printErrorAndRedirect("Sorry we do not allow user to POST Html files", 400, errorMap, _responseString);
+				return ;
+			}
+			else
+			{
+				std::string pathAndSource = request.getLocation();
+				if(request.getLocation() != "/")
+					pathAndSource.append("/");
+				pathAndSource.append(request.getFileName());
+				pathAndSource = pathAndSource.substr(1, pathAndSource.length());
+				if(_saveImageToFile(pathAndSource, request.getImageData()))
+					_printErrorAndRedirect("Failed to save the File.", 400, errorMap, _responseString);
+				else
+				{
+					std::string message = "upload successful";
+					_responseString = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: "
+						+ request.ft_itoa(message.size()) + "\r\nServer: CLJ\r\n\r\n" + message;
+				}
+			}
+		}
+		else
+			_printErrorAndRedirect("Error in POST body.", 400, errorMap, _responseString);
 	}
-	std::cout << "==============\nResponse:" << _responseString << std::endl;
+	else if(request.getMethod() == DELETE)
+	{
+		std::string path = request.getPath().substr(1, request.getPath().size());
+
+		if (!fileExists(path.c_str()))
+        {
+            _responseCode = 204;
+			std::string message = "File not found";
+			_responseString = "HTTP/1.1 204 Not Found\r\nContent-Type: text/plain\r\nContent-Length: "
+				+ request.ft_itoa(message.size()) + "\r\nServer: CLJ\r\n\r\n" + message;
+            return ;
+        }
+        if (remove(path.c_str()) != 0 )
+        {
+            _responseCode = 500;
+			std::string message = "cant remove this file";
+			_responseString = "HTTP/1.1 500 Not Removable\r\nContent-Type: text/plain\r\nContent-Length: "
+				+ request.ft_itoa(message.size()) + "\r\nServer: CLJ\r\n\r\n" + message;
+            return ;
+        }
+		std::string message = "Delete done";
+			_responseString = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: "
+				+ request.ft_itoa(message.size()) + "\r\nServer: CLJ\r\n\r\n" + message;
+	}
 	return ;
 }
+bool Response::fileExists (const std::string& f)
+{
+    std::ifstream file(f.c_str());
+    return (file.good());
+}
+
+
+int Response::_saveImageToFile(const std::string& filename, const std::string& imageData)
+{
+	std::ofstream file(filename.c_str(), std::ios::binary);
+	if (file)
+	{
+		file << imageData;
+		file.close();
+		if(file.fail())
+			return (1);
+		return (0);
+	}
+	return (1);
+}
+
+
 
 std::string const	Response::getResponseString(void) const
 {
 	return (_responseString);
+}
+
+std::string const	Response::getCgiResponseString(void) const
+{
+	return (_responseCgiString);
 }
 
 void Response::clearResponse()
@@ -126,14 +296,47 @@ void Response::clearResponse()
 	_content_type.clear();
 	_http_res.clear();
 	_responseString.clear();
+	_responseCgiString.clear();
 	_responseCode = 0;
 }
 
-void	Response::printResponseErrorMsg(std::string msg, int error_code)
-{
-	Error errors;
 
-	_responseCode = error_code;
-	std::cout << "\033[1;31m[" << error_code << "][" << errors.getErrorMsg(error_code) << "] " << msg << "\033[0m" << std::endl;
-	// throw(request::HttpRequestErrorException());
+
+void    Response::_printErrorAndRedirect(std::string msg, int error_code, numbermap errorMap, std::string &response)
+{
+    Error errors;
+
+    _responseCode = error_code;
+    std::cout << "\033[1;31m[" << error_code << "][" << errors.getErrorMsg(error_code) << "] " << msg << "\033[0m" << std::endl;
+    response = "HTTP/1.1 302 Redirect\r\nSet-cookie: error=cookie\r\nLocation: ";
+
+    if(errorMap.find(error_code) != errorMap.end())
+    {
+        response.append(absoluteToRelativePath(_rootErrorPages, errorMap.find(error_code)->second)).append("\r\n\r\n");
+		return ;
+    }
+	response.clear();
+	response = "HTTP/1.1 " + ft_itoa(error_code) + " " + errors.getErrorMsg(error_code);
+	response.append("\r\nContent-Type: text/plain\r\nContent-Length: "
+		+ ft_itoa(msg.size()) + "\r\nServer: CLJ\r\n\r\n" + msg);
+}
+
+int	Response::_loadFile(std::string path)
+{
+	if(path.empty())
+		return (0);
+	std::ifstream file(path);
+	if(file.bad() || file.fail())
+		return (0);
+	std::stringstream	buffer;
+
+	buffer << file.rdbuf();
+	std::string fileContents = buffer.str();
+
+	_responseString.append("\r\nContent-Type: ");
+	_responseString.append(_mimes.getMimeType(path));
+	_responseString.append("\r\nContent-Length: ");
+	_responseString.append(ft_itoa(fileContents.size()) + "\r\n\r\n" + fileContents);
+	file.close();
+	return (1);
 }

@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:58:58 by leklund           #+#    #+#             */
-/*   Updated: 2023/08/25 10:24:54 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/15 09:07:17 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,9 +15,11 @@
 
 # include "Webserver.hpp"
 # include "Request.hpp"
+# include "CgiHandler.hpp"
 # include "Mime.hpp"
 
 class Request;
+class CgiHandler;
 
 class Response
 {
@@ -26,7 +28,11 @@ class Response
 		std::string			_content_type;
 		std::string			_http_res;
 		std::string			_responseString;
+		std::string			_responseCgiString;
+		std::string			_rootErrorPages;
+		std::string			_root;
 		int					_responseCode;
+		Mime				_mimes;
 
 	public:
 		Response();
@@ -34,12 +40,18 @@ class Response
 		Response(Response const &other);
 		Response &operator=(Response const &other);
 
-		void				printResponseErrorMsg(std::string msg, int error_code);
-		void				makeResponse(Request &request, int write_socket);
+		CgiHandler			cgiInstance;
+
+		void				_printErrorAndRedirect(std::string msg, int error_code, numbermap errorMap, std::string &response);
+		int					_loadFile(std::string error_page_path);
+		void				makeResponse(Request &request, numbermap errorMap);
+		void				makeCgiResponse(Request& request, fd_set &fdPool, int &biggestFd, numbermap &errorMap);
+		int	 				_saveImageToFile(const std::string& filename, const std::string& imageData);
 		void 				clearResponse();
+		bool				fileExists (const std::string& f);
 
 		std::string const	getResponseString(void) const;
+		std::string const	getCgiResponseString(void) const;
 };
 
 #endif
-

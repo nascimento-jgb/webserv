@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/08/22 12:42:37 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/25 11:24:10 by jonascim         ###   ########.fr       */
+/*   Created: 2023/09/09 11:26:08 by leklund           #+#    #+#             */
+/*   Updated: 2023/09/15 09:07:44 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,30 +17,34 @@ ServerManager::ServerManager(): _biggest_fd(0) {}
 ServerManager::~ServerManager() {}
 
 //PUBLIC METHODS
-void	ServerManager::setupServers(std::vector<mainmap> &servers, std::vector<size_t> &serversPorts, std::vector<submap> &cgis)
+void	ServerManager::setupServers(std::vector<mainmap> &servers, std::vector<size_t> &serversPorts, std::vector<submap> &cgis, std::vector<numbermap> &error)
 {
-	char							bufffer[INET_ADDRSTRLEN];
-	std::vector<size_t>::iterator	it_ports;
-	std::vector<submap>::iterator	it_cgi;
+	char								buffer[INET_ADDRSTRLEN];
+	std::vector<size_t>::iterator		it_ports;
+	std::vector<submap>::iterator		it_cgi;
+	std::vector<numbermap>::iterator	it_error;
 
 	std::cout << "Initializing server(s)..." << std::endl;
 	_servers = servers;
 	_serversPorts = serversPorts;
 	_cgiServers = cgis;
+	_error = error;
 	_serversClass.clear();
 	_serversClass.reserve(_servers.size());
 	it_ports = _serversPorts.begin();
 	it_cgi = _cgiServers.begin();
-	for(std::vector<mainmap>::iterator it = _servers.begin(); it != _servers.end(); ++it)
+	it_error = _error.begin();
+	for (std::vector<mainmap>::iterator it = _servers.begin(); it != _servers.end(); ++it)
 	{
 		Server	temp;
 
-		temp.setupServer((*it), (*it_ports), (*it_cgi));
-		std::cout << "Server initialized as - Name: "<< temp.getServerName() << " Host: " << inet_ntop(AF_INET, &temp.getHost(), bufffer, INET_ADDRSTRLEN) <<
+		temp.setupServer((*it), (*it_ports), (*it_cgi), (*it_error));
+		std::cout << "Server initialized as - Name: "<< temp.getServerName() << " Host: " << ft_inet_ntop(AF_INET, temp.getHost(), buffer, INET_ADDRSTRLEN) <<
 		" Port: " << temp.getPort() << std::endl;
 		_serversClass.push_back(temp);
 		it_ports++;
 		it_cgi++;
+		it_error++;
 	}
 	return ;
 }
@@ -85,7 +89,7 @@ void ServerManager::initializeSets()
 
 	for (std::vector<Server>::iterator it = _serversClass.begin(); it != _serversClass.end(); ++it)
 	{
-		if (listen(it->getListenFd(), 512) == -1)
+		if (listen(it->getListenFd(), 20) == -1)
 		{
 			std::cout << "webserv: listen error: "<< strerror(errno) << " Closing...." << std::endl;
 			exit(EXIT_FAILURE);
@@ -102,21 +106,21 @@ void ServerManager::initializeSets()
 }
 
 //During the first time after the select, we accept the incomming connection to the socket
-void	ServerManager::acceptNewConnection(Server &server)
+void	ServerManager::acceptNewConnection(Server &server_from_map)
 {
 	struct sockaddr_in	client_address;
 	long				client_address_size = sizeof(client_address);
 	int					client_socket;
-	Client				new_client(server);
+	Client				new_client(server_from_map);
 	char				buffer[INET_ADDRSTRLEN];
 
-	if ((client_socket = accept(server.getListenFd(), reinterpret_cast<struct sockaddr *>(&client_address),
+	if ((client_socket = accept(server_from_map.getListenFd(), reinterpret_cast<struct sockaddr *>(&client_address),
 	 reinterpret_cast<socklen_t*>(&client_address_size))) == -1)
 	{
 		std::cout << "webserv: accept new connection error " << strerror(errno) << std::endl;
 		return ;
 	}
-	std::cout << "New connection from " << inet_ntop(AF_INET, &client_address, buffer, INET_ADDRSTRLEN) << " assigned socket " << client_socket << std::endl;
+	std::cout << "New connection from " << ft_inet_ntop(AF_INET, client_address.sin_addr.s_addr, buffer, INET_ADDRSTRLEN) << " assigned socket " << client_socket << std::endl;
 
 	addToSet(client_socket, _fd_pool);
 
@@ -145,16 +149,14 @@ void	ServerManager::assignServerConfig(Client &client)
 				return ;
 			}
 	}
-	// client.clearClient();
+	client.clearClient();
 	return;
 }
 
 //COMMUNICATION OPERATIONS
 void	ServerManager::handleSocket(const int &fd, Client &client)
 {
-	// Get the status to determine whether the socket should be read from or written to
 	int state = client.request.getStatus();
-	std::cout << "====================\nstate: " << state << "\n=======================" << std::endl;
 	switch (state)
 	{
 		case READ:
@@ -172,50 +174,84 @@ void	ServerManager::handleSocket(const int &fd, Client &client)
 
 void	ServerManager::readRequest(const int &fd, Client &client)
 {
-	char	buffer[MESSAGE_BUFFER];
-	int		bytes_read = read(fd, buffer, MESSAGE_BUFFER);
+	char		buffer[MESSAGE_BUFFER+1];
+	int			bytes_read;
+	int			tot_read = 0;
+	int			flag = 0;
+	std::string	storage;
 
-	switch (bytes_read)
+	while((bytes_read = read(fd, buffer, MESSAGE_BUFFER)) > 0)
 	{
-		case 0:
-			std::cout << "webserv: Client " << fd << " closed connection." << std::endl;
-			closeConnection(fd);
-			return ;
-		case -1:
-			std::cout << "webserv: Fd " << fd << " read error "<< strerror(errno) << "." << std::endl;
-			closeConnection(fd);
-			return ;
-		default:
-			client.updateTime();
-			client.request.parseCreate(buffer, bytes_read, client.getClientSocket()); //REVIEW THIS LINE
-			memset(buffer, 0, sizeof(buffer));
+		buffer[bytes_read] = '\0';
+		flag = 1;
+		tot_read += bytes_read;
+		storage.append(buffer, bytes_read);
+		std::memset(buffer, 0, sizeof(buffer));
 	}
-
+	if (flag)
+	{
+		client.updateTime();
+		client.request.parseCreate(storage, tot_read, client.server.getConfigMap(), client.server.getCgiMap());
+		std::memset(buffer, 0, sizeof(buffer));
+	}
+	else if (!bytes_read)
+	{
+		std::cout << "webserv: Client " << fd << " closed connection." << std::endl;
+		closeConnection(fd);
+		return ;
+	}
+	else if (bytes_read < 0)
+	{
+		if (errno == EAGAIN || errno == EWOULDBLOCK) //REREMBER THAT CHECKING THE VALUE OF ERRNO IS FORBIDDEN IN THE SUBJECT.
+		{
+			// If the error is EAGAIN or EWOULDBLOCK, it's not really an error.
+			// Just try to read again later.
+			return;
+		}
+		else {
+			std::cout << "webserv: Fd " << fd << " read error "<< std::strerror(errno) << "." << std::endl;
+			closeConnection(fd);
+			return ;
+		}
+	}
 	if (client.request.getCode()) // Code initialize with 0 and changes according to the result of the request parsing
 	{
 		assignServerConfig(client);
 		std::cout << "Request Recived From Socket " << fd << ", Method=<" << client.request.getMethod() << ">  URI=<" << client.request.getPath() << ">." << std::endl;
-		client.response.makeResponse(client.request, fd);
 
-		// if (client.response.getCgiState())
-		// {
-		// 	handleReqBody(client);
-		// 	addToSet(c.response._cgi_obj.pipe_in[1],  _write_fd_pool);
-		// 	addToSet(c.response._cgi_obj.pipe_out[0],  _recv_fd_pool);
-		// }
-		//STILL NEED TO WORK IN THE CGI RESPONSE
+		if (client.request.getStatus() == CGI)
+		{
+			client.setCgiFlag(1);
+			std::cout << "HELLLOOOOOO" << client.request.getBody() << std::endl;
+			client.response.makeCgiResponse(client.request, _fd_pool, _biggest_fd, client.server.getErrorMap());
+		}
+		else
+			client.response.makeResponse(client.request, client.server.getErrorMap());
 		client.request.setRequestStatus(WRITE);
 	}
 }
 
 void	ServerManager::writeToClient(const int &fd, Client &client)
 {
-	//theeeen we send to the motherfuckers the answer xD
-	std::cout << "Go in: " << client.response.getResponseString() << std::endl;
-	send(fd, client.response.getResponseString().data(), client.response.getResponseString().size(), 0);
+	if (client.getCgiFlag() == 1)
+	{
+		send(fd, client.response.getCgiResponseString().data(), client.response.getCgiResponseString().size(), 0);
+		if (client.response.cgiInstance.pipesSuccessful == true)
+		{
+			if (client.response.cgiInstance.forkSuccessful == true)
+			{
+				removeFromSet(client.response.cgiInstance.pipeOutFd[0], _fd_pool);
+				close(client.response.cgiInstance.pipeOutFd[0]);
+			}
+			removeFromSet(client.response.cgiInstance.pipeInFd[1], _fd_pool);
+			close(client.response.cgiInstance.pipeInFd[1]);
+		}
+		client.setCgiFlag(0);
+	}
+	else
+		send(fd, client.response.getResponseString().data(), client.response.getResponseString().size(), 0);
 	client.clearClient();
 	client.request.setRequestStatus(READ);
-
 }
 
 //FINALIZING
@@ -257,5 +293,4 @@ void ServerManager::removeFromSet(const int i, fd_set &old_set)
 	if (i == _biggest_fd)
 		_biggest_fd--;
 }
-
 

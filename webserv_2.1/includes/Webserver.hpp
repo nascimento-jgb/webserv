@@ -6,16 +6,17 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 08:51:04 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/25 11:40:19 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/12 10:11:31 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef WEBSERV_HPP
 # define WEBSERV_HPP
 
-#define CONNECTION_TIMEOUT 60 //in seconds
+#define CONNECTION_TIMEOUT 60 //in seconds 219677  218777
+#define CGI_TIMEOUT 15
 #define INET_ADDRSTRLEN 16
-#define MESSAGE_BUFFER 500000
+#define MESSAGE_BUFFER 4
 
 //STL CONTAINERS
 #include <map>
@@ -35,18 +36,24 @@
 #include <string>
 
 //RANDOM INCLUDES
+#include <errno.h>
 #include <signal.h>
 #include <string>
 #include <unistd.h>
 #include <cstdlib>
 #include <csignal>
+#include <ctime>
 #include <fcntl.h>
 #include <utility>
 #include <stdexcept>
+#include <sys/stat.h>
+#include <dirent.h>
+
 
 typedef std::vector<std::string>::iterator	iter;
 typedef std::map< std::string, std::map<std::string, std::string> >	mainmap;
 typedef std::map<std::string, std::string>	submap;
+typedef std::map<int, std::string>	numbermap;
 typedef	std::pair<iter, iter>	paired;
 
 //ERROR CLASS

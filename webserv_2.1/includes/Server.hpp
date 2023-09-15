@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/25 09:54:01 by jonascim          #+#    #+#             */
-/*   Updated: 2023/08/25 09:54:11 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/01 15:21:28 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,6 @@ class Server
 {
 	private:
 		struct sockaddr_in 			_server_address;
-
 		uint16_t					_port;
 		in_addr_t					_host;
 		std::string					_server_name;
@@ -27,6 +26,7 @@ class Server
 		std::string					_index;
 		mainmap						_config;
 		submap						_cgi;
+		numbermap					_error;
 		unsigned long				_max_body_size;
 		bool						_autoindex;
 		int							_listen_fd;
@@ -58,10 +58,13 @@ class Server
 		std::string const			&getIndex(void) const;
 		unsigned long const			&getMaxBodySize(void) const;
 		bool const					&getAutoIndex(void) const;
+		mainmap						&getConfigMap(void);
+		submap						&getCgiMap(void);
+		numbermap					&getErrorMap(void);
 		int							getListenFd(void);
 
 		//Methods
-		void	setupServer(mainmap &config, size_t &port, submap &cgi);
+		void	setupServer(mainmap &config, size_t &port, submap &cgi, numbermap &error);
 };
 
 #endif

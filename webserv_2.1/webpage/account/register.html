@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="eng">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, intial-scale=1.0">
+		<title>Registration Page</title>
+
+		<!-- Link the external CSS file -->
+		<link rel="stylesheet" type="text/css" href="../css/styles.css">
+	</head>
+
+<body>
+	<header>
+		<!-- Site Name -->
+		<h1>CLJ WEBSERV</h1>
+
+		<!-- Main Menu -->
+		<nav>
+			<ul class="nav-pills">
+				<li><a href="../index.html">Home</a></li>
+				<li><a href="../../cgi-bin/account.py">Account</a></li>
+				<li><a href="../services/index.html">Services</a></li>
+				<li><a href="../gallery/index.html">Gallery</a></li>
+			</ul>
+		</nav>
+	</header>
+
+	<main>
+		<center> <h1> CLJ Registration Form </h1> </center>
+		<form action = "../../cgi-bin/account.py" method = "GET">
+			<div class="container">
+				<label>Username : </label>
+				<input type="text" placeholder="Enter Username" name="username" required>
+				<label>Password : </label>
+				<input type="password" placeholder="Enter Password" name="password" required>
+				<label>FirstName : </label>
+				<input type="text" placeholder="Enter FirstName" name="firstname" required>
+				<button type="submit">Register</button>
+				Already Have account?<a href="../../cgi-bin/account.py"> Login </a>
+			</div>
+		</form>
+	</main>
+
+	<footer>
+		<p>&copy; 2023 CLJ Development Team</p>
+	</footer>
+
+</body>
+</html>

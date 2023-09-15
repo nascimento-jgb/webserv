@@ -1,0 +1,103 @@
+body, h1, p {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	font-family: Helvetica, sans-serif;
+}
+
+header {
+	background-color: #333;
+	color: #fff;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 1em;
+}
+
+.nav-pills {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	text-align: right;
+}
+
+.nav-pills li {
+	display: inline-block;
+	margin: 0 5px;
+}
+
+.nav-pills a {
+	display: inline-block;
+	padding: 10px 20px;
+	background-color: #ddd;
+	color: #333;
+	text-decoration: none;
+	border: 2px solid #999;
+	border-radius: 4px;
+}
+
+.nav-pills a:hover {
+	background-color: #eee;
+}
+
+.nav-pills .active a {
+	background-color: #fff;
+	color: #333;
+}
+
+.grid-container {
+	display: grid;
+	grid-template-columns: auto auto;
+	padding: 10px;
+}
+
+.grid-item {
+	padding: 20px;
+	text-align: center;
+}
+
+nav ul li a {
+	display: inline-block;
+	padding: 10px 20px;
+	background-color: #ddd;
+	color: #333;
+	text-decoration: none;
+	border: 2px solid #999;
+	border-radius: 10px; /* Adjust as needed for desired roundness */
+}
+
+nav ul li a:hover {
+	background-color: #eee;
+}
+
+nav ul li a.active {
+	background-color: #bbb;
+}
+
+button {
+	display: block;
+	width: 100%;
+	padding: 10px;
+	margin-top: 10px;
+	background-color: #ddd;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+button:hover {
+	background-color: #ccc;
+}
+
+main {
+	padding: 2em;
+}
+
+footer {
+	background-color: #333;
+	color: #fff;
+	text-align: center;
+	padding: 1em;
+}

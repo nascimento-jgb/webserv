@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/04 17:14:34 by corellan          #+#    #+#             */
-/*   Updated: 2023/08/24 14:40:00 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/12 21:10:46 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,24 +23,31 @@ ConfigurationFile::~ConfigurationFile(void)
 	return ;
 }
 
-std::vector<mainmap>	&ConfigurationFile::getVectorConfFile(void)
-{
-	return (_confFileInformation);
-}
-
 void	ConfigurationFile::initializeConfFile(int ac, char **av)
 {
 	std::string	temp;
+	std::string	trimmedName;
+	extern char	**environ;
 
+	if (environ == NULL)
+		throw (ErrorEnvironmentVariables());
+	if (_checkBinaryName(av[0], trimmedName) == -1)
+		throw (ErrorBinaryName());
+	if (_findAndValidateDirectory(environ, av, trimmedName) == -1)
+		throw (ErrorEnvironmentVariables());
+	std::cout << _serverExecutionPath << std::endl;
 	if (ac == 1)
-		temp = "configuration/default.conf";
+	{
+		temp.append(_serverExecutionPath);
+		temp.append("/configuration/default.conf");
+	}
 	else
 		temp = av[1];
 	_confFile.open(temp);
 	if (_confFile.fail() == true)
 		throw (ErrorOpeningConfFile());
 	if (_readFile() == 1)
-		throw (ErrorOpeningConfFile());
+		throw (ErrorOpeningConfFile());	
 	if (_parseConfFile() == -1)
 		throw (ErrorOpeningConfFile());
 	if (_checkInputConfFile() == 1)
@@ -50,6 +57,87 @@ void	ConfigurationFile::initializeConfFile(int ac, char **av)
 	if (_findPaths() == 1)
 		throw (ErrorCgiInfo());
 	return ;
+}
+
+int	ConfigurationFile::_checkBinaryName(char *name, std::string &trimmedName)
+{
+	trimmedName = name;
+	while (trimmedName.find("/") != std::string::npos)
+		trimmedName = trimmedName.substr(trimmedName.find("/") + 1);
+	if (!trimmedName.compare("webserv"))
+		return (0);
+	return (-1);
+}
+
+int	ConfigurationFile::_findAndValidateDirectory(char **environ, char **av, std::string &trimmedName)
+{
+	size_t						len;
+	size_t						pos;
+	std::vector<std::string>	split;
+	std::string					programName;
+	std::string					post;
+	struct stat					st;
+
+	len = arrayLength(environ);
+	if (len == 0)
+		return (-1);
+	if (_checkPathVariable(environ, trimmedName) == 0) //This function checks if the path to our server is already defined in the enviroment variable PATH, and the user is calling our server directly.
+		return (0);
+	pos = findWordInArray(environ, "PWD=");
+	if (pos == len)
+		return (-1);
+	split = ft_split(environ[pos], '=');
+	if (split.size() != 2)
+		return (-1);
+	_serverExecutionPath = *(split.end() - 1);
+	programName = _serverExecutionPath;
+	programName.append("/");
+	programName.append(av[0]);
+	if (isPathValid(programName, _serverExecutionPath, post) == -1)
+		return (-1);
+	_serverExecutionPath.append("/");
+	_serverExecutionPath.append(post);
+	if (_serverExecutionPath.size() > 0)
+	{
+		if (_serverExecutionPath[_serverExecutionPath.size() - 1] == '/')
+			_serverExecutionPath = _serverExecutionPath.substr(0, (_serverExecutionPath.size() - 1));
+	}
+	if (access(_serverExecutionPath.c_str(), F_OK))
+		return (-1);
+	if (stat(_serverExecutionPath.c_str(), &st))
+		return (-1);
+	if (S_ISDIR(st.st_mode))
+		return (-1);
+	trimString(_serverExecutionPath, '/');
+	return (0);
+}
+
+int	ConfigurationFile::_checkPathVariable(char **environ, std::string &trimmedName)
+{
+	std::vector<std::string>	pathsEnvironment;
+	std::string					path;
+	std::string					temp;
+
+	if (findWordInArray(environ, "PATH=") == arrayLength(environ))
+		return (1);
+	temp = environ[findWordInArray(environ, "PATH=")];
+	if (ft_split(temp, '=').size() != 2)
+		return (1);
+	temp = temp.substr(5);
+	pathsEnvironment = ft_split(temp, ':');
+	for (iter it = pathsEnvironment.begin(); it != pathsEnvironment.end(); it++)
+	{
+		path.clear();
+		path = *it;
+		path.append("/");
+		path.append(trimmedName);
+		if (!access(path.c_str(), F_OK) && !access(path.c_str(), X_OK))
+		{
+			_serverExecutionPath = *it;
+			return (0);
+		}
+	}
+	return (1);
 }
 
 int	ConfigurationFile::_readFile(void)
@@ -108,22 +196,30 @@ int	ConfigurationFile::_checkInputConfFile(void)
 			return (1);
 		if (_fillMap((*it).first, ((*it).second)) == -1)
 			return (1);
-		if (_tempMap.find("main") == _tempMap.end())
+		if (_tempMap.find("/") == _tempMap.end())
 			return (1);
 		for (mainmap::iterator it = _tempMap.begin(); it != _tempMap.end(); it++)
 		{
 			if ((it->second.find("default") != it->second.end()) &&
-				(it->second["default"].compare("default") || it->second.size() > 1 || _countWords(it->second["default"]) > 1))
+				(it->second.find("default")->second.compare("default") || it->second.size() > 1 || _countWords(it->second.find("default")->second) > 1))
 				return (1);
 			_setupMandatory(it->first);
-			if (_checkKeys(it->first, _tempMap[it->first]) == -1)
+			if (_checkPathsDirectories(it->first, _tempMap) == -1)
 				return (1);
+			if (_checkKeys(it->first, _tempMap.find(it->first)->second) == -1)
+				return (1);
+			if (_checkRootAlias(it->first, _tempMap) == -1)
+				return (1);
+			if (!it->first.compare("/cgi-bin"))
+				_tempMap[it->first]["server_path"] = _serverExecutionPath;
 		}
 		if (_tempMap.find("/cgi-bin") != _tempMap.end())
 			_cgiStates.push_back(true);
 		else
 			_cgiStates.push_back(false);
 		if (_checkAmmountValues() == -1)
+			return (1);
+		if (_checkErrorPages() == -1)
 			return (1);
 		_confFileInformation.push_back(_tempMap);
 	}
@@ -146,13 +242,13 @@ int	ConfigurationFile::_fillIterators(void)
 	flag_trash = 0;
 	while (parsedFile_it != _parsedFile.end() && flag_trash == 0)
 	{
-		if (!(_findPosChar((*parsedFile_it), '#', (*parsedFile_it).size()) - (_empty_spaces(*parsedFile_it))))
+		if (!(findPosChar((*parsedFile_it), '#', (*parsedFile_it).size()) - (_empty_spaces(*parsedFile_it))))
 		{
 			parsedFile_it++;
 			continue ;
 		}
 		temp.clear();
-		temp = (*parsedFile_it).substr(0, _findPosChar((*parsedFile_it), '#', ((*parsedFile_it).size())));
+		temp = (*parsedFile_it).substr(0, findPosChar((*parsedFile_it), '#', ((*parsedFile_it).size())));
 		if (temp.find("server") != std::string::npos)
 			break ;
 		parsedFile_it++;
@@ -163,7 +259,7 @@ int	ConfigurationFile::_fillIterators(void)
 	while (parsedFile_it != _parsedFile.end())
 	{
 		temp.clear();
-		temp = (*parsedFile_it).substr(0, _findPosChar((*parsedFile_it), '#', ((*parsedFile_it).size())));
+		temp = (*parsedFile_it).substr(0, findPosChar((*parsedFile_it), '#', ((*parsedFile_it).size())));
 		if (temp.find("server") != std::string::npos)
 		{
 			if (flag_in == 0)
@@ -205,9 +301,9 @@ int	ConfigurationFile::_findIdentation(iter first, iter second)
 	while (it_begin != second)
 	{
 		size = (*it_begin).size();
-		if ((*it_begin).substr(0, _findPosChar((*it_begin), '#', size)).find("{") != std::string::npos)
+		if ((*it_begin).substr(0, findPosChar((*it_begin), '#', size)).find("{") != std::string::npos)
 		{
-			temp.append((*it_begin).substr(0, _findPosChar((*it_begin), '#', size)));
+			temp.append((*it_begin).substr(0, findPosChar((*it_begin), '#', size)));
 			break ;
 		}
 		if ((_empty_spaces((*it_begin)) != size) && (counter > 0))
@@ -216,7 +312,7 @@ int	ConfigurationFile::_findIdentation(iter first, iter second)
 			break ;
 		}
 		counter++;
-		temp.append((*it_begin).substr(0, _findPosChar((*it_begin), '#', size)));
+		temp.append((*it_begin).substr(0, findPosChar((*it_begin), '#', size)));
 		it_begin++;
 	}
 	if (flag == 1 || it_begin == it_end || _checkHeader(temp) == false)
@@ -225,7 +321,7 @@ int	ConfigurationFile::_findIdentation(iter first, iter second)
 	while (it_end != first)
 	{
 		size = (*it_end).size();
-		if (!(_findPosChar((*it_end), '#', size) - (_empty_spaces(*it_end))))
+		if (!(findPosChar((*it_end), '#', size) - (_empty_spaces(*it_end))))
 		{
 			it_end--;
 			continue ;
@@ -235,7 +331,7 @@ int	ConfigurationFile::_findIdentation(iter first, iter second)
 			it_end--;
 			continue ;
 		}
-		if ((*it_end).substr(0, _findPosChar((*it_end), '#', size)).find("}") != std::string::npos)
+		if ((*it_end).substr(0, findPosChar((*it_end), '#', size)).find("}") != std::string::npos)
 			break ;
 		else
 			return (-1);
@@ -264,7 +360,7 @@ bool	ConfigurationFile::_checkHeader(std::string &input)
 
 	empty = _empty_spaces(input);
 	input = input.substr(empty);
-	bracket = _findPosChar(input, '{', input.size());
+	bracket = findPosChar(input, '{', input.size());
 	input = input.substr(0, bracket);
 	words = _countWords(input);
 	if (words > 1)
@@ -291,7 +387,7 @@ bool	ConfigurationFile::_correctIdentation(iter first, iter second)
 	while (it != second)
 	{
 		i = 0;
-		if (_findEmptySeccion((*it), left, right, _findPosChar((*it), '#', (*it).size())) == true)
+		if (_findEmptySeccion((*it), left, right, findPosChar((*it), '#', (*it).size())) == true)
 			return (false);
 		while ((*it)[i] != '\0')
 		{
@@ -318,19 +414,6 @@ bool	ConfigurationFile::_correctIdentation(iter first, iter second)
 	if (counter != 0)
 		return (false);
 	return (true);
-}
-
-size_t	ConfigurationFile::_findPosChar(std::string const &input, char c, size_t n)
-{
-	size_t		i;
-	std::string	temp;
-
-	temp = input.substr(0, n);
-	if (temp.find(c) != std::string::npos)
-		i = temp.find(c);
-	else
-		i = temp.size();
-	return (i);
 }
 
 bool	ConfigurationFile::_findEmptySeccion(std::string const &input, int &left, int &right, size_t const &size)
@@ -371,18 +454,18 @@ int	ConfigurationFile::_fillMap(iter first, iter second)
 	openBracket = 0;
 	key.clear();
 	subkeys.clear();
-	size = _findPosChar((*first), '#', (*first).size());
-	while ((it != second) && (_findPosChar((*it), '{', size) == size))
+	size = findPosChar((*first), '#', (*first).size());
+	while ((it != second) && (findPosChar((*it), '{', size) == size))
 	{
 		it++;
 		if ((it != second))
-			size = _findPosChar((*it), '#', (*it).size());
+			size = findPosChar((*it), '#', (*it).size());
 	}
-	line_position = _findPosChar((*it), '{', size);
+	line_position = findPosChar((*it), '{', size);
 	line_position++;
 	while (it != second)
 	{
-		size = _findPosChar((*it), '#', (*it).size());
+		size = findPosChar((*it), '#', (*it).size());
 		if (line_position >= size)
 		{
 			if ((*it)[line_position] == '{')
@@ -424,7 +507,7 @@ int	ConfigurationFile::_fillMap(iter first, iter second)
 			continue ;
 		if (openBracket == 0)
 		{
-			key.append((*it).substr(line_position, _findPosChar((*it).substr(line_position), '{', (size - line_position))));
+			key.append((*it).substr(line_position, findPosChar((*it).substr(line_position), '{', (size - line_position))));
 			if (((*it).substr(line_position, size).find("{") == std::string::npos))
 			{
 				key.push_back(' ');
@@ -434,14 +517,14 @@ int	ConfigurationFile::_fillMap(iter first, iter second)
 			}
 			else
 			{
-				line_position = (_findPosChar((*it).substr(line_position), '{', (size - line_position)) + (line_position));
+				line_position = (findPosChar((*it).substr(line_position), '{', (size - line_position)) + (line_position));
 				continue ;
 			}
 		}
 		else
 		{
-			subkeys.append((*it).substr(line_position, _findPosChar((*it).substr(line_position), '}', (size - line_position))));
-			if ((size - line_position) == _findPosChar((*it).substr(line_position), '}', size))
+			subkeys.append((*it).substr(line_position, findPosChar((*it).substr(line_position), '}', (size - line_position))));
+			if ((size - line_position) == findPosChar((*it).substr(line_position), '}', size))
 			{
 				subkeys.push_back(' ');
 				line_position = 0;
@@ -450,7 +533,7 @@ int	ConfigurationFile::_fillMap(iter first, iter second)
 			}
 			else
 			{
-				line_position = (_findPosChar((*it).substr(line_position), '}', (size - line_position)) + (line_position));
+				line_position = (findPosChar((*it).substr(line_position), '}', (size - line_position)) + (line_position));
 				continue ;
 			}
 		}
@@ -493,30 +576,30 @@ int	ConfigurationFile::_fillKeys(std::string &key, std::string &subkeys)
 		return (-1);
 	else if (words_key == 2)
 	{
-		pos_sc = _findPosChar(key, ' ', key.size());
-		if (_findPosChar(key, '\t', key.size()) < pos_sc)
-			pos_sc = _findPosChar(key, '\t', key.size());
+		pos_sc = findPosChar(key, ' ', key.size());
+		if (findPosChar(key, '\t', key.size()) < pos_sc)
+			pos_sc = findPosChar(key, '\t', key.size());
 		if (key.substr(0, pos_sc).compare("location"))
 			return (-1);
 		key = key.substr(8, key.size());
 		spaces = _empty_spaces(key);
 		key = key.substr(spaces);
-		pos_sc = _findPosChar(key, ' ', key.size());
-		if (_findPosChar(key, '\t', key.size()) < pos_sc)
-			pos_sc = _findPosChar(key, '\t', key.size());
+		pos_sc = findPosChar(key, ' ', key.size());
+		if (findPosChar(key, '\t', key.size()) < pos_sc)
+			pos_sc = findPosChar(key, '\t', key.size());
 		key = key.substr(0, pos_sc);
-		if (key[0] != '/')
+		if (key[0] != '/' || !key.compare("/"))
 			return (-1);
 	}
 	else
 	{
-		pos_sc = _findPosChar(key, ' ', key.size());
-		if (_findPosChar(key, '\t', key.size()) < pos_sc)
-			pos_sc = _findPosChar(key, '\t', key.size());
+		pos_sc = findPosChar(key, ' ', key.size());
+		if (findPosChar(key, '\t', key.size()) < pos_sc)
+			pos_sc = findPosChar(key, '\t', key.size());
 		if (key.substr(0, pos_sc).compare("main"))
 			return (-1);
 		key.clear();
-		key = "main";
+		key = "/";
 	}
 	if (_tempMap.find(key) != _tempMap.end())
 		return (-1);
@@ -524,11 +607,11 @@ int	ConfigurationFile::_fillKeys(std::string &key, std::string &subkeys)
 		return (-1);
 	while (subkeys.find(';') != std::string::npos)
 	{
-		if (_countWords(subkeys.substr(0, _findPosChar(subkeys, ';', subkeys.size()))) < 2)
+		if (_countWords(subkeys.substr(0, findPosChar(subkeys, ';', subkeys.size()))) < 2)
 			return (-1);
-		pos_sc = _findPosChar(subkeys, ' ', subkeys.size());
-		if (_findPosChar(subkeys, '\t', subkeys.size()) < pos_sc)
-			pos_sc = _findPosChar(subkeys, '\t', subkeys.size());
+		pos_sc = findPosChar(subkeys, ' ', subkeys.size());
+		if (findPosChar(subkeys, '\t', subkeys.size()) < pos_sc)
+			pos_sc = findPosChar(subkeys, '\t', subkeys.size());
 		subkey_rec.clear();
 		subkey_rec = subkeys.substr(0, pos_sc);
 		if (_tempMap[key].find(subkey_rec) != _tempMap[key].end())
@@ -536,9 +619,9 @@ int	ConfigurationFile::_fillKeys(std::string &key, std::string &subkeys)
 		subkeys = subkeys.substr(pos_sc);
 		subkeys = subkeys.substr(_empty_spaces(subkeys));
 		value.clear();
-		value = subkeys.substr(0, _findPosChar(subkeys, ';', subkeys.size()));
+		value = subkeys.substr(0, findPosChar(subkeys, ';', subkeys.size()));
 		_tempMap[key][subkey_rec] = value;
-		subkeys = subkeys.substr((_findPosChar(subkeys, ';', subkeys.size()) + 1));
+		subkeys = subkeys.substr((findPosChar(subkeys, ';', subkeys.size()) + 1));
 		subkeys = subkeys.substr(_empty_spaces(subkeys));
 	}
 	if (_countWords(subkeys) != 0)
@@ -551,14 +634,16 @@ void	ConfigurationFile::_setupMandatory(std::string const &superkey)
 	mainmap::iterator	it;
 
 	it = _tempMap.find(superkey);
-	if (!superkey.compare("main"))
+	if (!superkey.compare("/"))
 	{
 		if (it->second.find("listen") == it->second.end() || !it->second["listen"].compare("default"))
-			_tempMap["main"]["listen"] = "8080";
+			_tempMap["/"]["listen"] = "8080";
 		if (it->second.find("host") == it->second.end() || !it->second["host"].compare("default") || !it->second["host"].compare("localhost"))
-			_tempMap["main"]["host"] = "127.0.0.1";
+			_tempMap["/"]["host"] = "127.0.0.1";
 		if (it->second.find("server_name") == it->second.end() || !it->second["server_name"].compare("default"))
-			_tempMap["main"]["server_name"] = "Webserv_JLC";
+			_tempMap["/"]["server_name"] = "Webserv_JLC";
+		if (it->second.find("error_page") == it->second.end() || !it->second["error_page"].compare("default"))
+			_tempMap[superkey]["error_page"] = "404 error_pages/404.html";
 	}
 	if (!superkey.compare("/cgi-bin"))
 	{
@@ -577,8 +662,6 @@ void	ConfigurationFile::_setupMandatory(std::string const &superkey)
 		_tempMap[superkey]["client_max_body_size"] = "1024";
 	if ((it->second.find("client_max_body_size") == it->second.end()) && ((it->second["allowed_methods"].find("DELETE ") != std::string::npos) || (it->second["allowed_methods"].find("DELETE\t") != std::string::npos) || (it->second["allowed_methods"].find("DELETE\0") != std::string::npos)))
 		_tempMap[superkey]["client_max_body_size"] = "1024";
-	if ((it->second.find("client_max_body_size") == it->second.end()) && ((it->second["allowed_methods"].find("PUT ") != std::string::npos) || (it->second["allowed_methods"].find("PUT\t") != std::string::npos) || (it->second["allowed_methods"].find("PUT\0") != std::string::npos)))
-		_tempMap[superkey]["client_max_body_size"] = "1024";
 	if ((it->second.find("client_max_body_size") != it->second.end()) && (!it->second["client_max_body_size"].compare("default")))
 		_tempMap[superkey]["client_max_body_size"] = "1024";
 	if (it->second.find("root") == it->second.end() || !it->second["root"].compare("default"))
@@ -587,17 +670,110 @@ void	ConfigurationFile::_setupMandatory(std::string const &superkey)
 	return ;
 }
 
-int	ConfigurationFile::_checkKeys(std::string const &name, submap seccion)
+int	ConfigurationFile::_checkPathsDirectories(std::string const &key, mainmap &tempMap)
+{
+	std::string	tempName;
+	std::string	pre;
+	std::string	post;
+	std::string	tempFinal;
+	struct stat	st;
+
+	tempName.clear();
+	if (!tempMap.find(key)->second.find("root")->second.compare("./") || !tempMap.find(key)->second.find("root")->second.compare("/"))
+		tempMap[key]["root"] = _serverExecutionPath;
+	else
+	{
+		tempName.append(_serverExecutionPath);
+		tempName.append("/");
+		tempName.append(tempMap.find(key)->second.find("root")->second);
+		if (isPathValid(tempName, pre, post) == -1)
+			return (-1);
+		pre.append("/");
+		pre.append(post);
+		if (_serverExecutionPath.size() > 0)
+		{
+			if (pre[pre.size() - 1] == '/')
+				pre = pre.substr(0, (pre.size() - 1));
+		}
+		if (access(pre.c_str(), F_OK))
+			return (-1);
+		if (stat(pre.c_str(), &st))
+			return (-1);
+		if (!S_ISDIR(st.st_mode))
+			return (-1);
+		tempFinal = pre;
+		if (tempFinal.find(_serverExecutionPath) == std::string::npos)
+			return (-1);
+		tempMap[key]["root"] = tempFinal;
+	}
+	return (0);
+}
+
+int	ConfigurationFile::_checkRootAlias(std::string const &key, mainmap &tempMap)
+{
+	std::string	pre;
+	std::string	post;
+	std::string	temp;
+	struct stat	st;
+
+	if (!(key.compare("/")) && (tempMap.find("/")->second.find("alias") != tempMap.find("/")->second.end()))
+		return (-1);
+	if (!(key.compare("/")) && (tempMap.find("/")->second.find("return") != tempMap.find("/")->second.end()))
+		return (-1);
+	if (!(key.compare("/cgi-bin")) && (tempMap.find("/cgi-bin")->second.find("alias") != tempMap.find("/cgi-bin")->second.end()))
+		return (-1);
+	if (!(key.compare("/cgi-bin")) && (tempMap.find("/cgi-bin")->second.find("return") != tempMap.find("/cgi-bin")->second.end()))
+		return (-1);
+	if (!(key.compare("/")))
+	{
+		tempMap.find("/")->second["path"] = tempMap.find("/")->second.find("root")->second;
+		return (0);
+	}
+	if (tempMap.find(key)->second.find("return") != tempMap.find(key)->second.end())
+	{
+		tempMap.find(key)->second["path"] = tempMap.find(key)->second.find("return")->second;
+		return (0);
+	}
+	if (tempMap.find(key)->second.find("alias") != tempMap.find(key)->second.end())
+	{
+		temp = tempMap.find(key)->second.find("root")->second;
+		temp.append("/");
+		temp.append(tempMap.find(key)->second.find("alias")->second);
+	}
+	else
+	{
+		temp = tempMap.find(key)->second.find("root")->second;
+		temp.append(key);
+	}
+	if (isPathValid(temp, pre, post) == -1)
+		return (-1);
+	if (temp.find(tempMap.find(key)->second.find("root")->second) == std::string::npos)
+		return (-1);
+	if (post.size() != 0)
+		return (-1);
+	if (access(pre.c_str(), F_OK))
+		return (-1);
+	if (stat(pre.c_str(), &st))
+		return (-1);
+	if (!S_ISDIR(st.st_mode))
+		return (-1);
+	tempMap.find(key)->second["path"] = pre;
+	return (0);
+}
+
+int	ConfigurationFile::_checkKeys(std::string const &name, submap &seccion)
 {
 	std::vector<std::string>	keys;
+	std::vector<std::string>	tempSplit;
 	submap::iterator			it_map;
 	iter						it_vector;
 
-	if (!name.compare("main"))
+	if (!name.compare("/"))
 	{
 		keys.push_back("listen");
 		keys.push_back("host");
 		keys.push_back("server_name");
+		keys.push_back("error_page");
 	}
 	keys.push_back("alias");
 	keys.push_back("allowed_methods");
@@ -607,8 +783,15 @@ int	ConfigurationFile::_checkKeys(std::string const &name, submap seccion)
 		keys.push_back("cgi_ext");
 		keys.push_back("cgi_path");
 	}
-	keys.push_back("client_max_body_size");
-	keys.push_back("error_page");
+	tempSplit = ft_split(seccion.find("allowed_methods")->second, ' ');
+	for (iter it = tempSplit.begin(); it != tempSplit.end(); it++)
+	{
+		if (!(*it).compare("POST") || !(*it).compare("DELETE"))
+		{
+			keys.push_back("client_max_body_size");
+			break ;
+		}
+	}
 	keys.push_back("index");
 	keys.push_back("return");
 	keys.push_back("root");
@@ -625,27 +808,6 @@ int	ConfigurationFile::_checkKeys(std::string const &name, submap seccion)
 	return (0);
 }
 
-std::vector<std::string>	ConfigurationFile::_splitcplusplus(std::string const &input)
-{
-	std::vector<std::string>	split;
-	std::string					temp;
-	size_t						words;
-	size_t						i;
-
-	temp = input;
-	words = _countWords(input);
-	i = 0;
-	while (i < words)
-	{
-		temp = temp.substr(_empty_spaces(temp));
-		split.push_back(temp.substr(0, _findPosChar(temp, ' ', temp.size())));
-		if ((i + 1) < words)
-			temp = temp.substr(_findPosChar(temp, ' ', temp.size()) + _empty_spaces(temp.substr(_findPosChar(temp, ' ', temp.size()))));
-		i++;
-	}
-	return (split);
-}
-
 int	ConfigurationFile::_checkAmmountValues(void)
 {
 	std::vector<std::string>			temp;
@@ -654,21 +816,111 @@ int	ConfigurationFile::_checkAmmountValues(void)
 	{
 		for (submap::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++)
 		{
-			if (!it2->first.compare("allowed_methods") || !it2->first.compare("cgi_ext") || !it2->first.compare("cgi_path"))
+			if (!it2->first.compare("allowed_methods") || !it2->first.compare("cgi_ext") || !it2->first.compare("cgi_path") || !it2->first.compare("error_page"))
 			{
 				if (!it2->first.compare("allowed_methods"))
 				{
 					temp.clear();
-					temp = _splitcplusplus(it2->second);
+					temp = ft_split(it2->second, ' ');
 					for (iter it3 = temp.begin(); it3 != temp.end(); it3++)
 					{
-						if (it3->compare("GET") && it3->compare("POST") && it3->compare("DELETE") && it3->compare("PUT"))
+						if (it3->compare("GET") && it3->compare("POST") && it3->compare("DELETE"))
 							return (-1);
 					}
 				}
 				continue ;
 			}
 			if (_countWords(it2->second) > 1)
+				return (-1);
+		}
+	}
+	return (0);
+}
+
+int	ConfigurationFile::_checkErrorPages(void)
+{
+	numbermap					error;
+	std::string					tempPrevious;
+	std::string					tempFinal;
+	std::string					post;
+	std::vector<std::string>	split;
+	std::vector<std::string>	codeCheck;
+	size_t						i;
+	int							code;
+	struct stat					st;
+
+	i = 0;
+	if (_tempMap.find("/")->second.find("error_page") == _tempMap.find("/")->second.end())
+		return (-1);
+	if (_tempMap.find("/")->second.find("root") == _tempMap.find("/")->second.end())
+		return (-1);
+	tempPrevious = _tempMap.find("/")->second.find("error_page")->second;
+	split = ft_split(tempPrevious, ' ');
+	if (split.size() % 2 == 1)
+		return (-1);
+	for (iter it = split.begin(); it != split.end(); it++)
+	{
+		if (i % 2 == 0)
+		{
+			try
+			{
+				codeCheck.push_back(*it);
+				code = ft_stoi(*it);
+			}
+			catch(const std::exception &e)
+			{
+				return (-1);
+			}
+		}
+		else
+		{
+			tempPrevious.clear();
+			tempFinal.clear();
+			tempPrevious.append(_tempMap.find("/")->second.find("root")->second);
+			tempPrevious.append("/");
+			tempPrevious.append(*it);
+			if (isPathValid(tempPrevious, tempFinal, post) == -1)
+				return (-1);
+			tempFinal.append("/");
+			tempFinal.append(post);
+			if (tempFinal.size() > 0)
+			{
+				if (tempFinal[tempFinal.size() - 1])
+					tempFinal = tempFinal.substr(0, (tempFinal.size() - 1));
+			}
+			if (tempFinal.find(_tempMap.find("/")->second.find("root")->second) == std::string::npos)
+				return (-1);
+			if (access(tempFinal.c_str(), F_OK))
+				return (-1);
+			if (!stat(tempFinal.c_str(), &st)) //This is to check if we are trying to put a directory as a error page. Because access gives a successful response in case of directory.
+			{
+				if (S_ISDIR(st.st_mode))
+					return (-1);
+			}
+			error[code] = tempFinal;
+		}
+		i++;
+	}
+	if (_checkRepeatedCodes(codeCheck) == -1) //This is to check if we have define more than once the same error code.
+		return (-1);
+	if (error.find(404) == error.end())
+		return (-1);
+	_error.push_back(error);
+	return (0);
+}
+
+int	ConfigurationFile::_checkRepeatedCodes(std::vector<std::string> &split)
+{
+	size_t	counter;
+
+	for (iter it = split.begin(); it != split.end(); it++)
+	{
+		counter = 0;
+		for (iter it2 = split.begin(); it2 != split.end(); it2++)
+		{
+			if (!it2->compare((*it)))
+				counter++;
+			if (counter > 1)
 				return (-1);
 		}
 	}
@@ -685,15 +937,15 @@ int	ConfigurationFile::_fillPorts(void)
 	{
 		iss.clear();
 		i = 0;
-		while (i < (*it)["main"]["listen"].size())
+		while (i < (*it).find("/")->second.find("listen")->second.size())
 		{
-			if (!std::isdigit((*it)["main"]["listen"][i]))
+			if (!std::isdigit((*it).find("/")->second.find("listen")->second[i]))
 				break;
 			i++;
 		}
-		if (i != (*it)["main"]["listen"].size())
+		if (i != (*it).find("/")->second.find("listen")->second.size())
 			return (-1);
-		iss.str((*it)["main"]["listen"]);
+		iss.str((*it).find("/")->second.find("listen")->second);
 		iss >> temp;
 		if (iss.fail() == true || temp > static_cast<size_t>(65535))
 			return (-1);
@@ -749,8 +1001,8 @@ int	ConfigurationFile::_findPaths(void)
 		}
 		split_ext.clear();
 		split_path.clear();
-		split_ext = _splitcplusplus((*it)["/cgi-bin"]["cgi_ext"]);
-		split_path = _splitcplusplus((*it)["/cgi-bin"]["cgi_path"]);
+		split_ext = ft_split((*it).find("/cgi-bin")->second.find("cgi_ext")->second, ' ');
+		split_path = ft_split((*it).find("/cgi-bin")->second.find("cgi_path")->second, ' ');
 		if (split_ext.size() != split_path.size())
 			return (1);
 		ext_it = split_ext.begin();
@@ -763,8 +1015,8 @@ int	ConfigurationFile::_findPaths(void)
 				toSearch.append("python");
 			else if (!(*ext_it).compare(".php"))
 				toSearch.append("php");
-			else if (!(*ext_it).compare(".js"))
-				toSearch.append("node");
+			else if (!(*ext_it).compare(".rb"))
+				toSearch.append("ruby");
 			else if (!(*ext_it).compare(".sh"))
 				toSearch.append("bash");
 			else if (!(*ext_it).compare(".pl"))
@@ -810,6 +1062,11 @@ int	ConfigurationFile::_checkAccess(submap &keys)
 	return (0);
 }
 
+std::vector<mainmap>	&ConfigurationFile::getVectorConfFile(void)
+{
+	return (_confFileInformation);
+}
+
 std::vector<submap>	&ConfigurationFile::getCgiServers(void)
 {
 	return (_cgi);
@@ -818,6 +1075,21 @@ std::vector<submap>	&ConfigurationFile::getCgiServers(void)
 std::vector<size_t>	&ConfigurationFile::getPorts(void)
 {
 	return (_ports);
+}
+
+std::vector<numbermap>	&ConfigurationFile::getErrors(void)
+{
+	return (_error);
+}
+
+const char	*ConfigurationFile::ErrorBinaryName::what(void) const throw()
+{
+	return ("Webserv: Wrong name for the binary. The binary must be named webserv.");
+}
+
+const char	*ConfigurationFile::ErrorEnvironmentVariables::what(void) const throw()
+{
+	return ("Webserv: Error generating the path of the server.");
 }
 
 const char	*ConfigurationFile::ErrorOpeningConfFile::what(void) const throw()

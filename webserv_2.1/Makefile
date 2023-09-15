@@ -1,6 +1,6 @@
 NAME = webserv
 
-FLAGS = -Wall -Wextra -Werror -std=c++98 -fsanitize=address -g -static-libsan
+FLAGS = -Wall -Wextra -Werror -std=c++98
 
 SRC = Client.cpp \
 	ConfigurationFile.cpp \
@@ -11,6 +11,7 @@ SRC = Client.cpp \
 	Server.cpp \
 	ServerManager.cpp \
 	Utils.cpp \
+	CgiHandler.cpp \
 	main.cpp
 
 OBJ_DIR = obj/

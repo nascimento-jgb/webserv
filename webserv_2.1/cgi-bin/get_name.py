@@ -1,0 +1,46 @@
+#!/usr/bin/python3
+import cgi
+import sys
+import os
+
+# Create instance of FieldStorage
+form = cgi.FieldStorage()
+
+# Get data from fields
+first_name = form.getvalue('first_name')
+print("%s" % first_name, file=sys.stderr)
+last_name = form.getvalue('last_name')
+print("%s" % last_name, file=sys.stderr)
+print("Content-Type: text/html\r\n\r")
+print('<html lang="eng">')
+print('<head>')
+print('\t<meta charset="UTF-8">')
+print('\t<meta name="viewport" content="width=device-width, intial-scale=1.0">')
+print('\t<title>CLJ WEBPAGE</title>')
+print('\t<!-- Link the external CSS file -->')
+print('\t<link rel="stylesheet" type="text/css" href="../css/styles.css">')
+print('</head>')
+print('<body>')
+print('\t<header>')
+print('\t\t<!-- Site Name -->')
+print('\t\t<h1>CLJ WEBSERV</h1>')
+print('\t\t<!-- Main Menu -->')
+print('\t\t<nav>')
+print('\t\t\t<ul class="nav-pills">')
+print('\t\t\t\t<li><a href="../index.html">Home</a></li>')
+print('\t\t\t\t<li><a href="/cgi-bin/account.py">Account</a></li>')
+print('\t\t\t\t<li><a href="../services/index.html">Services</a></li>')
+print('\t\t\t\t<li><a href="../gallery/index.html">Gallery</a></li>')
+print('\t\t\t</ul>')
+print('\t\t</nav>')
+print('\t</header>')
+print('\t<main>')
+print('\t\t<p>Welcome to our page %s %s!</p>' % (first_name, last_name))
+print('\t\t<p>Hope you have a nice ride!</p>')
+print('\t\t<br>')
+print('\t</main>')
+print('\t<footer>')
+print('\t\t<p>&copy; 2023 CLJ Development Team</p>')
+print('\t</footer>')
+print('</body>')
+print('</html>')
