@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/09 11:26:08 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/15 09:02:32 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/15 09:07:44 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -223,7 +223,7 @@ void	ServerManager::readRequest(const int &fd, Client &client)
 		{
 			client.setCgiFlag(1);
 			std::cout << "HELLLOOOOOO" << client.request.getBody() << std::endl;
-			client.response.makeCgiResponse(client.request, _fd_pool, _biggest_fd);
+			client.response.makeCgiResponse(client.request, _fd_pool, _biggest_fd, client.server.getErrorMap());
 		}
 		else
 			client.response.makeResponse(client.request, client.server.getErrorMap());
