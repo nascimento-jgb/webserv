@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:33:04 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/15 08:59:28 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/15 11:16:33 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -402,7 +402,6 @@ int	CgiHandler::_createPipeAndFork(Request &request, fd_set &fdPool, int &bigges
 {
 	std::string	bodyInfo;
 	int			status;
-	// char		buffer[4096];
 
 	status = 0;
 	if (pipe(pipeOutFd) < 0)
@@ -421,10 +420,10 @@ int	CgiHandler::_createPipeAndFork(Request &request, fd_set &fdPool, int &bigges
 	}
 	_addToSetCgi(pipeInFd[1], fdPool, biggestFd);
 	bodyInfo = request.getBody();
-	if (!bodyInfo.empty())
+	if (bodyInfo.empty() == true)
 		write(pipeInFd[1], "\0", 1);
 	else
-		write(pipeInFd[1], bodyInfo.c_str(), bodyInfo.size());
+		write(pipeInFd[1], bodyInfo.c_str(), bodyInfo.length());
 	_removeFromSetCgi(pipeInFd[1], fdPool, biggestFd);
 	close(pipeInFd[1]);
 	this->_pid = fork();
@@ -459,7 +458,6 @@ int	CgiHandler::_createPipeAndFork(Request &request, fd_set &fdPool, int &bigges
 	else
 	{
 		_addToSetCgi(this->pipeOutFd[0], fdPool, biggestFd);
-		close(this->pipeInFd[0]);
 		close(this->pipeOutFd[1]);
 		_timerCgi(status);
 		if (WIFSIGNALED(status) > 0 || WEXITSTATUS(status) != 0)
@@ -514,6 +512,7 @@ int	CgiHandler::_storeOutput(void)
 		std::perror("Webserv");
 		return (SERVERERROR);
 	}
+	close(this->pipeInFd[0]);
 	return (OK);
 }
 
