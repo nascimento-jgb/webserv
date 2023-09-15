@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/04 17:14:34 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/12 21:10:46 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/15 16:08:45 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,6 @@ ConfigurationFile::ConfigurationFile(void) : _linesFile(0), _startPosition(0)
 
 ConfigurationFile::~ConfigurationFile(void)
 {
-	_confFile.close();
 	return ;
 }
 
@@ -35,7 +34,6 @@ void	ConfigurationFile::initializeConfFile(int ac, char **av)
 		throw (ErrorBinaryName());
 	if (_findAndValidateDirectory(environ, av, trimmedName) == -1)
 		throw (ErrorEnvironmentVariables());
-	std::cout << _serverExecutionPath << std::endl;
 	if (ac == 1)
 	{
 		temp.append(_serverExecutionPath);
@@ -47,7 +45,8 @@ void	ConfigurationFile::initializeConfFile(int ac, char **av)
 	if (_confFile.fail() == true)
 		throw (ErrorOpeningConfFile());
 	if (_readFile() == 1)
-		throw (ErrorOpeningConfFile());	
+		throw (ErrorOpeningConfFile());
+	_confFile.close();
 	if (_parseConfFile() == -1)
 		throw (ErrorOpeningConfFile());
 	if (_checkInputConfFile() == 1)
@@ -1080,6 +1079,11 @@ std::vector<size_t>	&ConfigurationFile::getPorts(void)
 std::vector<numbermap>	&ConfigurationFile::getErrors(void)
 {
 	return (_error);
+}
+
+std::string &ConfigurationFile::getServerPosition(void)
+{
+	return(_serverExecutionPath);
 }
 
 const char	*ConfigurationFile::ErrorBinaryName::what(void) const throw()

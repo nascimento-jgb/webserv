@@ -1,13 +1,13 @@
 /* ************************************************************************** */
-/*																			*/
-/*														:::	  ::::::::   */
-/*   ServerManager.hpp								  :+:	  :+:	:+:   */
-/*													+:+ +:+		 +:+	 */
-/*   By: jonascim <jonascim@student.hive.fi>		+#+  +:+	   +#+		*/
-/*												+#+#+#+#+#+   +#+		   */
-/*   Created: 2023/08/21 08:38:03 by jonascim		  #+#	#+#			 */
-/*   Updated: 2023/08/21 09:16:22 by jonascim		 ###   ########.fr	   */
-/*																			*/
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ServerManager.hpp                                  :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/09/15 16:11:54 by corellan          #+#    #+#             */
+/*   Updated: 2023/09/15 16:12:06 by corellan         ###   ########.fr       */
+/*                                                                            */
 /* ************************************************************************** */
 
 #ifndef SERVER_MANAGER_HPP
@@ -28,6 +28,7 @@ class ServerManager
 		std::vector<submap>		_cgiServers;
 		std::vector<Server>		_serversClass;
 		std::vector<numbermap>	_error;
+		std::string				_serverLocation;
 
 		fd_set					_fd_pool;
 		int						_biggest_fd;
@@ -56,7 +57,7 @@ class ServerManager
 		ServerManager();
 		~ServerManager();
 
-		void		setupServers(std::vector<mainmap> &servers, std::vector<size_t> &serversPorts, std::vector<submap> &cgis, std::vector<numbermap> &error);
+		void		setupServers(std::vector<mainmap> &servers, std::vector<size_t> &serversPorts, std::vector<submap> &cgis, std::vector<numbermap> &error, std::string &serverPosition);
 		void		runServers();
 };
 

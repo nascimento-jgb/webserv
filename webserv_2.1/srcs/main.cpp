@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 12:31:35 by jonascim          #+#    #+#             */
-/*   Updated: 2023/09/05 12:58:48 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/15 16:09:35 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ int main (int argc, char **argv)
 			std::string			config_file;
 
 			parser.initializeConfFile(argc, argv);
-			manager.setupServers(parser.getVectorConfFile(), parser.getPorts(), parser.getCgiServers(), parser.getErrors());
+			manager.setupServers(parser.getVectorConfFile(), parser.getPorts(), parser.getCgiServers(), parser.getErrors(), parser.getServerPosition());
 			manager.runServers();
 		}
 		catch (std::exception &e) {

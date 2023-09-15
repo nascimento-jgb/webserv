@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:58:58 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/15 09:07:17 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/15 16:37:34 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ class Response
 
 		void				_printErrorAndRedirect(std::string msg, int error_code, numbermap errorMap, std::string &response);
 		int					_loadFile(std::string error_page_path);
-		void				makeResponse(Request &request, numbermap errorMap);
+		void				makeResponse(Request &request, numbermap errorMap, std::string &serverLocation);
 		void				makeCgiResponse(Request& request, fd_set &fdPool, int &biggestFd, numbermap &errorMap);
 		int	 				_saveImageToFile(const std::string& filename, const std::string& imageData);
 		void 				clearResponse();

@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/01 11:30:33 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/09 12:21:22 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/15 16:08:36 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,6 +94,7 @@ public:
 	~ConfigurationFile(void);
 
 	void					initializeConfFile(int ac, char **av);
+	std::string				&getServerPosition(void);
 	std::vector<mainmap>	&getVectorConfFile(void);
 	std::vector<size_t>		&getPorts(void);
 	std::vector<submap>		&getCgiServers(void);

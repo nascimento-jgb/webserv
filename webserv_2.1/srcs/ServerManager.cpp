@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/09 11:26:08 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/15 12:52:20 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/15 16:36:31 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ ServerManager::ServerManager(): _biggest_fd(0) {}
 ServerManager::~ServerManager() {}
 
 //PUBLIC METHODS
-void	ServerManager::setupServers(std::vector<mainmap> &servers, std::vector<size_t> &serversPorts, std::vector<submap> &cgis, std::vector<numbermap> &error)
+void	ServerManager::setupServers(std::vector<mainmap> &servers, std::vector<size_t> &serversPorts, std::vector<submap> &cgis, std::vector<numbermap> &error, std::string &serverPosition)
 {
 	char								buffer[INET_ADDRSTRLEN];
 	std::vector<size_t>::iterator		it_ports;
@@ -29,6 +29,7 @@ void	ServerManager::setupServers(std::vector<mainmap> &servers, std::vector<size
 	_serversPorts = serversPorts;
 	_cgiServers = cgis;
 	_error = error;
+	_serverLocation = serverPosition;
 	_serversClass.clear();
 	_serversClass.reserve(_servers.size());
 	it_ports = _serversPorts.begin();
@@ -61,7 +62,6 @@ void	ServerManager::runServers()
 	while(true)
 	{
 		fd_set	io_set = _fd_pool;
-		std::cout << _biggest_fd <<std::endl;
 
 		int select_return = select(_biggest_fd + 1, &io_set, NULL, NULL, &timer);
 		if (select_return == -1)
@@ -89,7 +89,7 @@ void ServerManager::initializeSets()
 
 	for (std::vector<Server>::iterator it = _serversClass.begin(); it != _serversClass.end(); ++it)
 	{
-		if (listen(it->getListenFd(), 20) == -1)
+		if (listen(it->getListenFd(), 512) == -1)
 		{
 			std::cout << "webserv: listen error: "<< strerror(errno) << " Closing...." << std::endl;
 			exit(EXIT_FAILURE);
@@ -225,7 +225,7 @@ void	ServerManager::readRequest(const int &fd, Client &client)
 			client.response.makeCgiResponse(client.request, _fd_pool, _biggest_fd, client.server.getErrorMap());
 		}
 		else
-			client.response.makeResponse(client.request, client.server.getErrorMap());
+			client.response.makeResponse(client.request, client.server.getErrorMap(), _serverLocation);
 		client.request.setRequestStatus(WRITE);
 	}
 }
