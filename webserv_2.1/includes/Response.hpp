@@ -30,7 +30,9 @@ class Response
 		std::string			_responseString;
 		std::string			_responseCgiString;
 		std::string			_rootErrorPages;
-		std::string			_root;
+		std::string			_rootOfRequest;
+		std::string			_relativeServerRoot;
+		std::string			_absoluteServerRoot;
 		int					_responseCode;
 		Mime				_mimes;
 		HttpMethod			_responseMethod;

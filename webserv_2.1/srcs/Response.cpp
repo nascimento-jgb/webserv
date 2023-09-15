@@ -106,9 +106,11 @@ void	Response::makeCgiResponse(Request& request, fd_set &fdPool, int &biggestFd,
 void	Response::makeResponse(Request& request, numbermap errorMap, std::string &serverLocation)
 {
 	_responseCode = request.getCode();
-	_root = request.getRoot();
 	_rootErrorPages = request.getRootErrorPages();
 	_responseMethod = request.getMethod();
+	_rootOfRequest = request.getRoot();
+	_absoluteServerRoot = serverLocation;
+	_relativeServerRoot = absoluteToRelativePath(_absoluteServerRoot, _rootOfRequest);
 
 	if(_responseCode == 302)
 	{
@@ -165,7 +167,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap, std::string &s
 					{
 						if(!std::strncmp(entry->d_name, ".", 1))
 							continue;
-						message.append("<h3><a href=\"").append(absoluteToRelativePath(_root, path)).append("/").append(entry->d_name).append("\">");
+						message.append("<h3><a href=\"").append(absoluteToRelativePath(_rootOfRequest, path)).append("/").append(entry->d_name).append("\">");
 						message.append(entry->d_name);
 						message.append("</a></h3>");
 					}
@@ -234,7 +236,9 @@ void	Response::makeResponse(Request& request, numbermap errorMap, std::string &s
 	else if(request.getMethod() == DELETE)
 	{
 		std::string path = request.getPath().substr(1, request.getPath().size());
-		path = "webpage/" + absoluteToRelativePath(request.getRoot(), path);
+		path = _relativeServerRoot + "/" + absoluteToRelativePath(request.getRoot(), path);
+		path = path.substr(1, request.getPath().size());
+		std::cout << "LCOATION: " << path << std::endl;
 		if (!fileExists(path.c_str()))
         {
             _responseCode = 204;
