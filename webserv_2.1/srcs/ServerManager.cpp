@@ -214,12 +214,12 @@ void	ServerManager::readRequest(const int &fd, Client &client)
 			return ;
 		}
 	}
-	if (client.request.getCode()) // Code initialize with 0 and changes according to the result of the request parsing
+	if (client.request.getCode()) // if code is different from 0. we continue to make response
 	{
 		assignServerConfig(client);
 		std::cout << "Request Recived From Socket " << fd << ", Method=<" << client.request.getMethod() << ">  URI=<" << client.request.getPath() << ">." << std::endl;
 
-		if (client.request.getStatus() == CGI)
+		if (client.request.getStatus() == CGI && client.request.getCode() == 200)
 		{
 			client.setCgiFlag(1);
 			std::cout << "HELLLOOOOOO" << client.request.getBody() << std::endl;

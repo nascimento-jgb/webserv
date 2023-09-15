@@ -421,7 +421,7 @@ int	CgiHandler::_createPipeAndFork(Request &request, fd_set &fdPool, int &bigges
 	}
 	_addToSetCgi(pipeInFd[1], fdPool, biggestFd);
 	bodyInfo = request.getBody();
-	if (!bodyInfo.empty())
+	if (bodyInfo.empty() == true)
 		write(pipeInFd[1], "\0", 1);
 	else
 		write(pipeInFd[1], bodyInfo.c_str(), bodyInfo.size());

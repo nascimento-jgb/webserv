@@ -119,7 +119,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 	}
 	if(_responseCode >= 400)
 	{
-		_printErrorAndRedirect("ERROR", _responseCode, errorMap, _responseString);
+		_printErrorAndRedirect(request.getRequestErrorMessage(), _responseCode, errorMap, _responseString);
 		return ;
 	}
 	if(request.getMethod() == GET)
