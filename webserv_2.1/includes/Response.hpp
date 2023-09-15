@@ -33,6 +33,7 @@ class Response
 		std::string			_root;
 		int					_responseCode;
 		Mime				_mimes;
+		HttpMethod			_responseMethod;
 
 	public:
 		Response();

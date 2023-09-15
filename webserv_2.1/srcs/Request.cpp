@@ -317,7 +317,6 @@ void	Request::_trimString(std::string &temp)
 
 void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap &cgi)
 {
-	std::cout << buffer << std::endl;
 	if(_bodyType == CHUNKED)
 	{
 		_rawBody = buffer;

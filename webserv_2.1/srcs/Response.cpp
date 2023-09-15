@@ -108,6 +108,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 	_responseCode = request.getCode();
 	_root = request.getRoot();
 	_rootErrorPages = request.getRootErrorPages();
+	_responseMethod = request.getMethod();
 
 	if(_responseCode == 302)
 	{
@@ -213,9 +214,8 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 			}
 			else
 			{
-				std::string pathAndSource = request.getLocation();
-				if(request.getLocation() != "/")
-					pathAndSource.append("/");
+				std::string pathAndSource = request.getRelativePath();
+				pathAndSource.append("/");
 				pathAndSource.append(request.getFileName());
 				pathAndSource = pathAndSource.substr(1, pathAndSource.length());
 				if(_saveImageToFile(pathAndSource, request.getImageData()))
@@ -234,7 +234,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap)
 	else if(request.getMethod() == DELETE)
 	{
 		std::string path = request.getPath().substr(1, request.getPath().size());
-
+		path = "webpage/" + absoluteToRelativePath(request.getRoot(), path);
 		if (!fileExists(path.c_str()))
         {
             _responseCode = 204;
@@ -266,6 +266,7 @@ bool Response::fileExists (const std::string& f)
 
 int Response::_saveImageToFile(const std::string& filename, const std::string& imageData)
 {
+	std::cout << "filename: " << filename << std::endl;
 	std::ofstream file(filename.c_str(), std::ios::binary);
 	if (file)
 	{
@@ -308,9 +309,9 @@ void    Response::_printErrorAndRedirect(std::string msg, int error_code, number
 
     _responseCode = error_code;
     std::cout << "\033[1;31m[" << error_code << "][" << errors.getErrorMsg(error_code) << "] " << msg << "\033[0m" << std::endl;
-    response = "HTTP/1.1 302 Redirect\r\nSet-cookie: error=cookie\r\nLocation: ";
+    response = "HTTP/1.1 302 Redirect\r\nLocation: ";
 
-    if(errorMap.find(error_code) != errorMap.end())
+    if(errorMap.find(error_code) != errorMap.end() && _responseMethod != POST && _responseMethod != DELETE)
     {
         response.append(absoluteToRelativePath(_rootErrorPages, errorMap.find(error_code)->second)).append("\r\n\r\n");
 		return ;
