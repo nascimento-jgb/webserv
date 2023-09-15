@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerManager.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/09 11:26:08 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/15 09:07:44 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/15 12:52:20 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -222,7 +222,6 @@ void	ServerManager::readRequest(const int &fd, Client &client)
 		if (client.request.getStatus() == CGI)
 		{
 			client.setCgiFlag(1);
-			std::cout << "HELLLOOOOOO" << client.request.getBody() << std::endl;
 			client.response.makeCgiResponse(client.request, _fd_pool, _biggest_fd, client.server.getErrorMap());
 		}
 		else
@@ -236,15 +235,10 @@ void	ServerManager::writeToClient(const int &fd, Client &client)
 	if (client.getCgiFlag() == 1)
 	{
 		send(fd, client.response.getCgiResponseString().data(), client.response.getCgiResponseString().size(), 0);
-		if (client.response.cgiInstance.pipesSuccessful == true)
+		if (client.response.cgiInstance.forkSuccessful == true)
 		{
-			if (client.response.cgiInstance.forkSuccessful == true)
-			{
-				removeFromSet(client.response.cgiInstance.pipeOutFd[0], _fd_pool);
-				close(client.response.cgiInstance.pipeOutFd[0]);
-			}
-			removeFromSet(client.response.cgiInstance.pipeInFd[1], _fd_pool);
-			close(client.response.cgiInstance.pipeInFd[1]);
+			removeFromSet(client.response.cgiInstance.pipeOutFd[0], _fd_pool);
+			close(client.response.cgiInstance.pipeOutFd[0]);
 		}
 		client.setCgiFlag(0);
 	}
