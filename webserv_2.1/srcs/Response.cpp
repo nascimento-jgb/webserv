@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:58:47 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/15 09:07:02 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/15 16:36:53 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,7 +103,7 @@ void	Response::makeCgiResponse(Request& request, fd_set &fdPool, int &biggestFd,
 	}
 }
 
-void	Response::makeResponse(Request& request, numbermap errorMap)
+void	Response::makeResponse(Request& request, numbermap errorMap, std::string &serverLocation)
 {
 	_responseCode = request.getCode();
 	_root = request.getRoot();

@@ -3,7 +3,7 @@
 /*                                                        :::      ::::::::   */
 /*   Webserver.hpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 08:51:04 by jonascim          #+#    #+#             */
 /*   Updated: 2023/09/12 10:11:31 by corellan         ###   ########.fr       */
@@ -37,6 +37,7 @@
 
 //RANDOM INCLUDES
 #include <errno.h>
+#include <signal.h>
 #include <string>
 #include <unistd.h>
 #include <cstdlib>

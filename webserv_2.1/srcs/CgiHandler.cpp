@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CgiHandler.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:33:04 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/15 11:16:33 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/15 12:48:32 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -110,8 +110,8 @@ int	CgiHandler::cgiInitialization(Request &request, fd_set &fdPool, int &biggest
 	std::string	tempPath;
 	int			status;
 
-	pipesSuccessful = true;
-	forkSuccessful = true;
+	pipesSuccessful = false;
+	forkSuccessful = false;
 	_cgiExecutable = request.getCgiMap();
 	tempPath.clear();
 	tempPath.append(request.getPath());
@@ -426,6 +426,7 @@ int	CgiHandler::_createPipeAndFork(Request &request, fd_set &fdPool, int &bigges
 		write(pipeInFd[1], bodyInfo.c_str(), bodyInfo.length());
 	_removeFromSetCgi(pipeInFd[1], fdPool, biggestFd);
 	close(pipeInFd[1]);
+	pipesSuccessful = true;
 	this->_pid = fork();
 	if (this->_pid == -1)
 	{
@@ -438,6 +439,7 @@ int	CgiHandler::_createPipeAndFork(Request &request, fd_set &fdPool, int &bigges
 	}
 	if (this->_pid == 0)
 	{
+		forkSuccessful = true;
 		dup2(this->pipeOutFd[1], STDOUT_FILENO);
 		dup2(this->pipeInFd[0], STDIN_FILENO);
 		close(this->pipeOutFd[1]);
@@ -457,6 +459,7 @@ int	CgiHandler::_createPipeAndFork(Request &request, fd_set &fdPool, int &bigges
 	}
 	else
 	{
+		forkSuccessful = true;
 		_addToSetCgi(this->pipeOutFd[0], fdPool, biggestFd);
 		close(this->pipeOutFd[1]);
 		_timerCgi(status);

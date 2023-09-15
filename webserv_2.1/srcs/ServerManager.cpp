@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerManager.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/09 11:26:08 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/15 09:07:44 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/15 16:36:31 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ ServerManager::ServerManager(): _biggest_fd(0) {}
 ServerManager::~ServerManager() {}
 
 //PUBLIC METHODS
-void	ServerManager::setupServers(std::vector<mainmap> &servers, std::vector<size_t> &serversPorts, std::vector<submap> &cgis, std::vector<numbermap> &error)
+void	ServerManager::setupServers(std::vector<mainmap> &servers, std::vector<size_t> &serversPorts, std::vector<submap> &cgis, std::vector<numbermap> &error, std::string &serverPosition)
 {
 	char								buffer[INET_ADDRSTRLEN];
 	std::vector<size_t>::iterator		it_ports;
@@ -29,6 +29,7 @@ void	ServerManager::setupServers(std::vector<mainmap> &servers, std::vector<size
 	_serversPorts = serversPorts;
 	_cgiServers = cgis;
 	_error = error;
+	_serverLocation = serverPosition;
 	_serversClass.clear();
 	_serversClass.reserve(_servers.size());
 	it_ports = _serversPorts.begin();
@@ -61,7 +62,6 @@ void	ServerManager::runServers()
 	while(true)
 	{
 		fd_set	io_set = _fd_pool;
-		std::cout << _biggest_fd <<std::endl;
 
 		int select_return = select(_biggest_fd + 1, &io_set, NULL, NULL, &timer);
 		if (select_return == -1)
@@ -89,7 +89,7 @@ void ServerManager::initializeSets()
 
 	for (std::vector<Server>::iterator it = _serversClass.begin(); it != _serversClass.end(); ++it)
 	{
-		if (listen(it->getListenFd(), 20) == -1)
+		if (listen(it->getListenFd(), 512) == -1)
 		{
 			std::cout << "webserv: listen error: "<< strerror(errno) << " Closing...." << std::endl;
 			exit(EXIT_FAILURE);
@@ -222,11 +222,10 @@ void	ServerManager::readRequest(const int &fd, Client &client)
 		if (client.request.getStatus() == CGI && client.request.getCode() == 200)
 		{
 			client.setCgiFlag(1);
-			std::cout << "HELLLOOOOOO" << client.request.getBody() << std::endl;
 			client.response.makeCgiResponse(client.request, _fd_pool, _biggest_fd, client.server.getErrorMap());
 		}
 		else
-			client.response.makeResponse(client.request, client.server.getErrorMap());
+			client.response.makeResponse(client.request, client.server.getErrorMap(), _serverLocation);
 		client.request.setRequestStatus(WRITE);
 	}
 }
@@ -236,15 +235,10 @@ void	ServerManager::writeToClient(const int &fd, Client &client)
 	if (client.getCgiFlag() == 1)
 	{
 		send(fd, client.response.getCgiResponseString().data(), client.response.getCgiResponseString().size(), 0);
-		if (client.response.cgiInstance.pipesSuccessful == true)
+		if (client.response.cgiInstance.forkSuccessful == true)
 		{
-			if (client.response.cgiInstance.forkSuccessful == true)
-			{
-				removeFromSet(client.response.cgiInstance.pipeOutFd[0], _fd_pool);
-				close(client.response.cgiInstance.pipeOutFd[0]);
-			}
-			removeFromSet(client.response.cgiInstance.pipeInFd[1], _fd_pool);
-			close(client.response.cgiInstance.pipeInFd[1]);
+			removeFromSet(client.response.cgiInstance.pipeOutFd[0], _fd_pool);
+			close(client.response.cgiInstance.pipeOutFd[0]);
 		}
 		client.setCgiFlag(0);
 	}
