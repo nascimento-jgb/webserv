@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/25 10:24:25 by jonascim          #+#    #+#             */
-/*   Updated: 2023/09/13 13:48:35 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/15 08:42:02 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -317,7 +317,6 @@ void	Request::_trimString(std::string &temp)
 
 void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap &cgi)
 {
-
 	if(_bodyType == CHUNKED)
 	{
 		_rawBody = buffer;
@@ -328,9 +327,6 @@ void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap 
 		return ;
 	}
 	clearRequest();
-
-
-
 
 	//saves the buffer as a file stream so we can manipulate the content with getline.
 	std::istringstream iss(buffer);
@@ -723,7 +719,7 @@ void Request::clearRequest()
 
 	_httpmethod = UNKNOWN;
 	_bodyType = NONE;
-	
+
 	_header_max_body_len = 0;
 	_we_got_body_len = 0;
 	_maxBodySizeFromConfigFile = 0;

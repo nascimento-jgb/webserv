@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CgiHandler.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:33:04 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/13 19:59:24 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/15 08:42:52 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -393,6 +393,7 @@ int	CgiHandler::_createPipeAndFork(Request &request, fd_set &fdPool, int &bigges
 {
 	std::string	bodyInfo;
 	int			status;
+	// char		buffer[4096];
 
 	status = 0;
 	if (pipe(pipeInFd) < 0)
@@ -415,6 +416,8 @@ int	CgiHandler::_createPipeAndFork(Request &request, fd_set &fdPool, int &bigges
 		write(pipeInFd[1], "\0", 1);
 	else
 		write(pipeInFd[1], bodyInfo.c_str(), bodyInfo.size());
+	// read(pipeInFd[1], buffer, 4097);
+	// std::cout << buffer << std::endl;
 	this->_pid = fork();
 	if (this->_pid == -1)
 	{

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerManager.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/09 11:26:08 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/12 13:11:07 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/15 08:47:27 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -214,7 +214,6 @@ void	ServerManager::readRequest(const int &fd, Client &client)
 			return ;
 		}
 	}
-
 	if (client.request.getCode()) // Code initialize with 0 and changes according to the result of the request parsing
 	{
 		assignServerConfig(client);
@@ -223,6 +222,7 @@ void	ServerManager::readRequest(const int &fd, Client &client)
 		if (client.request.getStatus() == CGI)
 		{
 			client.setCgiFlag(1);
+			std::cout << "HELLLOOOOOO" << client.request.getBody() << std::endl;
 			client.response.makeCgiResponse(client.request, _fd_pool, _biggest_fd);
 		}
 		else
@@ -245,7 +245,7 @@ void	ServerManager::writeToClient(const int &fd, Client &client)
 			}
 			removeFromSet(client.response.cgiInstance.pipeInFd[1], _fd_pool);
 			close(client.response.cgiInstance.pipeInFd[1]);
-		}	
+		}
 		client.setCgiFlag(0);
 	}
 	else
