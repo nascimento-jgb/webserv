@@ -6,7 +6,11 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/09 11:26:08 by leklund           #+#    #+#             */
+<<<<<<< HEAD
 /*   Updated: 2023/09/15 08:47:27 by jonascim         ###   ########.fr       */
+=======
+/*   Updated: 2023/09/14 21:17:55 by corellan         ###   ########.fr       */
+>>>>>>> 7daa36f76f63d3b9d727011ea5d6b5b13cce6d35
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -222,8 +226,12 @@ void	ServerManager::readRequest(const int &fd, Client &client)
 		if (client.request.getStatus() == CGI)
 		{
 			client.setCgiFlag(1);
+<<<<<<< HEAD
 			std::cout << "HELLLOOOOOO" << client.request.getBody() << std::endl;
 			client.response.makeCgiResponse(client.request, _fd_pool, _biggest_fd);
+=======
+			client.response.makeCgiResponse(client.request, _fd_pool, _biggest_fd, client.server.getErrorMap());
+>>>>>>> 7daa36f76f63d3b9d727011ea5d6b5b13cce6d35
 		}
 		else
 			client.response.makeResponse(client.request, client.server.getErrorMap());
@@ -236,8 +244,9 @@ void	ServerManager::writeToClient(const int &fd, Client &client)
 	if (client.getCgiFlag() == 1)
 	{
 		send(fd, client.response.getCgiResponseString().data(), client.response.getCgiResponseString().size(), 0);
-		if (client.response.cgiInstance.pipesSuccessful == true)
+		if (client.response.cgiInstance.forkSuccessful == true)
 		{
+<<<<<<< HEAD
 			if (client.response.cgiInstance.forkSuccessful == true)
 			{
 				removeFromSet(client.response.cgiInstance.pipeOutFd[0], _fd_pool);
@@ -245,6 +254,10 @@ void	ServerManager::writeToClient(const int &fd, Client &client)
 			}
 			removeFromSet(client.response.cgiInstance.pipeInFd[1], _fd_pool);
 			close(client.response.cgiInstance.pipeInFd[1]);
+=======
+			removeFromSet(client.response.cgiInstance.pipeOutFd[0], _fd_pool);
+			close(client.response.cgiInstance.pipeOutFd[0]);
+>>>>>>> 7daa36f76f63d3b9d727011ea5d6b5b13cce6d35
 		}
 		client.setCgiFlag(0);
 	}

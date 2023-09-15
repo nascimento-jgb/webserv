@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:34:03 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/12 10:48:21 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/14 21:38:08 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,17 @@
 
 # include "Webserver.hpp"
 
-class Request;
+enum	errorCgi
+{
+	OK,
+	NOTFOUND,
+	NOPERMISSION,
+	UNKNOWNMETHOD,
+	SERVERERROR,
+	NOTIMPLEMENTED
+};
+
+class	Request;
 
 class	CgiHandler
 {
@@ -58,7 +68,8 @@ class	CgiHandler
 		int		_getPathInfo(std::string &fullPath, std::string &toWrite);
 		int		_getPathTranslated(std::string &fullPath, std::string &toWrite);
 		int		_createPipeAndFork(Request &request, fd_set &fdPool, int &biggestFd);
-		void	_addToSetCGI(const int i, fd_set &new_set, int &biggestFd);
+		void	_addToSetCgi(const int i, fd_set &new_set, int &biggestFd);
+		void	_removeFromSetCgi(const int i, fd_set &old_set, int &biggestFd);
 		void	_timerCgi(int &status);
 		int		_createInstructions(void);
 		int		_storeOutput(void);

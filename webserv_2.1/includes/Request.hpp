@@ -43,6 +43,7 @@ enum	BodyType
 class Request
 {
 	private:
+		std::string		_requestErrorMessage;
 		std::string		_rootRequest;
 		std::string		_rootErrorPages;
 		std::string		_relativePathRequest;
@@ -102,6 +103,7 @@ class Request
 		int				getCode();
 		bool			isFileUpload();
 		size_t			getBodyLen();
+		std::string		getRequestErrorMessage();
 		std::string		getBody();
 		std::string		getRoot();
 		std::string		getRootErrorPages();
