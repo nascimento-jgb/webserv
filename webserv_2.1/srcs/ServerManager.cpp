@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/09 11:26:08 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/17 20:35:59 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/18 00:42:49 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,6 +72,7 @@ void	ServerManager::runServers()
 		for (size_t i = 0; (i < _poll.size() && i < sizePoll); i++)
 		{
 			_poll[i] = ioSet[i];
+			std::cout << "FD IS: " << _poll[i].fd << ". STATE OF POLLIN: " << (_poll[i].revents & POLLIN) << ". STATE OF POLLOUT: " << (_poll[i].revents & POLLOUT) << std::endl;
 			if (((_poll[i].revents & (POLLIN | POLLOUT)) && _clientsMap.count(_poll[i].fd)) || _clientsMap.count(_poll[i].fd))
 				_handleSocket(_poll[i].fd, _clientsMap[_poll[i].fd]);
 			else if ((_poll[i].revents & (POLLIN | POLLOUT)) && _serversMap.count(_poll[i].fd) && _clientsMap.find(_poll[i].fd) == _clientsMap.end())
@@ -173,12 +174,13 @@ void	ServerManager::_handleSocket(const int fd, Client &client)
 
 void	ServerManager::_readRequest(const int fd, Client &client)
 {
-	char		buffer[MESSAGE_BUFFER+1];
+	char		buffer[MESSAGE_BUFFER + 1];
 	int			bytesRead;
 	int			totRead = 0;
 	int			flag = 0;
 	std::string	storage;
 
+	std::cout << "LETS CHECK STATES AGAIN. FD IS: " << _findFdInPoll(fd).fd <<  ". POLLIN IS: " << (_findFdInPoll(fd).revents & POLLIN) << ". AND POLLOUT IS: " << (_findFdInPoll(fd).revents & POLLOUT) << std::endl;
 	while((bytesRead = read(fd, buffer, MESSAGE_BUFFER)) > 0)
 	{
 		buffer[bytesRead] = '\0';
@@ -201,6 +203,7 @@ void	ServerManager::_readRequest(const int fd, Client &client)
 	}
 	else if (bytesRead < 0)
 	{
+		std::cout << "YUUUCK. LETS CHECK STATES AGAIN AGAIN. FD IS: " << _findFdInPoll(fd).fd <<  ". POLLIN IS: " << (_findFdInPoll(fd).revents & POLLIN) << ". AND POLLOUT IS: " << (_findFdInPoll(fd).revents & POLLOUT) << std::endl;
 		std::cout << "webserv: Fd " << fd << " read error "<< std::strerror(errno) << "." << std::endl;
 		_closeConnection(fd);
 		return ;
@@ -239,7 +242,6 @@ void	ServerManager::_writeToClient(const int fd, Client &client)
 	client.clearClient();
 	client.request.setRequestStatus(READ);
 	_changeEvent(fd, POLLIN);
-	_closeConnection(fd);
 }
 
 //FINALIZING
@@ -254,6 +256,20 @@ void	ServerManager::_checkTimeout()
 			return ;
 		}
 	}
+}
+
+pollfd	&ServerManager::_findFdInPoll(const int fd)
+{
+	std::vector<pollfd>::iterator	it;
+
+	it = _poll.begin();
+	while (it != _poll.end())
+	{
+		if ((*it).fd == fd)
+			break ;
+		it++;
+	}
+	return (*it);
 }
 
 void	ServerManager::_changeEvent(const int fd, int event)

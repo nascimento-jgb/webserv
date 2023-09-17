@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/15 16:11:54 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/17 20:23:54 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/18 00:31:12 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,7 @@ class ServerManager
 		void		_addToSet(const int i, const int state);
 		void		_removeFromSet(const int i);
 		void		_changeEvent(const int fd, int event);
+		pollfd		&_findFdInPoll(const int fd);
 
 	public:
 
