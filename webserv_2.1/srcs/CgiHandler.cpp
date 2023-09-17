@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:33:04 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/15 12:48:32 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/17 20:24:42 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,7 +105,7 @@ CgiHandler::~CgiHandler(void)
 	return ;
 }
 
-int	CgiHandler::cgiInitialization(Request &request, fd_set &fdPool, int &biggestFd)
+int	CgiHandler::cgiInitialization(Request &request, std::vector<pollfd> &pollFd)
 {
 	std::string	tempPath;
 	int			status;
@@ -133,7 +133,7 @@ int	CgiHandler::cgiInitialization(Request &request, fd_set &fdPool, int &biggest
 	status = _createInstructions();
 	if (status != OK)
 		return (status);
-	status = _createPipeAndFork(request, fdPool, biggestFd);
+	status = _createPipeAndFork(request, pollFd);
 	if (status != OK)
 		return (status);
 	status = _storeOutput();
@@ -398,7 +398,7 @@ int	CgiHandler::_createInstructions(void)
 	return (0);
 }
 
-int	CgiHandler::_createPipeAndFork(Request &request, fd_set &fdPool, int &biggestFd)
+int	CgiHandler::_createPipeAndFork(Request &request, std::vector<pollfd> &pollFd)
 {
 	std::string	bodyInfo;
 	int			status;
@@ -418,13 +418,13 @@ int	CgiHandler::_createPipeAndFork(Request &request, fd_set &fdPool, int &bigges
 		std::perror("Webserv");
 		return (SERVERERROR);
 	}
-	_addToSetCgi(pipeInFd[1], fdPool, biggestFd);
+	_addToSetCgi(pipeInFd[1], pollFd, POLLOUT);
 	bodyInfo = request.getBody();
 	if (bodyInfo.empty() == true)
 		write(pipeInFd[1], "\0", 1);
 	else
 		write(pipeInFd[1], bodyInfo.c_str(), bodyInfo.length());
-	_removeFromSetCgi(pipeInFd[1], fdPool, biggestFd);
+	_removeFromSetCgi(pipeInFd[1], pollFd);
 	close(pipeInFd[1]);
 	pipesSuccessful = true;
 	this->_pid = fork();
@@ -460,7 +460,7 @@ int	CgiHandler::_createPipeAndFork(Request &request, fd_set &fdPool, int &bigges
 	else
 	{
 		forkSuccessful = true;
-		_addToSetCgi(this->pipeOutFd[0], fdPool, biggestFd);
+		_addToSetCgi(this->pipeOutFd[0], pollFd, POLLIN);
 		close(this->pipeOutFd[1]);
 		_timerCgi(status);
 		if (WIFSIGNALED(status) > 0 || WEXITSTATUS(status) != 0)
@@ -519,18 +519,26 @@ int	CgiHandler::_storeOutput(void)
 	return (OK);
 }
 
-void	CgiHandler::_addToSetCgi(const int i, fd_set &new_set, int &biggestFd)
+void	CgiHandler::_addToSetCgi(const int i, std::vector<pollfd> &pollFd, int event)
 {
-	FD_SET(i, &new_set);
-	if (i > biggestFd)
-		biggestFd = i;
+	pollfd	temp;
+
+	temp.fd = i;
+	temp.events = event;
+	pollFd.push_back(temp);
 }
 
-void CgiHandler::_removeFromSetCgi(const int i, fd_set &old_set, int &biggestFd)
+void CgiHandler::_removeFromSetCgi(const int i, std::vector<pollfd> &pollFd)
 {
-	FD_CLR(i, &old_set);
-	if (i == biggestFd)
-		biggestFd -= 3;
+	std::vector<pollfd>	temp;
+
+	for (std::vector<pollfd>::iterator it = pollFd.begin(); it != pollFd.end(); it++)
+	{
+		if ((*it).fd == i)
+			continue ;
+		temp.push_back((*it));
+	}
+	pollFd = temp;
 }
 
 char	*CgiHandler::_strdup_cpp(const char *str)

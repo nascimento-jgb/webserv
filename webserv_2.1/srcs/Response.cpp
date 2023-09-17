@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:58:47 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/15 16:36:53 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/17 19:40:18 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 Response::Response()
 {
-	_content_length = 0;
+	_contentLength = 0;
 	_responseCode = 0;
 	_responseString = "";
 }
@@ -25,9 +25,9 @@ Response::Response(Response const &other)
 {
 	if (this != &other)
 	{
-		_content_length = other._content_length;
-		_content_type = other._content_type;
-		_http_res = other._http_res;
+		_contentLength = other._contentLength;
+		_contentType = other._contentType;
+		_httpRes = other._httpRes;
 		_responseString = other._responseString;
 		_responseCgiString = other._responseCgiString;
 		_responseCode = other._responseCode;
@@ -39,9 +39,9 @@ Response &Response::operator=(Response const &other)
 {
 	if (this != &other)
 	{
-		_content_length = other._content_length;
-		_content_type = other._content_type;
-		_http_res = other._http_res;
+		_contentLength = other._contentLength;
+		_contentType = other._contentType;
+		_httpRes = other._httpRes;
 		_responseString = other._responseString;
 		_responseCgiString = other._responseCgiString;
 		_responseCode = other._responseCode;
@@ -49,7 +49,7 @@ Response &Response::operator=(Response const &other)
 	return (*this);
 }
 
-void	Response::makeCgiResponse(Request& request, fd_set &fdPool, int &biggestFd, numbermap &errorMap)
+void	Response::makeCgiResponse(Request& request, std::vector<pollfd> &pollFd, numbermap &errorMap)
 {
 	std::string	message;
 	std::string	mimes;
@@ -57,32 +57,32 @@ void	Response::makeCgiResponse(Request& request, fd_set &fdPool, int &biggestFd,
 	int			returnValue;
 
 	_rootErrorPages = request.getRootErrorPages();
-	returnValue = cgiInstance.cgiInitialization(request, fdPool, biggestFd);
+	returnValue = cgiInstance.cgiInitialization(request, pollFd);
 	switch (returnValue)
 	{
 		case NOTFOUND:
 		{
-			_printErrorAndRedirect("PATH NOT FOUND", 404, errorMap, _responseCgiString);
+			printErrorAndRedirect("PATH NOT FOUND", 404, errorMap, _responseCgiString);
 			break ;
 		}
 		case NOPERMISSION:
 		{
-			_printErrorAndRedirect("PERMISSION DENIED", 403, errorMap, _responseCgiString);
+			printErrorAndRedirect("PERMISSION DENIED", 403, errorMap, _responseCgiString);
 			break ;
 		}
 		case UNKNOWNMETHOD:
 		{
-			_printErrorAndRedirect("UNKNOWN METHOD", 405, errorMap, _responseCgiString);
+			printErrorAndRedirect("UNKNOWN METHOD", 405, errorMap, _responseCgiString);
 			break ;
 		}
 		case SERVERERROR:
 		{
-			_printErrorAndRedirect("INTERNAL SERVER ERROR", 500, errorMap, _responseCgiString);
+			printErrorAndRedirect("INTERNAL SERVER ERROR", 500, errorMap, _responseCgiString);
 			break ;
 		}
 		case NOTIMPLEMENTED:
 		{
-			_printErrorAndRedirect("NOT IMPLEMENTED", 501, errorMap, _responseCgiString);
+			printErrorAndRedirect("NOT IMPLEMENTED", 501, errorMap, _responseCgiString);
 			break ;
 		}
 		case OK:
@@ -92,12 +92,12 @@ void	Response::makeCgiResponse(Request& request, fd_set &fdPool, int &biggestFd,
 				_responseCgiString = status + mimes + "\r\nContent-Length: " + \
 					ft_itoa(message.size()) + "\r\n\r\n" + message;
 			else //This else resolves when it fails the recognition of Content-Type seccion in the header of the CGI response.
-				_printErrorAndRedirect("", 500, errorMap, _responseCgiString);
+				printErrorAndRedirect("", 500, errorMap, _responseCgiString);
 			break ;
 		}
 		default:
 		{
-			_printErrorAndRedirect("TEAPOT", 418, errorMap, _responseCgiString);
+			printErrorAndRedirect("TEAPOT", 418, errorMap, _responseCgiString);
 			break;
 		}
 	}
@@ -122,7 +122,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap, std::string &s
 	}
 	if(_responseCode >= 400)
 	{
-		_printErrorAndRedirect(request.getRequestErrorMessage(), _responseCode, errorMap, _responseString);
+		printErrorAndRedirect(request.getRequestErrorMessage(), _responseCode, errorMap, _responseString);
 		return ;
 	}
 	if(request.getMethod() == GET)
@@ -150,7 +150,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap, std::string &s
 							indexPath = path+"/"+request.getConfigMap().find("index")->second;
 						else
 							indexPath = request.getConfigMap().find("index")->second;
-						if(!_loadFile(indexPath))
+						if(!loadFile(indexPath))
 							_responseString.clear();
 						else
 							return ;
@@ -159,7 +159,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap, std::string &s
 					struct dirent	*entry;
 					if((tmp = opendir(path.c_str())) == NULL || request.getConfigMap().find("autoindex")->second.find("on") == std::string::npos)
 					{
-						_printErrorAndRedirect("Error", 404, errorMap, _responseString);
+						printErrorAndRedirect("Error", 404, errorMap, _responseString);
 						return ;
 					}
 					std::string message;
@@ -180,7 +180,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap, std::string &s
 					std::ifstream file(path);
 					if(file.bad())
 					{
-						_printErrorAndRedirect("File not found", 404, errorMap, _responseString);
+						printErrorAndRedirect("File not found", 404, errorMap, _responseString);
 						return ;
 					}
 					else
@@ -200,7 +200,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap, std::string &s
 			}
 			else
 			{
-				_printErrorAndRedirect("path not found", 404, errorMap, _responseString);
+				printErrorAndRedirect("path not found", 404, errorMap, _responseString);
 				return ;
 			}
 		}
@@ -211,7 +211,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap, std::string &s
 		{
 			if(_mimes.getMimeType(request.getFileName()) == "text/html")
 			{
-				_printErrorAndRedirect("Sorry we do not allow user to POST Html files", 400, errorMap, _responseString);
+				printErrorAndRedirect("Sorry we do not allow user to POST Html files", 400, errorMap, _responseString);
 				return ;
 			}
 			else
@@ -220,8 +220,8 @@ void	Response::makeResponse(Request& request, numbermap errorMap, std::string &s
 				pathAndSource.append("/");
 				pathAndSource.append(request.getFileName());
 				pathAndSource = pathAndSource.substr(1, pathAndSource.length());
-				if(_saveImageToFile(pathAndSource, request.getImageData()))
-					_printErrorAndRedirect("Failed to save the File.", 400, errorMap, _responseString);
+				if(saveImageToFile(pathAndSource, request.getImageData()))
+					printErrorAndRedirect("Failed to save the File.", 400, errorMap, _responseString);
 				else
 				{
 					std::string message = "upload successful";
@@ -231,7 +231,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap, std::string &s
 			}
 		}
 		else
-			_printErrorAndRedirect("Error in POST body.", 400, errorMap, _responseString);
+			printErrorAndRedirect("Error in POST body.", 400, errorMap, _responseString);
 	}
 	else if(request.getMethod() == DELETE)
 	{
@@ -268,7 +268,7 @@ bool Response::fileExists (const std::string& f)
 }
 
 
-int Response::_saveImageToFile(const std::string& filename, const std::string& imageData)
+int Response::saveImageToFile(const std::string& filename, const std::string& imageData)
 {
 	std::cout << "filename: " << filename << std::endl;
 	std::ofstream file(filename.c_str(), std::ios::binary);
@@ -297,9 +297,9 @@ std::string const	Response::getCgiResponseString(void) const
 
 void Response::clearResponse()
 {
-	_content_length = 0;
-	_content_type.clear();
-	_http_res.clear();
+	_contentLength = 0;
+	_contentType.clear();
+	_httpRes.clear();
 	_responseString.clear();
 	_responseCgiString.clear();
 	_responseCode = 0;
@@ -307,26 +307,26 @@ void Response::clearResponse()
 
 
 
-void    Response::_printErrorAndRedirect(std::string msg, int error_code, numbermap errorMap, std::string &response)
+void    Response::printErrorAndRedirect(std::string msg, int errorCode, numbermap errorMap, std::string &response)
 {
     Error errors;
 
-    _responseCode = error_code;
-    std::cout << "\033[1;31m[" << error_code << "][" << errors.getErrorMsg(error_code) << "] " << msg << "\033[0m" << std::endl;
+    _responseCode = errorCode;
+    std::cout << "\033[1;31m[" << errorCode << "][" << errors.getErrorMsg(errorCode) << "] " << msg << "\033[0m" << std::endl;
     response = "HTTP/1.1 302 Redirect\r\nLocation: ";
 
-    if(errorMap.find(error_code) != errorMap.end() && _responseMethod != POST && _responseMethod != DELETE)
+    if(errorMap.find(errorCode) != errorMap.end() && _responseMethod != POST && _responseMethod != DELETE)
     {
-        response.append(absoluteToRelativePath(_rootErrorPages, errorMap.find(error_code)->second)).append("\r\n\r\n");
+        response.append(absoluteToRelativePath(_rootErrorPages, errorMap.find(errorCode)->second)).append("\r\n\r\n");
 		return ;
     }
 	response.clear();
-	response = "HTTP/1.1 " + ft_itoa(error_code) + " " + errors.getErrorMsg(error_code);
+	response = "HTTP/1.1 " + ft_itoa(errorCode) + " " + errors.getErrorMsg(errorCode);
 	response.append("\r\nContent-Type: text/plain\r\nContent-Length: "
 		+ ft_itoa(msg.size()) + "\r\nServer: CLJ\r\n\r\n" + msg);
 }
 
-int	Response::_loadFile(std::string path)
+int	Response::loadFile(std::string path)
 {
 	if(path.empty())
 		return (0);

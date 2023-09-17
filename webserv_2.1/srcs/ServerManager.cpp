@@ -6,14 +6,14 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/09 11:26:08 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/15 16:36:31 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/17 20:35:59 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/ServerManager.hpp"
 
 //CANONICAL FORM
-ServerManager::ServerManager(): _biggest_fd(0) {}
+ServerManager::ServerManager() {}
 ServerManager::~ServerManager() {}
 
 //PUBLIC METHODS
@@ -53,39 +53,39 @@ void	ServerManager::setupServers(std::vector<mainmap> &servers, std::vector<size
 //Run all the servers after initializing the sets
 void	ServerManager::runServers()
 {
-	initializeSets();
-	struct timeval timer;
-
-	timer.tv_sec = 1;
-	timer.tv_usec = 0;
-
+	_initializeSets();
 	while(true)
 	{
-		fd_set	io_set = _fd_pool;
+		int		pollReturn;
+		pollfd	ioSet[_poll.size()];
+		size_t	sizePoll;
 
-		int select_return = select(_biggest_fd + 1, &io_set, NULL, NULL, &timer);
-		if (select_return == -1)
+		sizePoll = _poll.size();
+		for (size_t i = 0; i < sizePoll; i++)
+			ioSet[i] = _poll[i];
+		pollReturn = poll(ioSet, _poll.size(), 1000);
+		if (pollReturn == -1)
 		{
-			std::cout << "webserv: select error: " << strerror(errno) << " Closing...." << std::endl;
-			exit(EXIT_FAILURE);
-			continue;
+			std::cout << "webserv: poll error: " << strerror(errno) << " Closing...." << std::endl;
+			std::exit(EXIT_FAILURE);
 		}
-		for (int fd = 0; fd <= _biggest_fd; ++fd)
+		for (size_t i = 0; (i < _poll.size() && i < sizePoll); i++)
 		{
-			if ((FD_ISSET(fd, &io_set) && _clients_map.count(fd)) || _clients_map.count(fd))
-				handleSocket(fd, _clients_map[fd]);
-			else if (FD_ISSET(fd, &io_set) && _servers_map.count(fd) && _clients_map.find(fd) == _clients_map.end())
-				acceptNewConnection(_servers_map.find(fd)->second);
+			_poll[i] = ioSet[i];
+			if (((_poll[i].revents & (POLLIN | POLLOUT)) && _clientsMap.count(_poll[i].fd)) || _clientsMap.count(_poll[i].fd))
+				_handleSocket(_poll[i].fd, _clientsMap[_poll[i].fd]);
+			else if ((_poll[i].revents & (POLLIN | POLLOUT)) && _serversMap.count(_poll[i].fd) && _clientsMap.find(_poll[i].fd) == _clientsMap.end())
+				_acceptNewConnection(_serversMap.find(_poll[i].fd)->second);
 		}
-		checkTimeout();
+		_checkTimeout();
 	}
 }
 
 //SETUP TOOLS
 //Initializing the pool of fd and saving the biggest one that belongs to the last server
-void ServerManager::initializeSets()
+void ServerManager::_initializeSets()
 {
-	FD_ZERO(&_fd_pool);
+	_poll.clear();
 
 	for (std::vector<Server>::iterator it = _serversClass.begin(); it != _serversClass.end(); ++it)
 	{
@@ -99,45 +99,44 @@ void ServerManager::initializeSets()
 			std::cout << "webserv: fcntl error: "<< strerror(errno) << " Closing...." << std::endl;
 			exit(EXIT_FAILURE);
 		}
-		addToSet(it->getListenFd(), _fd_pool);
-		_servers_map.insert(std::make_pair(it->getListenFd(), *it));
+		_addToSet(it->getListenFd(), POLLIN);
+		_serversMap.insert(std::make_pair(it->getListenFd(), *it));
 	}
-	_biggest_fd = _serversClass.back().getListenFd();
 }
 
 //During the first time after the select, we accept the incomming connection to the socket
-void	ServerManager::acceptNewConnection(Server &server_from_map)
+void	ServerManager::_acceptNewConnection(Server &serverFromMap)
 {
-	struct sockaddr_in	client_address;
-	long				client_address_size = sizeof(client_address);
-	int					client_socket;
-	Client				new_client(server_from_map);
+	struct sockaddr_in	clientAddress;
+	long				clientAddressSize = sizeof(clientAddress);
+	int					clientSocket;
+	Client				newClient(serverFromMap);
 	char				buffer[INET_ADDRSTRLEN];
 
-	if ((client_socket = accept(server_from_map.getListenFd(), reinterpret_cast<struct sockaddr *>(&client_address),
-	 reinterpret_cast<socklen_t*>(&client_address_size))) == -1)
+	if ((clientSocket = accept(serverFromMap.getListenFd(), reinterpret_cast<struct sockaddr *>(&clientAddress),
+	 reinterpret_cast<socklen_t*>(&clientAddressSize))) == -1)
 	{
 		std::cout << "webserv: accept new connection error " << strerror(errno) << std::endl;
 		return ;
 	}
-	std::cout << "New connection from " << ft_inet_ntop(AF_INET, client_address.sin_addr.s_addr, buffer, INET_ADDRSTRLEN) << " assigned socket " << client_socket << std::endl;
+	std::cout << "New connection from " << ft_inet_ntop(AF_INET, clientAddress.sin_addr.s_addr, buffer, INET_ADDRSTRLEN) << " assigned socket " << clientSocket << std::endl;
 
-	addToSet(client_socket, _fd_pool);
+	_addToSet(clientSocket, POLLIN);
 
-	if (fcntl(client_socket, F_SETFL, O_NONBLOCK) < 0)
+	if (fcntl(clientSocket, F_SETFL, O_NONBLOCK) < 0)
 	{
 		std::cout << "webserv: fcntl error " << strerror(errno) << std::endl;
-		removeFromSet(client_socket, _fd_pool);
-		close(client_socket);
+		_removeFromSet(clientSocket);
+		close(clientSocket);
 		return ;
 	}
-	new_client.setSocket(client_socket);
-	if (_clients_map.count(client_socket) != 0)
-		_clients_map.erase(client_socket);
-	_clients_map.insert(std::make_pair(client_socket, new_client));
+	newClient.setSocket(clientSocket);
+	if (_clientsMap.count(clientSocket) != 0)
+		_clientsMap.erase(clientSocket);
+	_clientsMap.insert(std::make_pair(clientSocket, newClient));
 }
 
-void	ServerManager::assignServerConfig(Client &client)
+void	ServerManager::_assignServerConfig(Client &client)
 {
 	for (std::vector<Server>::iterator it = _serversClass.begin(); it != _serversClass.end(); ++it)
 	{
@@ -154,90 +153,83 @@ void	ServerManager::assignServerConfig(Client &client)
 }
 
 //COMMUNICATION OPERATIONS
-void	ServerManager::handleSocket(const int &fd, Client &client)
+void	ServerManager::_handleSocket(const int fd, Client &client)
 {
 	int state = client.request.getStatus();
 	switch (state)
 	{
 		case READ:
-			readRequest(fd, client);
+			_readRequest(fd, client);
 			break;
 		case WRITE:
-			writeToClient(fd, client);
+			_writeToClient(fd, client);
 			break;
 		default:
 			//insert here a general case for error during the operations (DOUBLE CHECK THIS CASE)
-			closeConnection(fd);
+			_closeConnection(fd);
 			break;
 	}
 }
 
-void	ServerManager::readRequest(const int &fd, Client &client)
+void	ServerManager::_readRequest(const int fd, Client &client)
 {
 	char		buffer[MESSAGE_BUFFER+1];
-	int			bytes_read;
-	int			tot_read = 0;
+	int			bytesRead;
+	int			totRead = 0;
 	int			flag = 0;
 	std::string	storage;
 
-	while((bytes_read = read(fd, buffer, MESSAGE_BUFFER)) > 0)
+	while((bytesRead = read(fd, buffer, MESSAGE_BUFFER)) > 0)
 	{
-		buffer[bytes_read] = '\0';
+		buffer[bytesRead] = '\0';
 		flag = 1;
-		tot_read += bytes_read;
-		storage.append(buffer, bytes_read);
+		totRead += bytesRead;
+		storage.append(buffer, bytesRead);
 		std::memset(buffer, 0, sizeof(buffer));
 	}
 	if (flag)
 	{
 		client.updateTime();
-		client.request.parseCreate(storage, tot_read, client.server.getConfigMap(), client.server.getCgiMap());
+		client.request.parseCreate(storage, totRead, client.server.getConfigMap(), client.server.getCgiMap());
 		std::memset(buffer, 0, sizeof(buffer));
 	}
-	else if (!bytes_read)
+	else if (!bytesRead)
 	{
 		std::cout << "webserv: Client " << fd << " closed connection." << std::endl;
-		closeConnection(fd);
+		_closeConnection(fd);
 		return ;
 	}
-	else if (bytes_read < 0)
+	else if (bytesRead < 0)
 	{
-		if (errno == EAGAIN || errno == EWOULDBLOCK) //REREMBER THAT CHECKING THE VALUE OF ERRNO IS FORBIDDEN IN THE SUBJECT.
-		{
-			// If the error is EAGAIN or EWOULDBLOCK, it's not really an error.
-			// Just try to read again later.
-			return;
-		}
-		else {
-			std::cout << "webserv: Fd " << fd << " read error "<< std::strerror(errno) << "." << std::endl;
-			closeConnection(fd);
-			return ;
-		}
+		std::cout << "webserv: Fd " << fd << " read error "<< std::strerror(errno) << "." << std::endl;
+		_closeConnection(fd);
+		return ;
 	}
 	if (client.request.getCode()) // if code is different from 0. we continue to make response
 	{
-		assignServerConfig(client);
+		_assignServerConfig(client);
 		std::cout << "Request Recived From Socket " << fd << ", Method=<" << client.request.getMethod() << ">  URI=<" << client.request.getPath() << ">." << std::endl;
 
 		if (client.request.getStatus() == CGI && client.request.getCode() == 200)
 		{
 			client.setCgiFlag(1);
-			client.response.makeCgiResponse(client.request, _fd_pool, _biggest_fd, client.server.getErrorMap());
+			client.response.makeCgiResponse(client.request, _poll, client.server.getErrorMap());
 		}
 		else
 			client.response.makeResponse(client.request, client.server.getErrorMap(), _serverLocation);
 		client.request.setRequestStatus(WRITE);
+		_changeEvent(fd, POLLOUT);
 	}
 }
 
-void	ServerManager::writeToClient(const int &fd, Client &client)
+void	ServerManager::_writeToClient(const int fd, Client &client)
 {
 	if (client.getCgiFlag() == 1)
 	{
 		send(fd, client.response.getCgiResponseString().data(), client.response.getCgiResponseString().size(), 0);
 		if (client.response.cgiInstance.forkSuccessful == true)
 		{
-			removeFromSet(client.response.cgiInstance.pipeOutFd[0], _fd_pool);
+			_removeFromSet(client.response.cgiInstance.pipeOutFd[0]);
 			close(client.response.cgiInstance.pipeOutFd[0]);
 		}
 		client.setCgiFlag(0);
@@ -246,45 +238,73 @@ void	ServerManager::writeToClient(const int &fd, Client &client)
 		send(fd, client.response.getResponseString().data(), client.response.getResponseString().size(), 0);
 	client.clearClient();
 	client.request.setRequestStatus(READ);
+	_changeEvent(fd, POLLIN);
+	_closeConnection(fd);
 }
 
 //FINALIZING
-void	ServerManager::checkTimeout()
+void	ServerManager::_checkTimeout()
 {
-	for(std::map<int, Client>::iterator it = _clients_map.begin() ; it != _clients_map.end(); ++it)
+	for(std::map<int, Client>::iterator it = _clientsMap.begin() ; it != _clientsMap.end(); ++it)
 	{
 		if (time(NULL) - it->second.getTimeoutCheck() > CONNECTION_TIMEOUT)
 		{
 			std::cout << "Client " << it->first << " Timeout, Closing Connection.." << std::endl;
-			closeConnection(it->first);
+			_closeConnection(it->first);
 			return ;
 		}
 	}
 }
 
-/* Closes connection from fd i and remove associated client object from _clients_map */
-void	ServerManager::closeConnection(const int i)
+void	ServerManager::_changeEvent(const int fd, int event)
 {
-	if (FD_ISSET(i, &_fd_pool))
-		removeFromSet(i, _fd_pool);
+	size_t	size;
+	size_t	i;
+
+	i = 0;
+	size = _poll.size();
+	while (i < size)
+	{
+		if (_poll[i].fd == fd)
+		{
+			_poll[i].events = event;
+			return ;
+		}
+		i++;
+	}
+	return ;
+}
+
+/* Closes connection from fd i and remove associated client object from _clientsMap */
+void	ServerManager::_closeConnection(const int i)
+{
+	_removeFromSet(i);
 	close(i);
-	_clients_map.erase(i);
+	_clientsMap.erase(i);
 }
 
 //UTILS
 //Add a new socket fd to the pool set
-void	ServerManager::addToSet(const int i, fd_set &new_set)
+void	ServerManager::_addToSet(const int i, const int state)
 {
-	FD_SET(i, &new_set);
-	if (i > _biggest_fd)
-		_biggest_fd = i;
+	pollfd	temp;
+
+	temp.fd = i;
+	temp.events = state;
+	_poll.push_back(temp);
 }
 
 //Remove a fd-socket from the pool set
-void ServerManager::removeFromSet(const int i, fd_set &old_set)
+void ServerManager::_removeFromSet(const int i)
 {
-	FD_CLR(i, &old_set);
-	if (i == _biggest_fd)
-		_biggest_fd--;
+	std::vector<pollfd>	temp;
+
+	for (std::vector<pollfd>::iterator it = _poll.begin(); it != _poll.end(); it++)
+	{
+		if ((*it).fd == i)
+			continue ;
+		temp.push_back((*it));
+	}
+	_poll = temp;
 }
 
