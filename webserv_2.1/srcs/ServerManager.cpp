@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/09 11:26:08 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/18 13:39:00 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/18 13:58:49 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -174,24 +174,17 @@ void	ServerManager::_readRequest(const int fd, Client &client)
 {
 	char		buffer[MESSAGE_BUFFER + 1];
 	int			bytesRead;
-	int			totRead = 0;
-	int			flag = 0;
 	std::string	storage;
 
 	std::memset(buffer, 0, sizeof(buffer));
-	while((bytesRead = recv(fd, buffer, MESSAGE_BUFFER, 0)) > 0)
+	if ((bytesRead = recv(fd, buffer, MESSAGE_BUFFER, 0)) > 0)
 	{
 		buffer[bytesRead] = '\0';
-		flag++;
-		totRead += bytesRead;
 		storage.append(buffer, bytesRead);
-	}
-	if (flag == 1)
-	{
 		client.updateTime();
-		client.request.parseCreate(storage, totRead, client.server.getConfigMap(), client.server.getCgiMap());
+		client.request.parseCreate(storage, bytesRead, client.server.getConfigMap(), client.server.getCgiMap());
 	}
-	else if (!bytesRead || flag > 1)
+	else if (!bytesRead || bytesRead == MESSAGE_BUFFER)
 	{
 		std::cout << "webserv: Client " << fd << " closed connection." << std::endl;
 		_closeConnection(fd);
