@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:34:03 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/17 20:24:55 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/18 11:33:33 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,6 +73,7 @@ class	CgiHandler
 		void	_timerCgi(int &status);
 		int		_createInstructions(void);
 		int		_storeOutput(void);
+		void	_cleanCgi(void);
 		char	*_strdup_cpp(const char *str);
 		char	*_strdup_cpp(const std::string &str);
 };

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerManager.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/09 11:26:08 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/18 10:40:32 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/18 13:39:00 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,9 +20,9 @@ ServerManager::~ServerManager() {}
 void	ServerManager::setupServers(std::vector<mainmap> &servers, std::vector<size_t> &serversPorts, std::vector<submap> &cgis, std::vector<numbermap> &error, std::string &serverPosition)
 {
 	char								buffer[INET_ADDRSTRLEN];
-	std::vector<size_t>::iterator		it_ports;
-	std::vector<submap>::iterator		it_cgi;
-	std::vector<numbermap>::iterator	it_error;
+	std::vector<size_t>::iterator		itPorts;
+	std::vector<submap>::iterator		itCgi;
+	std::vector<numbermap>::iterator	itError;
 
 	std::cout << "Initializing server(s)..." << std::endl;
 	_servers = servers;
@@ -32,20 +32,20 @@ void	ServerManager::setupServers(std::vector<mainmap> &servers, std::vector<size
 	_serverLocation = serverPosition;
 	_serversClass.clear();
 	_serversClass.reserve(_servers.size());
-	it_ports = _serversPorts.begin();
-	it_cgi = _cgiServers.begin();
-	it_error = _error.begin();
+	itPorts = _serversPorts.begin();
+	itCgi = _cgiServers.begin();
+	itError = _error.begin();
 	for (std::vector<mainmap>::iterator it = _servers.begin(); it != _servers.end(); ++it)
 	{
 		Server	temp;
 
-		temp.setupServer((*it), (*it_ports), (*it_cgi), (*it_error));
+		temp.setupServer((*it), (*itPorts), (*itCgi), (*itError));
 		std::cout << "Server initialized as - Name: "<< temp.getServerName() << " Host: " << ft_inet_ntop(AF_INET, temp.getHost(), buffer, INET_ADDRSTRLEN) <<
 		" Port: " << temp.getPort() << std::endl;
 		_serversClass.push_back(temp);
-		it_ports++;
-		it_cgi++;
-		it_error++;
+		itPorts++;
+		itCgi++;
+		itError++;
 	}
 	return ;
 }
@@ -182,16 +182,16 @@ void	ServerManager::_readRequest(const int fd, Client &client)
 	while((bytesRead = recv(fd, buffer, MESSAGE_BUFFER, 0)) > 0)
 	{
 		buffer[bytesRead] = '\0';
-		flag = 1;
+		flag++;
 		totRead += bytesRead;
 		storage.append(buffer, bytesRead);
 	}
-	if (flag)
+	if (flag == 1)
 	{
 		client.updateTime();
 		client.request.parseCreate(storage, totRead, client.server.getConfigMap(), client.server.getCgiMap());
 	}
-	else if (!bytesRead)
+	else if (!bytesRead || flag > 1)
 	{
 		std::cout << "webserv: Client " << fd << " closed connection." << std::endl;
 		_closeConnection(fd);
