@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/09 11:26:08 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/18 13:52:27 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/18 14:02:48 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -194,21 +194,18 @@ void	ServerManager::_readRequest(const int fd, Client &client)
 		return ;
 	}
 
-	if (client.request.getCode()) // if code is different from 0. we continue to make response
-	{
-		_assignServerConfig(client);
-		std::cout << "Request Recived From Socket " << fd << ", Method=<" << client.request.getMethod() << ">  URI=<" << client.request.getPath() << ">." << std::endl;
+	_assignServerConfig(client);
+	std::cout << "Request Recived From Socket " << fd << ", Method=<" << client.request.getMethod() << ">  URI=<" << client.request.getPath() << ">." << std::endl;
 
-		if (client.request.getStatus() == CGI && client.request.getCode() == 200)
-		{
-			client.setCgiFlag(1);
-			client.response.makeCgiResponse(client.request, _poll, client.server.getErrorMap());
-		}
-		else
-			client.response.makeResponse(client.request, client.server.getErrorMap(), _serverLocation);
-		client.request.setRequestStatus(WRITE);
-		_changeEvent(fd, POLLOUT);
+	if (client.request.getStatus() == CGI && client.request.getCode() == 200)
+	{
+		client.setCgiFlag(1);
+		client.response.makeCgiResponse(client.request, _poll, client.server.getErrorMap());
 	}
+	else
+		client.response.makeResponse(client.request, client.server.getErrorMap(), _serverLocation);
+	client.request.setRequestStatus(WRITE);
+	_changeEvent(fd, POLLOUT);
 }
 
 void	ServerManager::_writeToClient(const int fd, Client &client)
