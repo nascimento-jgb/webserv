@@ -45,6 +45,7 @@
 #include <cstdlib>
 #include <csignal>
 #include <ctime>
+#include <cstring>
 #include <fcntl.h>
 #include <utility>
 #include <stdexcept>

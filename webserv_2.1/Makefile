@@ -1,6 +1,6 @@
 NAME = webserv
-
-FLAGS = -Wall -Wextra -Werror -std=c++98 -fsanitize=address -g -static-libsan
+#-static-libsan
+FLAGS = -Wall -Wextra -Werror -std=c++98 -fsanitize=address -g -static-libasan
 
 SRC = Client.cpp \
 	ConfigurationFile.cpp \

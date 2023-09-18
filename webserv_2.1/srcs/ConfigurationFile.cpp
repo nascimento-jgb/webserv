@@ -41,7 +41,7 @@ void	ConfigurationFile::initializeConfFile(int ac, char **av)
 	}
 	else
 		temp = av[1];
-	_confFile.open(temp);
+	_confFile.open(temp.c_str());
 	if (_confFile.fail() == true)
 		throw (ErrorOpeningConfFile());
 	if (_readFile() == 1)

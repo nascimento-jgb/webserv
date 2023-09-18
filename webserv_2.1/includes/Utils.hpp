@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include <string>
+#include <cstring>
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -19,6 +20,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 
 //Utilss
 int							ft_stoi(std::string str);

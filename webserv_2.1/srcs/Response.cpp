@@ -165,7 +165,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap, std::string &s
 					std::string message;
 					while((entry = readdir(tmp)))
 					{
-						if(!std::strncmp(entry->d_name, ".", 1))
+						if(!strncmp(entry->d_name, ".", 1))
 							continue;
 						message.append("<h3><a href=\"").append(absoluteToRelativePath(_rootOfRequest, path)).append("/").append(entry->d_name).append("\">");
 						message.append(entry->d_name);
@@ -177,7 +177,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap, std::string &s
 				}
 				else
 				{
-					std::ifstream file(path);
+					std::ifstream file(path.c_str());
 					if(file.bad())
 					{
 						printErrorAndRedirect("File not found", 404, errorMap, _responseString);
@@ -330,7 +330,7 @@ int	Response::loadFile(std::string path)
 {
 	if(path.empty())
 		return (0);
-	std::ifstream file(path);
+	std::ifstream file(path.c_str());
 	if(file.bad() || file.fail())
 		return (0);
 	std::stringstream	buffer;

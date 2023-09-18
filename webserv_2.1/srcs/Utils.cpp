@@ -124,7 +124,7 @@ const char	*ft_inet_ntop(int af, const in_addr_t &addr, char *dst, socklen_t siz
 	ss << first << "." << second << "." << third << "." << fourth;
 	if (ss.fail() == true)
 		return (NULL);
-	std::strncpy(dst, ss.str().c_str(), size);
+	strncpy(dst, ss.str().c_str(), size);
 	return (dst);
 }
 
