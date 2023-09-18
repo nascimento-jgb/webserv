@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/09 11:26:08 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/18 00:42:49 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/18 10:07:47 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,7 +72,6 @@ void	ServerManager::runServers()
 		for (size_t i = 0; (i < _poll.size() && i < sizePoll); i++)
 		{
 			_poll[i] = ioSet[i];
-			std::cout << "FD IS: " << _poll[i].fd << ". STATE OF POLLIN: " << (_poll[i].revents & POLLIN) << ". STATE OF POLLOUT: " << (_poll[i].revents & POLLOUT) << std::endl;
 			if (((_poll[i].revents & (POLLIN | POLLOUT)) && _clientsMap.count(_poll[i].fd)) || _clientsMap.count(_poll[i].fd))
 				_handleSocket(_poll[i].fd, _clientsMap[_poll[i].fd]);
 			else if ((_poll[i].revents & (POLLIN | POLLOUT)) && _serversMap.count(_poll[i].fd) && _clientsMap.find(_poll[i].fd) == _clientsMap.end())
@@ -180,8 +179,7 @@ void	ServerManager::_readRequest(const int fd, Client &client)
 	int			flag = 0;
 	std::string	storage;
 
-	std::cout << "LETS CHECK STATES AGAIN. FD IS: " << _findFdInPoll(fd).fd <<  ". POLLIN IS: " << (_findFdInPoll(fd).revents & POLLIN) << ". AND POLLOUT IS: " << (_findFdInPoll(fd).revents & POLLOUT) << std::endl;
-	while((bytesRead = read(fd, buffer, MESSAGE_BUFFER)) > 0)
+	while((bytesRead = recv(fd, buffer, MESSAGE_BUFFER, 0)) > 0)
 	{
 		buffer[bytesRead] = '\0';
 		flag = 1;
@@ -203,7 +201,8 @@ void	ServerManager::_readRequest(const int fd, Client &client)
 	}
 	else if (bytesRead < 0)
 	{
-		std::cout << "YUUUCK. LETS CHECK STATES AGAIN AGAIN. FD IS: " << _findFdInPoll(fd).fd <<  ". POLLIN IS: " << (_findFdInPoll(fd).revents & POLLIN) << ". AND POLLOUT IS: " << (_findFdInPoll(fd).revents & POLLOUT) << std::endl;
+		if (!(_findFdInPoll(fd).revents & POLLIN) && !(_findFdInPoll(fd).revents & POLLOUT))
+			return ;
 		std::cout << "webserv: Fd " << fd << " read error "<< std::strerror(errno) << "." << std::endl;
 		_closeConnection(fd);
 		return ;
@@ -227,6 +226,8 @@ void	ServerManager::_readRequest(const int fd, Client &client)
 
 void	ServerManager::_writeToClient(const int fd, Client &client)
 {
+	std::string	connectionStatus;
+	
 	if (client.getCgiFlag() == 1)
 	{
 		send(fd, client.response.getCgiResponseString().data(), client.response.getCgiResponseString().size(), 0);
@@ -239,9 +240,16 @@ void	ServerManager::_writeToClient(const int fd, Client &client)
 	}
 	else
 		send(fd, client.response.getResponseString().data(), client.response.getResponseString().size(), 0);
+	connectionStatus = client.request.getHeader("connection");
 	client.clearClient();
 	client.request.setRequestStatus(READ);
-	_changeEvent(fd, POLLIN);
+	if (!connectionStatus.compare("close"))
+	{
+		std::cout << "webserv: Client " << fd << " closed connection." << std::endl;
+		_closeConnection(fd);
+	}
+	else
+		_changeEvent(fd, POLLIN);
 }
 
 //FINALIZING
