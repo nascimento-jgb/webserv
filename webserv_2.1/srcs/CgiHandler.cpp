@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:33:04 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/17 20:24:42 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/18 12:27:25 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,34 +120,47 @@ int	CgiHandler::cgiInitialization(Request &request, std::vector<pollfd> &pollFd)
 		return (status);
 	status = _findPath();
 	if (status != OK)
+	{
+		_cleanCgi();
 		return (status);
+	}
 	status = _fillMap(request);
 	if (status != OK)
+	{
+		_cleanCgi();
 		return (status);
-	status = _checkAccess();
+	}
+	status = _checkAccess(); //COMEBACK HERE
 	if (status != OK)
+	{
+		_cleanCgi();
 		return (status);
+	}
 	this->_env = _getEnvInChar();
 	if (!this->_env)
+	{
+		_cleanCgi();
 		return (SERVERERROR);
+	}
 	status = _createInstructions();
 	if (status != OK)
+	{
+		_cleanCgi();
 		return (status);
+	}
 	status = _createPipeAndFork(request, pollFd);
 	if (status != OK)
+	{
+		_cleanCgi();
 		return (status);
+	}
 	status = _storeOutput();
 	if (status != OK)
+	{
+		_cleanCgi();
 		return (status);
-	if (this->_path)
-		delete [] this->_path;
-	if (this->_env)
-		this->_deleteAllocFail(this->_env);
-	if (this->_cmd)
-		this->_deleteAllocFail(this->_cmd);
-	this->_path = NULL;
-	this->_env = NULL;
-	this->_cmd = NULL;
+	}
+	_cleanCgi();
 	return (OK);
 }
 
@@ -216,7 +229,6 @@ int	CgiHandler::_fillMap(Request &request)
 	std::string	tempPath;
 
 	tempPath.clear();
-	_envVariables.clear();
 	tempPath.append(request.getPath());
 	this->_envVariables["AUTH_TYPE"] = "basic";
 	this->_envVariables["DOCUMENT_ROOT"] = request.getServerMap().find("/cgi-bin")->second.find("server_path")->second;
@@ -255,7 +267,7 @@ int	CgiHandler::_fillMap(Request &request)
 	return (OK);
 }
 
-int	CgiHandler::_getPathInfo(std::string &fullPath, std::string &toWrite)
+int	CgiHandler::_getPathInfo(std::string &fullPath, std::string &toWrite) // I NEED TO COMEBACK TO THIS FUNCTIONS
 {
 	std::string	pre;
 	std::string	post;
@@ -277,7 +289,7 @@ int	CgiHandler::_getPathInfo(std::string &fullPath, std::string &toWrite)
 	return (OK);
 }
 
-int	CgiHandler::_getPathTranslated(std::string &fullPath, std::string &toWrite)
+int	CgiHandler::_getPathTranslated(std::string &fullPath, std::string &toWrite) //I NEED TO COMEBACK TO THIS FUNCTION
 {
 	std::string	pre;
 	std::string	post;
@@ -298,7 +310,7 @@ int	CgiHandler::_getPathTranslated(std::string &fullPath, std::string &toWrite)
 	return (0);
 }
 
-int	CgiHandler::_checkAccess(void)
+int	CgiHandler::_checkAccess(void) //I NEED TO COMEBACK TO THIS FUNCTION.
 {
 	if (!access(this->_path, X_OK) && !access(this->_path, F_OK))
 		return (0);
@@ -593,6 +605,21 @@ char	*CgiHandler::_strdup_cpp(const std::string &str)
 	}
 	dest[i] = '\0';
 	return (dest);
+}
+
+void	CgiHandler::_cleanCgi(void)
+{
+	if (this->_path)
+		delete [] this->_path;
+	if (this->_env)
+		this->_deleteAllocFail(this->_env);
+	if (this->_cmd)
+		this->_deleteAllocFail(this->_cmd);
+	_envVariables.clear();
+	this->_path = NULL;
+	this->_env = NULL;
+	this->_cmd = NULL;
+	return ;
 }
 
 std::string	CgiHandler::fetchOutputCgi(void) const
