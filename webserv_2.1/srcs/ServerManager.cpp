@@ -172,9 +172,9 @@ void	ServerManager::_handleSocket(const int fd, Client &client)
 
 void	ServerManager::_readRequest(const int fd, Client &client)
 {
-	char		buffer[MESSAGE_BUFFER + 1];
-	int			bytesRead;
 	std::string	storage;
+	char		    buffer[MESSAGE_BUFFER + 1];
+	int			    bytesRead;
 
 	std::memset(buffer, 0, sizeof(buffer));
 	if ((bytesRead = recv(fd, buffer, MESSAGE_BUFFER, 0)) > 0)
@@ -189,9 +189,7 @@ void	ServerManager::_readRequest(const int fd, Client &client)
 		std::cout << "webserv: Client " << fd << " closed connection." << std::endl;
 		_closeConnection(fd);
 		return ;
-	}
-	else if (bytesRead < 0)
-	{
+	} else {
 		if (!(_findFdInPoll(fd).revents & POLLIN) && !(_findFdInPoll(fd).revents & POLLOUT))
 			return ;
 		std::cout << "webserv: Fd " << fd << " read error "<< std::strerror(errno) << "." << std::endl;
@@ -199,21 +197,18 @@ void	ServerManager::_readRequest(const int fd, Client &client)
 		return ;
 	}
 
-	if (client.request.getCode()) // if code is different from 0. we continue to make response
-	{
-		_assignServerConfig(client);
-		std::cout << "Request Recived From Socket " << fd << ", Method=<" << client.request.getMethod() << ">  URI=<" << client.request.getPath() << ">." << std::endl;
+	_assignServerConfig(client);
+	std::cout << "Request Recived From Socket " << fd << ", Method=<" << client.request.getMethod() << ">  URI=<" << client.request.getPath() << ">." << std::endl;
 
-		if (client.request.getStatus() == CGI && client.request.getCode() == 200)
-		{
-			client.setCgiFlag(1);
-			client.response.makeCgiResponse(client.request, _poll, client.server.getErrorMap());
-		}
-		else
-			client.response.makeResponse(client.request, client.server.getErrorMap(), _serverLocation);
-		client.request.setRequestStatus(WRITE);
-		_changeEvent(fd, POLLOUT);
+	if (client.request.getStatus() == CGI && client.request.getCode() == 200)
+	{
+		client.setCgiFlag(1);
+		client.response.makeCgiResponse(client.request, _poll, client.server.getErrorMap());
 	}
+	else
+		client.response.makeResponse(client.request, client.server.getErrorMap(), _serverLocation);
+	client.request.setRequestStatus(WRITE);
+	_changeEvent(fd, POLLOUT);
 }
 
 void	ServerManager::_writeToClient(const int fd, Client &client)

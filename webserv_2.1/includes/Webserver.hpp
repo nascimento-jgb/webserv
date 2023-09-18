@@ -3,7 +3,7 @@
 /*                                                        :::      ::::::::   */
 /*   Webserver.hpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 08:51:04 by jonascim          #+#    #+#             */
 /*   Updated: 2023/09/18 13:10:09 by corellan         ###   ########.fr       */
@@ -18,6 +18,7 @@
 #define INET_ADDRSTRLEN 16
 #define MESSAGE_BUFFER 1048576
 #define READ_MAX = 4096
+
 
 //STL CONTAINERS
 #include <map>
