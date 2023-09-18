@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:34:03 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/18 11:33:33 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/18 18:05:59 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,7 @@ class	CgiHandler
 		CgiHandler	&operator=(CgiHandler const &other);
 
 		int			cgiInitialization(Request &request, std::vector<pollfd> &pollFd);
+		int			cgiFinal(Request &request, std::vector<pollfd> &pollFd);
 		std::string	fetchOutputCgi(void) const;
 
 	private:
@@ -67,11 +68,13 @@ class	CgiHandler
 		void	_deleteAllocFail(char **array);
 		int		_getPathInfo(std::string &fullPath, std::string &toWrite);
 		int		_getPathTranslated(std::string &fullPath, std::string &toWrite);
-		int		_createPipeAndFork(Request &request, std::vector<pollfd> &pollFd);
+		int		_createPipes(std::vector<pollfd> &pollFd);
+		pollfd	&_findFdInPoll(const int fd, std::vector<pollfd> &pollFd);
 		void	_addToSetCgi(const int i, std::vector<pollfd> &pollFd, int event);
 		void	_removeFromSetCgi(const int i, std::vector<pollfd> &pollFd);
 		void	_timerCgi(int &status);
 		int		_createInstructions(void);
+		int		_executeCgi(Request &request, std::vector<pollfd> &pollFd);
 		int		_storeOutput(void);
 		void	_cleanCgi(void);
 		char	*_strdup_cpp(const char *str);

@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/09 11:26:08 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/18 13:58:49 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/18 16:30:33 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -159,14 +159,26 @@ void	ServerManager::_handleSocket(const int fd, Client &client)
 	switch (state)
 	{
 		case READ:
-			_readRequest(fd, client);
-			break;
+		{
+			if (client.getCgiFlag() == 1)
+			{
+				client.response.finishCgiResponse(client.request, _poll, client.server.getErrorMap());
+				_changeEvent(fd, POLLOUT);
+			}	
+			else
+				_readRequest(fd, client);
+			break ;
+		}
 		case WRITE:
+		{
 			_writeToClient(fd, client);
-			break;
+			break ;
+		}
 		default:
+		{
 			_closeConnection(fd);
-			break;
+			break ;
+		}
 	}
 }
 
@@ -189,7 +201,9 @@ void	ServerManager::_readRequest(const int fd, Client &client)
 		std::cout << "webserv: Client " << fd << " closed connection." << std::endl;
 		_closeConnection(fd);
 		return ;
-	} else {
+	}
+	else
+	{
 		if (!(_findFdInPoll(fd).revents & POLLIN) && !(_findFdInPoll(fd).revents & POLLOUT))
 			return ;
 		std::cout << "webserv: Fd " << fd << " read error "<< std::strerror(errno) << "." << std::endl;
@@ -203,7 +217,10 @@ void	ServerManager::_readRequest(const int fd, Client &client)
 	if (client.request.getStatus() == CGI && client.request.getCode() == 200)
 	{
 		client.setCgiFlag(1);
-		client.response.makeCgiResponse(client.request, _poll, client.server.getErrorMap());
+		client.request.setRequestStatus(READ);
+		client.response.startCgiResponse(client.request, _poll, client.server.getErrorMap());
+		if (client.response.cgiInstance.pipesSuccessful == true)
+			return ;
 	}
 	else
 		client.response.makeResponse(client.request, client.server.getErrorMap(), _serverLocation);

@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 10:08:01 by jonascim          #+#    #+#             */
-/*   Updated: 2023/09/04 13:07:27 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/18 14:50:03 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,10 +17,10 @@ Client::Client() {}
 
 Client::~Client() {}
 
-Client::Client(Server &server_from_map) : _last_msg_time(time(NULL))
+Client::Client(Server &serverFromMap) : _lastMsgTime(std::time(NULL))
 {
 	_cgiFlag = 0;
-	this->server = server_from_map;
+	this->server = serverFromMap;
 	request.setBodySize(server.getMaxBodySize());
 }
 
@@ -29,9 +29,9 @@ Client::Client(Client const &other)
 	if (this != &other)
 	{
 		_cgiFlag = other._cgiFlag;
-		_client_socket = other._client_socket;
-		_client_address = other._client_address;
-		_last_msg_time = other._last_msg_time;
+		_clientSocket = other._clientSocket;
+		_clientAddress = other._clientAddress;
+		_lastMsgTime = other._lastMsgTime;
 		request = other.request;
 		response = other.response;
 		server = other.server;
@@ -44,9 +44,9 @@ Client &Client::operator=(Client const &other)
 	if (this != &other)
 	{
 		_cgiFlag = other._cgiFlag;
-		_client_socket = other._client_socket;
-		_client_address = other._client_address;
-		_last_msg_time = other._last_msg_time;
+		_clientSocket = other._clientSocket;
+		_clientAddress = other._clientAddress;
+		_lastMsgTime = other._lastMsgTime;
 		request = other.request;
 		response = other.response;
 		server = other.server;
@@ -57,12 +57,12 @@ Client &Client::operator=(Client const &other)
 //Getters
 int	const	&Client::getClientSocket(void) const
 {
-	return (_client_socket);
+	return (_clientSocket);
 }
 
 sockaddr_in const	&Client::getClientAddress(void) const
 {
-	return (_client_address);
+	return (_clientAddress);
 }
 
 const Server	&Client::getClientServerInfo(void) const
@@ -72,10 +72,10 @@ const Server	&Client::getClientServerInfo(void) const
 
 const time_t	&Client::getTimeoutCheck(void) const
 {
-	return(_last_msg_time);
+	return(_lastMsgTime);
 }
 
-int				Client::getCgiFlag(void) const
+int		Client::getCgiFlag(void) const
 {
 	return (_cgiFlag);
 }
@@ -83,12 +83,12 @@ int				Client::getCgiFlag(void) const
 //Setters
 void	Client::setSocket(int const &i)
 {
-	_client_socket = i;
+	_clientSocket = i;
 }
 
 void	Client::setAddress(sockaddr_in &address)
 {
-	_client_address = address;
+	_clientAddress = address;
 }
 
 void	Client::setServer(Server &server)
@@ -105,7 +105,7 @@ void	Client::setCgiFlag(int flag)
 
 void	Client::updateTime()
 {
-	_last_msg_time = std::time(NULL);
+	_lastMsgTime = std::time(NULL);
 }
 
 void	Client::clearClient()

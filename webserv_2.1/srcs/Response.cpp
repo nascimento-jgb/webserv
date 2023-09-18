@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:58:47 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/17 19:40:18 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/18 15:56:09 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,7 @@ Response &Response::operator=(Response const &other)
 	return (*this);
 }
 
-void	Response::makeCgiResponse(Request& request, std::vector<pollfd> &pollFd, numbermap &errorMap)
+void	Response::startCgiResponse(Request& request, std::vector<pollfd> &pollFd, numbermap &errorMap)
 {
 	std::string	message;
 	std::string	mimes;
@@ -87,12 +87,6 @@ void	Response::makeCgiResponse(Request& request, std::vector<pollfd> &pollFd, nu
 		}
 		case OK:
 		{
-			message = cgiInstance.fetchOutputCgi();
-			if (_mimes.isMimeInCgi(message, mimes, status) == OK)
-				_responseCgiString = status + mimes + "\r\nContent-Length: " + \
-					ft_itoa(message.size()) + "\r\n\r\n" + message;
-			else //This else resolves when it fails the recognition of Content-Type seccion in the header of the CGI response.
-				printErrorAndRedirect("", 500, errorMap, _responseCgiString);
 			break ;
 		}
 		default:
@@ -101,6 +95,41 @@ void	Response::makeCgiResponse(Request& request, std::vector<pollfd> &pollFd, nu
 			break;
 		}
 	}
+}
+
+void	Response::finishCgiResponse(Request& request, std::vector<pollfd> &pollFd, numbermap &errorMap)
+{
+	std::string	message;
+	std::string	mimes;
+	std::string	status;
+	int			returnValue;
+
+	_rootErrorPages = request.getRootErrorPages();
+	returnValue = cgiInstance.cgiFinal(request, pollFd);
+	switch (returnValue)
+	{
+		case SERVERERROR:
+		{
+			printErrorAndRedirect("INTERNAL SERVER ERROR", 500, errorMap, _responseCgiString);
+			break ;
+		}
+		case OK:
+		{
+			message = cgiInstance.fetchOutputCgi();
+			if (_mimes.isMimeInCgi(message, mimes, status) == OK)
+				_responseCgiString = status + mimes + "\r\nContent-Length: " + \
+					ft_itoa(message.size()) + "\r\n\r\n" + message;
+			else //This else resolves when it fails the recognition of Content-Type seccion in the header of the CGI response.
+				printErrorAndRedirect("OUTPUT WITH INCORRECT FORMAT", 500, errorMap, _responseCgiString);
+			break ;
+		}
+		default:
+		{
+			printErrorAndRedirect("TEAPOT", 418, errorMap, _responseCgiString);
+			break;
+		}
+	}
+	request.setRequestStatus(WRITE);
 }
 
 void	Response::makeResponse(Request& request, numbermap errorMap, std::string &serverLocation)
