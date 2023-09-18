@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/09 11:26:08 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/18 10:40:32 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/18 13:52:27 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -172,33 +172,21 @@ void	ServerManager::_handleSocket(const int fd, Client &client)
 
 void	ServerManager::_readRequest(const int fd, Client &client)
 {
+	std::string	storage;
 	char		buffer[MESSAGE_BUFFER + 1];
 	int			bytesRead;
-	int			totRead = 0;
-	int			flag = 0;
-	std::string	storage;
 
 	std::memset(buffer, 0, sizeof(buffer));
-	while((bytesRead = recv(fd, buffer, MESSAGE_BUFFER, 0)) > 0)
-	{
-		buffer[bytesRead] = '\0';
-		flag = 1;
-		totRead += bytesRead;
-		storage.append(buffer, bytesRead);
-	}
-	if (flag)
-	{
+	if((bytesRead = recv(fd, buffer, MESSAGE_BUFFER, 0)) > 0) {
 		client.updateTime();
-		client.request.parseCreate(storage, totRead, client.server.getConfigMap(), client.server.getCgiMap());
-	}
-	else if (!bytesRead)
-	{
+		buffer[bytesRead] = '\0';
+		storage.append(buffer, bytesRead);
+		client.request.parseCreate(storage, bytesRead, client.server.getConfigMap(), client.server.getCgiMap());
+	} else if (!bytesRead) {
 		std::cout << "webserv: Client " << fd << " closed connection." << std::endl;
 		_closeConnection(fd);
 		return ;
-	}
-	else if (bytesRead < 0)
-	{
+	} else {
 		if (!(_findFdInPoll(fd).revents & POLLIN) && !(_findFdInPoll(fd).revents & POLLOUT))
 			return ;
 		std::cout << "webserv: Fd " << fd << " read error "<< std::strerror(errno) << "." << std::endl;
