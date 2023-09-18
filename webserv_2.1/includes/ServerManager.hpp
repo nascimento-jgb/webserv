@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerManager.hpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/15 16:11:54 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/18 00:31:12 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/18 10:40:59 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 

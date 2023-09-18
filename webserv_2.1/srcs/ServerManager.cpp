@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerManager.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/09 11:26:08 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/18 10:07:47 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/18 10:40:32 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -165,7 +165,6 @@ void	ServerManager::_handleSocket(const int fd, Client &client)
 			_writeToClient(fd, client);
 			break;
 		default:
-			//insert here a general case for error during the operations (DOUBLE CHECK THIS CASE)
 			_closeConnection(fd);
 			break;
 	}
@@ -179,19 +178,18 @@ void	ServerManager::_readRequest(const int fd, Client &client)
 	int			flag = 0;
 	std::string	storage;
 
+	std::memset(buffer, 0, sizeof(buffer));
 	while((bytesRead = recv(fd, buffer, MESSAGE_BUFFER, 0)) > 0)
 	{
 		buffer[bytesRead] = '\0';
 		flag = 1;
 		totRead += bytesRead;
 		storage.append(buffer, bytesRead);
-		std::memset(buffer, 0, sizeof(buffer));
 	}
 	if (flag)
 	{
 		client.updateTime();
 		client.request.parseCreate(storage, totRead, client.server.getConfigMap(), client.server.getCgiMap());
-		std::memset(buffer, 0, sizeof(buffer));
 	}
 	else if (!bytesRead)
 	{
@@ -207,6 +205,7 @@ void	ServerManager::_readRequest(const int fd, Client &client)
 		_closeConnection(fd);
 		return ;
 	}
+
 	if (client.request.getCode()) // if code is different from 0. we continue to make response
 	{
 		_assignServerConfig(client);
@@ -227,19 +226,42 @@ void	ServerManager::_readRequest(const int fd, Client &client)
 void	ServerManager::_writeToClient(const int fd, Client &client)
 {
 	std::string	connectionStatus;
-	
+	ssize_t		sentBytes;
+
 	if (client.getCgiFlag() == 1)
 	{
-		send(fd, client.response.getCgiResponseString().data(), client.response.getCgiResponseString().size(), 0);
-		if (client.response.cgiInstance.forkSuccessful == true)
-		{
-			_removeFromSet(client.response.cgiInstance.pipeOutFd[0]);
-			close(client.response.cgiInstance.pipeOutFd[0]);
+		sentBytes = send(fd, client.response.getCgiResponseString().data(), client.response.getCgiResponseString().size(), 0);
+
+		if (sentBytes == -1) {
+			std::cout << "webserv: Error sending CGI response to client " << fd << ": " << strerror(errno) << std::endl;
+		} else if (sentBytes == 0) {
+			std::cout << "webserv: Client " << fd << " closed connection." << std::endl;
+			client.clearClient();
+			_closeConnection(fd);
+			return;
+		} else {
+			if (client.response.cgiInstance.forkSuccessful == true)
+			{
+				_removeFromSet(client.response.cgiInstance.pipeOutFd[0]);
+				close(client.response.cgiInstance.pipeOutFd[0]);
+			}
+			client.setCgiFlag(0);
 		}
-		client.setCgiFlag(0);
 	}
 	else
-		send(fd, client.response.getResponseString().data(), client.response.getResponseString().size(), 0);
+	{
+		sentBytes = send(fd, client.response.getResponseString().data(), client.response.getResponseString().size(), 0);
+
+		if (sentBytes == -1) {
+			std::cout << "webserv: Error sending response to client " << fd << ": " << strerror(errno) << std::endl;
+		} else if (sentBytes == 0) {
+			std::cout << "webserv: Client " << fd << " closed connection." << std::endl;
+			client.clearClient();
+			_closeConnection(fd);
+			return;
+		}
+	}
+
 	connectionStatus = client.request.getHeader("connection");
 	client.clearClient();
 	client.request.setRequestStatus(READ);
