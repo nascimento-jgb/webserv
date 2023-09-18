@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Webserver.hpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 08:51:04 by jonascim          #+#    #+#             */
-/*   Updated: 2023/09/12 10:11:31 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/17 23:45:47 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 #define CONNECTION_TIMEOUT 60 //in seconds 219677  218777
 #define CGI_TIMEOUT 15
 #define INET_ADDRSTRLEN 16
-#define MESSAGE_BUFFER 4
+#define MESSAGE_BUFFER 8198
 
 //STL CONTAINERS
 #include <map>
@@ -48,6 +48,7 @@
 #include <stdexcept>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <poll.h>
 
 
 typedef std::vector<std::string>::iterator	iter;

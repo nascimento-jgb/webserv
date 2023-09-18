@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/25 10:24:25 by jonascim          #+#    #+#             */
-/*   Updated: 2023/09/15 09:03:22 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/15 12:51:31 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ Request::Request(Request const &other)
 		_header_max_body_len = other._header_max_body_len;
 		_we_got_body_len = other._we_got_body_len;
 		_maxBodySizeFromConfigFile = other._maxBodySizeFromConfigFile;
-		_fileUpload = other._fileUpload;
+		_isBoundary = other._isBoundary;
 		_requestCode = other._requestCode;
 		_requestStatus = other._requestStatus;
 	}
@@ -64,7 +64,7 @@ Request &Request::operator=(Request const &other)
 		_header_max_body_len = other._header_max_body_len;
 		_we_got_body_len = other._we_got_body_len;
 		_maxBodySizeFromConfigFile = other._maxBodySizeFromConfigFile;
-		_fileUpload = other._fileUpload;
+		_isBoundary = other._isBoundary;
 		_requestCode = other._requestCode;
 		_requestStatus = other._requestStatus;
 	}
@@ -88,7 +88,7 @@ int	Request::_checkValidBodySize(size_t max_len)
 
 BodyType	Request::_checkBodyType()
 {
-	_fileUpload = false;
+	_isBoundary = false;
 	if(HTTPMap.count("transfer-encoding"))
 	{
 		if(_httpmethod == GET)
@@ -99,7 +99,7 @@ BodyType	Request::_checkBodyType()
 		if(HTTPMap["transfer-encoding"].find("chunked") != std::string::npos)
 		{
 			if(getHeader("content-type").find("multipart/form-data") != std::string::npos)
-				_fileUpload = true;
+				_isBoundary = true;
 			return (CHUNKED);
 		}
 		else
@@ -116,7 +116,7 @@ BodyType	Request::_checkBodyType()
 			return(INVALID);
 		}
 		if(getHeader("content-type").find("multipart/form-data") != std::string::npos)
-			_fileUpload = true;
+			_isBoundary = true;
 		return (PLAIN);
 	}
 	return (NONE);
@@ -317,14 +317,13 @@ void	Request::_trimString(std::string &temp)
 
 void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap &cgi)
 {
-	std::cout << buffer << std::endl;
 	if(_bodyType == CHUNKED)
 	{
 		_rawBody = buffer;
 		if(_chunkedBodySave(size))
 			return ;
-		if(_fileUpload && !_bodyType)
-			_parseFileData();
+		if(_isBoundary && !_bodyType)
+			_parseData();
 		return ;
 	}
 	clearRequest();
@@ -411,15 +410,16 @@ void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap 
 		{
 			if(_checkValidBodySize(std::atoi(getHeader("content-length").c_str())) || _plainBodySave(_we_got_body_len))
 				return ;
-			if(_fileUpload)
-				_parseFileData();
+			if(_isBoundary)
+				if(_parseData())
+					return ;
 		}
 		else
 		{
 			if(_chunkedBodySave(_we_got_body_len))
 				return ;
-			if(_fileUpload && !_bodyType)
-				_parseFileData();
+			if(_isBoundary && !_bodyType)
+				_parseData();
 			return ;
 
 		}
@@ -511,8 +511,14 @@ std::string Request::_removeBoundary(std::string &body, std::string &boundary)
 						if(_filename.empty())
 						{
 							body.clear();
-							return (_filename);
+							_printRequestErrorMsg("No Filename found in WebKitFormBoundary", 400);
+							return ("");
 						}
+					}
+					else
+					{
+						_printRequestErrorMsg("We only support fileuplaod for WebKitFormBoundary", 415);
+							return ("");
 					}
 				}
 				else if (!buffer.compare(0, 1, "\r") && !_filename.empty())
@@ -553,7 +559,7 @@ int Request::_plainBodySave(int body_size)
 	return(0);
 }
 
-void Request::_parseFileData()
+int Request::_parseData()
 {
 	std::string boundary = getHeader("content-type");
 
@@ -561,12 +567,13 @@ void Request::_parseFileData()
 	if(tmp == -1)
 	{
 		_printRequestErrorMsg("No boundary", 400);
-		return ;
+		return (-1);
 	}
 	boundary = boundary.substr(tmp);
-
-	std::string charBodylizedStr(_bodyVector.begin(), _bodyVector.end());
-	_fileData = _removeBoundary(charBodylizedStr, boundary);
+	_fileData = _removeBoundary(_bodyStr, boundary);
+	if(_fileData.empty())
+		return (-1);
+	return (0);
 }
 
 void	Request::setBodySize(size_t maxBodySizeFromConfigFile)
@@ -586,7 +593,7 @@ int	Request::getCode()
 
 bool	Request::isFileUpload()
 {
-	return(_fileUpload);
+	return(_isBoundary);
 }
 
 HttpMethod	Request::getMethod()
@@ -731,7 +738,7 @@ void Request::clearRequest()
 	_header_max_body_len = 0;
 	_we_got_body_len = 0;
 	_maxBodySizeFromConfigFile = 0;
-	_fileUpload = false;
+	_isBoundary = false;
 	_requestCode = 0;
 
 	HTTPMap.clear();

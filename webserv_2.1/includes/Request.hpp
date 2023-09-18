@@ -61,7 +61,7 @@ class Request
 		size_t			_header_max_body_len;
 		size_t			_we_got_body_len;
 		size_t			_maxBodySizeFromConfigFile;
-		bool			_fileUpload;
+		bool			_isBoundary;
 		int				_requestCode;
 		RequestStatus	_requestStatus;
 
@@ -87,7 +87,7 @@ class Request
 		std::string 	_removeBoundary(std::string &body, std::string &boundary);
 		int				_plainBodySave(int body_size);
 		int 			_chunkedBodySave(int body_size);
-		void 			_parseFileData();
+		int 			_parseData();
 
 	public:
 		Request();
