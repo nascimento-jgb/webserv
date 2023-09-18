@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:33:04 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/18 18:09:38 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/18 20:31:49 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -530,24 +530,32 @@ void	CgiHandler::_timerCgi(int &status)
 
 int	CgiHandler::_storeOutput(void)
 {
-	char		buffer[READ_MAX + 1];
-	int			ret;
+	char	buffer[READ_MAX + 1];
+	int		ret;
+	int		bytesRead;
 
 	ret = 1;
+	bytesRead = 0;
 	_output.clear();
-	std::memset(buffer, 0, READ_MAX);
+	std::memset(buffer, 0, sizeof(buffer));
 	while (ret > 0)
 	{
 		ret = read(this->pipeOutFd[0], buffer, READ_MAX);
 		if (ret > 0)
 		{
-			buffer[READ_MAX] = '\0';
 			this->_output.append(buffer);
+			bytesRead += ret;
+		}
+		if (bytesRead >= MESSAGE_BUFFER)
+		{
+			close(this->pipeInFd[0]);
+			return (SERVERERROR);
 		}
 	}
 	if (ret < 0)
 	{
 		std::perror("Webserv");
+		close(this->pipeInFd[0]);
 		return (SERVERERROR);
 	}
 	close(this->pipeInFd[0]);
