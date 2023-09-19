@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerManager.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/09 11:26:08 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/18 16:30:33 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/19 11:37:18 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -164,7 +164,7 @@ void	ServerManager::_handleSocket(const int fd, Client &client)
 			{
 				client.response.finishCgiResponse(client.request, _poll, client.server.getErrorMap());
 				_changeEvent(fd, POLLOUT);
-			}	
+			}
 			else
 				_readRequest(fd, client);
 			break ;
@@ -244,14 +244,8 @@ void	ServerManager::_writeToClient(const int fd, Client &client)
 			client.clearClient();
 			_closeConnection(fd);
 			return;
-		} else {
-			if (client.response.cgiInstance.forkSuccessful == true)
-			{
-				_removeFromSet(client.response.cgiInstance.pipeOutFd[0]);
-				close(client.response.cgiInstance.pipeOutFd[0]);
-			}
-			client.setCgiFlag(0);
 		}
+		client.setCgiFlag(0);
 	}
 	else
 	{

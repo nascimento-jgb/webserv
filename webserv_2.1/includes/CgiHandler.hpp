@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CgiHandler.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:34:03 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/18 18:05:59 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/19 11:33:28 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,7 +75,7 @@ class	CgiHandler
 		void	_timerCgi(int &status);
 		int		_createInstructions(void);
 		int		_executeCgi(Request &request, std::vector<pollfd> &pollFd);
-		int		_storeOutput(void);
+		int		_storeOutput(std::vector<pollfd> &pollFd);
 		void	_cleanCgi(void);
 		char	*_strdup_cpp(const char *str);
 		char	*_strdup_cpp(const std::string &str);

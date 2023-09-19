@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CgiHandler.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:33:04 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/18 20:31:49 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/19 11:34:21 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -167,7 +167,7 @@ int	CgiHandler::cgiFinal(Request &request, std::vector<pollfd> &pollFd)
 		_cleanCgi();
 		return (status);
 	}
-	status = _storeOutput();
+	status = _storeOutput(pollFd);
 	if (status != OK)
 	{
 		_cleanCgi();
@@ -528,7 +528,7 @@ void	CgiHandler::_timerCgi(int &status)
 	return ;
 }
 
-int	CgiHandler::_storeOutput(void)
+int	CgiHandler::_storeOutput(std::vector<pollfd> &pollFd)
 {
 	char	buffer[READ_MAX + 1];
 	int		ret;
@@ -548,6 +548,8 @@ int	CgiHandler::_storeOutput(void)
 		}
 		if (bytesRead >= MESSAGE_BUFFER)
 		{
+			_removeFromSetCgi(pipeOutFd[0], pollFd);
+			close(pipeOutFd[0]);
 			close(this->pipeInFd[0]);
 			return (SERVERERROR);
 		}
@@ -558,6 +560,8 @@ int	CgiHandler::_storeOutput(void)
 		close(this->pipeInFd[0]);
 		return (SERVERERROR);
 	}
+	_removeFromSetCgi(pipeOutFd[0], pollFd);
+	close(pipeOutFd[0]);
 	close(this->pipeInFd[0]);
 	return (OK);
 }
