@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 09:36:40 by jonascim          #+#    #+#             */
-/*   Updated: 2023/09/01 11:36:10 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/18 14:44:00 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,16 +27,16 @@ class Client
 	private:
 		Server				_server;
 
-		int					_client_socket;
-		struct sockaddr_in	_client_address;
-		time_t				_last_msg_time;
+		int					_clientSocket;
+		struct sockaddr_in	_clientAddress;
+		time_t				_lastMsgTime;
 		int					_cgiFlag;
 
 	public:
 
 		//Canonical Form
 		Client();
-		Client(Server &server_from_map);
+		Client(Server &serverFromMap);
 		~Client();
 		Client(Client const &other);
 		Client &operator=(Client const &other);

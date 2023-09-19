@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Webserver.hpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 08:51:04 by jonascim          #+#    #+#             */
-/*   Updated: 2023/09/18 13:10:09 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/18 19:34:04 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,10 +14,10 @@
 # define WEBSERV_HPP
 
 #define CONNECTION_TIMEOUT 60 //in seconds 219677  218777
-#define CGI_TIMEOUT 15
+#define CGI_TIMEOUT 5
 #define INET_ADDRSTRLEN 16
 #define MESSAGE_BUFFER 1048576
-#define READ_MAX = 4096
+#define READ_MAX 4096
 
 
 //STL CONTAINERS
