@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/04 17:14:34 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/15 16:08:45 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/20 18:04:23 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -211,6 +211,8 @@ int	ConfigurationFile::_checkInputConfFile(void)
 				return (1);
 			if (!it->first.compare("/cgi-bin"))
 				_tempMap[it->first]["server_path"] = _serverExecutionPath;
+			if (!it->first.compare("/") && _checkIp(it->first, _tempMap) == -1)
+				return (1);
 		}
 		if (_tempMap.find("/cgi-bin") != _tempMap.end())
 			_cgiStates.push_back(true);
@@ -804,6 +806,122 @@ int	ConfigurationFile::_checkKeys(std::string const &name, submap &seccion)
 			return (-1);
 		it_map++;
 	}
+	return (0);
+}
+
+int	ConfigurationFile::_checkIp(std::string const &key, mainmap &tempMap)
+{
+	std::vector<std::string>	split;
+	iter						it;
+	int							result;
+
+	if (!(tempMap.find(key)->second.find("host")->second.compare("127.0.0.1")))
+		return (0);
+	split = ft_split(tempMap.find(key)->second.find("host")->second, '.');
+	it = split.begin();
+	if (split.size() == 4)
+	{
+		while (it != split.end())
+		{
+			try
+			{
+				result = ft_stoi((*it));
+			}
+			catch(const std::exception &e)
+			{
+				break ;
+			}
+			if (result < 0 || result > 255)
+				break ;
+		}
+		if (it == split.end())
+			return (0);
+	}
+	if (_checkWebpage(key, tempMap) == -1)
+		return (-1);
+	return (0);
+}
+
+int	ConfigurationFile::_checkWebpage(std::string const &key, mainmap &tempMap)
+{
+	char						buffer[READ_MAX];
+	std::vector<std::string>	ips;
+	std::string					ipHostname;
+	std::string					ipConfig;
+	iter						it;
+
+	memset(buffer, '\0', sizeof(buffer));
+	if (gethostname(buffer, sizeof(buffer)) == -1)
+		return (-1);
+	if (_findIp(ips, buffer) == -1)
+		return (-1);
+	if (ips.size() != 1)
+		return (-1);
+	ipHostname = ips[0];
+	if (!tempMap.find(key)->second.find("host")->second.compare(buffer))
+	{
+		tempMap[key]["host"] = ipHostname;
+		return (0);
+	}
+	ips.clear();
+	if (_findIp(ips, tempMap.find(key)->second.find("host")->second.c_str()) == -1)
+		return (-1);
+	it = ips.begin();
+	ipConfig.clear();
+	while (it != ips.end())
+	{
+		if ((!(*it).compare("127.0.0.1")) || (!((*it).compare(ipHostname))))
+		{
+			ipConfig.append((*it));
+			break ;
+		}
+		it++;
+	}
+	if (ipConfig.empty() == true)
+		return (-1);
+	tempMap[key]["host"] = ipConfig;
+	return (0);
+}
+
+int	ConfigurationFile::_findIp(std::vector<std::string> &ips, const char *str)
+{
+	char						buffer[READ_MAX];
+	struct sockaddr_in			*ipv4;
+	struct addrinfo				hints;
+	struct addrinfo				*result;
+	struct addrinfo 			*iter;
+	in_addr_t					number;
+	int							status;
+	std::string					temp;
+
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	memset(buffer, '\0', sizeof(buffer));
+	strlcpy(buffer, str, sizeof(buffer));
+	status = getaddrinfo(buffer, NULL, &hints, &result);
+	if (status != 0)
+	{
+		freeaddrinfo(result);
+		return (-1);
+	}
+	iter = result;
+	while (iter != NULL)
+	{
+		memset(buffer, '\0', sizeof(buffer));
+		if (iter->ai_family == AF_INET)
+		{
+			ipv4 = reinterpret_cast<struct sockaddr_in *>(iter->ai_addr);
+			temp.clear();
+			number = ipv4->sin_addr.s_addr;
+			temp = ft_inet_ntop(iter->ai_family, number, buffer, INET_ADDRSTRLEN);
+			ips.push_back(temp);
+		}
+		iter = iter->ai_next;
+	}
+	freeaddrinfo(result);
+	if (ips.size() == 0)
+		return (-1);
 	return (0);
 }
 

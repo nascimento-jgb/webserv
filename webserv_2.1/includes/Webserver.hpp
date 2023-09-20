@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 08:51:04 by jonascim          #+#    #+#             */
-/*   Updated: 2023/09/18 19:34:04 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/20 15:00:39 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <poll.h>
-
+#include <netdb.h>
 
 typedef std::vector<std::string>::iterator	iter;
 typedef std::map< std::string, std::map<std::string, std::string> >	mainmap;
