@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/04 17:14:34 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/21 12:26:39 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/21 12:27:58 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -896,7 +896,7 @@ int	ConfigurationFile::_findIp(std::vector<std::string> &ips, const char *str)
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 	memset(buffer, '\0', sizeof(buffer));
-	strlcpy(buffer, str, sizeof(buffer));
+	strncpy(buffer, str, sizeof(buffer));
 	status = getaddrinfo(buffer, NULL, &hints, &result);
 	if (status != 0)
 	{
