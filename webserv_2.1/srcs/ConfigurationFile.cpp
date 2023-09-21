@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/04 17:14:34 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/21 10:18:45 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/21 12:05:28 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -902,7 +902,8 @@ int	ConfigurationFile::_findIp(std::vector<std::string> &ips, const char *str)
 	status = getaddrinfo(buffer, NULL, &hints, &result);
 	if (status != 0)
 	{
-		freeaddrinfo(result);
+		if (result)
+			freeaddrinfo(result);
 		return (-1);
 	}
 	iter = result;
