@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/04 17:14:34 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/21 12:05:28 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/21 12:26:39 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -855,8 +855,6 @@ int	ConfigurationFile::_checkWebpage(std::string const &key, mainmap &tempMap)
 		return (-1);
 	if (_findIp(ips, buffer) == -1)
 		return (-1);
-	if (ips.size() != 1)
-		return (-1);
 	ipHostname = ips[0];
 	if (!tempMap.find(key)->second.find("host")->second.compare(buffer))
 	{
@@ -903,7 +901,10 @@ int	ConfigurationFile::_findIp(std::vector<std::string> &ips, const char *str)
 	if (status != 0)
 	{
 		if (result)
+		{
 			freeaddrinfo(result);
+			result = NULL;
+		}
 		return (-1);
 	}
 	iter = result;
@@ -921,6 +922,7 @@ int	ConfigurationFile::_findIp(std::vector<std::string> &ips, const char *str)
 		iter = iter->ai_next;
 	}
 	freeaddrinfo(result);
+	result = NULL;
 	if (ips.size() == 0)
 		return (-1);
 	return (0);
