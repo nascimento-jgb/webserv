@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/04 17:14:34 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/20 18:04:23 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/21 10:18:45 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -945,9 +945,13 @@ int	ConfigurationFile::_checkAmmountValues(void)
 							return (-1);
 					}
 				}
+				if (it2->second[(it2->second.size() - 1)] == ' ' || it2->second[(it2->second.size() - 1)] == '\t')
+					return (-1);
 				continue ;
 			}
 			if (_countWords(it2->second) > 1)
+				return (-1);
+			if (it2->second[(it2->second.size() - 1)] == ' ' || it2->second[(it2->second.size() - 1)] == '\t')
 				return (-1);
 		}
 	}
