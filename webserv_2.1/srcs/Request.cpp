@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/25 10:24:25 by jonascim          #+#    #+#             */
-/*   Updated: 2023/09/15 12:51:31 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/27 19:04:53 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -331,7 +331,7 @@ void	Request::_trimString(std::string &temp)
 
 void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap &cgi)
 {
-	// std::cout << "size: " << size << "\nBuffer: " << buffer << std::endl;
+	//std::cout << "size: " << size << "\nBuffer: " << buffer << std::endl;
 	if(_bodyType == CHUNKED)
 	{
 		_rawBody = buffer;
@@ -469,12 +469,7 @@ int Request::_chunkedBodySave(int body_size)
 			{
 				i += 2;
 				if(chunking == "0")
-				{
-					_bodyStr = std::string(_bodyVector.begin(), _bodyVector.end());
-					_bodyType = NONE;
-					_requestCode = 200;
-					break;
-				}
+					break ;
 				chunk = fromHexToDec(chunking);
 				while(chunk && i < body_size)
 				{
@@ -484,14 +479,18 @@ int Request::_chunkedBodySave(int body_size)
 				}
 				i += 2;
 				chunking.clear();
-				continue;
+				continue ;
 			}
 		}
 		else
-		{
 			chunking += _rawBody[i];
-		}
 		i++;
+	}
+	if(chunking == "0")
+	{
+		_bodyStr = std::string(_bodyVector.begin(), _bodyVector.end());
+		_bodyType = NONE;
+		_requestCode = 200;
 	}
 	return (0);
 }

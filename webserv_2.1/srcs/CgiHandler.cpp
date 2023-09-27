@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CgiHandler.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:33:04 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/19 11:34:21 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/27 19:05:34 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -464,6 +464,7 @@ int	CgiHandler::_executeCgi(Request &request, std::vector<pollfd> &pollFd)
 
 	status = 0;
 	bodyInfo = request.getBody();
+	std::cout << bodyInfo << std::endl;
 	if (bodyInfo.empty() == true)
 		write(pipeInFd[1], "\0", 1);
 	else
