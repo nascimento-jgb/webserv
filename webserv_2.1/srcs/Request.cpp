@@ -37,7 +37,7 @@ Request::Request(Request const &other)
 		_httpmethod = other._httpmethod;
 		_bodyType = other._bodyType;
 		_header_max_body_len = other._header_max_body_len;
-		_we_got_body_len = other._we_got_body_len;
+		_totalBodySize = other._totalBodySize;
 		_maxBodySizeFromConfigFile = other._maxBodySizeFromConfigFile;
 		_isBoundary = other._isBoundary;
 		_requestCode = other._requestCode;
@@ -62,7 +62,7 @@ Request &Request::operator=(Request const &other)
 		_httpmethod = other._httpmethod;
 		_bodyType = other._bodyType;
 		_header_max_body_len = other._header_max_body_len;
-		_we_got_body_len = other._we_got_body_len;
+		_totalBodySize = other._totalBodySize;
 		_maxBodySizeFromConfigFile = other._maxBodySizeFromConfigFile;
 		_isBoundary = other._isBoundary;
 		_requestCode = other._requestCode;
@@ -73,17 +73,31 @@ Request &Request::operator=(Request const &other)
 
 
 
-int	Request::_checkValidBodySize(size_t max_len)
+int	Request::_checkValidBodySize()
 {
 	_maxBodySizeFromConfigFile = ft_stoi(_configMap.find("client_max_body_size")->second);
-	size_t len = _we_got_body_len;
-	if(_maxBodySizeFromConfigFile < max_len)
+	size_t headerSize = ft_stoi(getHeader("content-length").c_str());
+
+	if(_totalBodySize > _maxBodySizeFromConfigFile)
 		return(_printRequestErrorMsg("Request body is larger than accepted size", 413));
-	if(max_len > len)
-		return(_printRequestErrorMsg("Request body is too short or missing.", 400));
-	else if(max_len < len)
+	else if(_totalBodySize > headerSize)
 		return(_printRequestErrorMsg("Request body is too long.", 413));
-	return(0);
+	else if(_totalBodySize < headerSize)
+		return (1);
+	else
+		return (0);
+
+	//totalsize > ConfigSize. return error
+	//totalSize > header size. return error
+	//totalSize < header size. return 0
+	//totalSize == header size. status code ok and return.
+	// if(_maxBodySizeFromConfigFile < read)
+	// 	return(_printRequestErrorMsg("Request body is larger than accepted size", 413));
+	// if(read > len)
+	// 	return(_printRequestErrorMsg("Request body is too short or missing.", 400));
+	// else if(read < len)
+	// 	return(_printRequestErrorMsg("Request body is too long.", 413));
+	// return(0);
 }
 
 BodyType	Request::_checkBodyType()
@@ -317,6 +331,7 @@ void	Request::_trimString(std::string &temp)
 
 void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap &cgi)
 {
+	// std::cout << "size: " << size << "\nBuffer: " << buffer << std::endl;
 	if(_bodyType == CHUNKED)
 	{
 		_rawBody = buffer;
@@ -326,9 +341,19 @@ void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap 
 			_parseData();
 		return ;
 	}
+	else if(_bodyType == PLAIN)
+	{
+		_rawBody.append(buffer);
+		_totalBodySize += size;
+		if(_checkValidBodySize())
+			return ;
+		_plainBodySave(_totalBodySize);
+		_requestCode = 200;
+		if(_isBoundary && _parseData() == -1)
+			return ;
+		return ;
+	}
 	clearRequest();
-
-
 
 
 	//saves the buffer as a file stream so we can manipulate the content with getline.
@@ -404,19 +429,20 @@ void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap 
 		std::string content;
 		std::streampos pos = iss.tellg();
 		int tot = static_cast<int>(pos);
-		_we_got_body_len = size - tot;
+		_totalBodySize = size - tot;
 		_rawBody = buffer.substr(tot);
 		if(_bodyType == PLAIN)
 		{
-			if(_checkValidBodySize(std::atoi(getHeader("content-length").c_str())) || _plainBodySave(_we_got_body_len))
+			if(_checkValidBodySize())
 				return ;
-			if(_isBoundary)
-				if(_parseData())
-					return ;
+			_plainBodySave(_totalBodySize);
+			_requestCode = 200;
+			if(_isBoundary && _parseData() == -1)
+				return ;
 		}
 		else
 		{
-			if(_chunkedBodySave(_we_got_body_len))
+			if(_chunkedBodySave(_totalBodySize))
 				return ;
 			if(_isBoundary && !_bodyType)
 				_parseData();
@@ -702,7 +728,7 @@ RequestStatus	Request::getStatus(void)
 
 size_t	Request::getBodyLen(void)
 {
-	return(_we_got_body_len);
+	return(_totalBodySize);
 }
 
 int	Request::_printRequestErrorMsg(std::string msg, int error_code)
@@ -736,7 +762,7 @@ void Request::clearRequest()
 	_bodyType = NONE;
 
 	_header_max_body_len = 0;
-	_we_got_body_len = 0;
+	_totalBodySize = 0;
 	_maxBodySizeFromConfigFile = 0;
 	_isBoundary = false;
 	_requestCode = 0;

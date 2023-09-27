@@ -59,7 +59,7 @@ class Request
 		HttpMethod		_httpmethod;
 		BodyType		_bodyType;
 		size_t			_header_max_body_len;
-		size_t			_we_got_body_len;
+		size_t			_totalBodySize;
 		size_t			_maxBodySizeFromConfigFile;
 		bool			_isBoundary;
 		int				_requestCode;
@@ -71,7 +71,7 @@ class Request
 		submap								_cgiMap;
 		std::vector<u_int8_t>				_bodyVector;
 
-		int				_checkValidBodySize(size_t max_len);
+		int				_checkValidBodySize();
 		int				_checkHeaders(std::string &key, std::string &value);
 		int 			_validChar(int c);
 		int 			_checkUri(std::string line);

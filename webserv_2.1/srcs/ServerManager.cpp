@@ -210,22 +210,24 @@ void	ServerManager::_readRequest(const int fd, Client &client)
 		_closeConnection(fd);
 		return ;
 	}
-
-	_assignServerConfig(client);
-	std::cout << "Request Recived From Socket " << fd << ", Method=<" << client.request.getMethod() << ">  URI=<" << client.request.getPath() << ">." << std::endl;
-
-	if (client.request.getStatus() == CGI && client.request.getCode() == 200)
+	if (client.request.getCode() != 0)
 	{
-		client.setCgiFlag(1);
-		client.request.setRequestStatus(READ);
-		client.response.startCgiResponse(client.request, _poll, client.server.getErrorMap());
-		if (client.response.cgiInstance.pipesSuccessful == true)
-			return ;
+		_assignServerConfig(client);
+		std::cout << "Request Recived From Socket " << fd << ", Method=<" << client.request.getMethod() << ">  URI=<" << client.request.getPath() << ">." << std::endl;
+
+		if (client.request.getStatus() == CGI && client.request.getCode() == 200)
+		{
+			client.setCgiFlag(1);
+			client.request.setRequestStatus(READ);
+			client.response.startCgiResponse(client.request, _poll, client.server.getErrorMap());
+			if (client.response.cgiInstance.pipesSuccessful == true)
+				return ;
+		}
+		else
+			client.response.makeResponse(client.request, client.server.getErrorMap(), _serverLocation);
+		client.request.setRequestStatus(WRITE);
+		_changeEvent(fd, POLLOUT);
 	}
-	else
-		client.response.makeResponse(client.request, client.server.getErrorMap(), _serverLocation);
-	client.request.setRequestStatus(WRITE);
-	_changeEvent(fd, POLLOUT);
 }
 
 void	ServerManager::_writeToClient(const int fd, Client &client)

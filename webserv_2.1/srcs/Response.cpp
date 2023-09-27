@@ -267,7 +267,6 @@ void	Response::makeResponse(Request& request, numbermap errorMap, std::string &s
 		std::string path = request.getPath().substr(1, request.getPath().size());
 		path = _relativeServerRoot + "/" + absoluteToRelativePath(request.getRoot(), path);
 		path = path.substr(1, request.getPath().size());
-		std::cout << "LCOATION: " << path << std::endl;
 		if (!fileExists(path.c_str()))
         {
             _responseCode = 204;
@@ -299,7 +298,6 @@ bool Response::fileExists (const std::string& f)
 
 int Response::saveImageToFile(const std::string& filename, const std::string& imageData)
 {
-	std::cout << "filename: " << filename << std::endl;
 	std::ofstream file(filename.c_str(), std::ios::binary);
 	if (file)
 	{
