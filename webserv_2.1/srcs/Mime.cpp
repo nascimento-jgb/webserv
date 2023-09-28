@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/25 09:24:51 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/14 12:25:15 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/28 17:10:28 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,28 +14,28 @@
 
 Mime::Mime()
 {
-	_mime_types[".html"] = "text/html";
-    _mime_types[".htm"] = "text/html";
-    _mime_types[".css"] = "text/css";
-	_mime_types[".txt"] = "text/plain";
+	_mimeTypes[".html"] = "text/html";
+    _mimeTypes[".htm"] = "text/html";
+    _mimeTypes[".css"] = "text/css";
+	_mimeTypes[".txt"] = "text/plain";
 
-    _mime_types[".js"] = "application/javascript";
-    _mime_types[".json"] = "application/json";
-	_mime_types[".gz"] = "application/gzip";
-	_mime_types[".doc"] = "application/msword";
-	_mime_types[".pdf"] = "application/pdf";
+    _mimeTypes[".js"] = "application/javascript";
+    _mimeTypes[".json"] = "application/json";
+	_mimeTypes[".gz"] = "application/gzip";
+	_mimeTypes[".doc"] = "application/msword";
+	_mimeTypes[".pdf"] = "application/pdf";
 
-	_mime_types[".png"] = "image/png";
-	_mime_types[".jpg"] = "image/jpeg";
-	_mime_types[".jpeg"] = "image/jpeg";
-	_mime_types[".bmp"] = "image/bmp";
-	_mime_types[".gif"] = "image/gif";
-	_mime_types[".ico"] = "image/vnd.microsoft.icon";
+	_mimeTypes[".png"] = "image/png";
+	_mimeTypes[".jpg"] = "image/jpeg";
+	_mimeTypes[".jpeg"] = "image/jpeg";
+	_mimeTypes[".bmp"] = "image/bmp";
+	_mimeTypes[".gif"] = "image/gif";
+	_mimeTypes[".ico"] = "image/vnd.microsoft.icon";
 
-	_mime_types[".mp3"] = "audio/mpeg";
+	_mimeTypes[".mp3"] = "audio/mpeg";
 
-	_mime_types[".mp4"] = "video/mp4";
-	_mime_types[".avi"] = "video/x-msvideo";
+	_mimeTypes[".mp4"] = "video/mp4";
+	_mimeTypes[".avi"] = "video/x-msvideo";
 }
 
 Mime::~Mime()
@@ -46,12 +46,12 @@ std::string Mime::getMimeType(std::string path)
 {
 	if(path.empty())
 		return ("text/plain");
-	size_t int_tmp = path.rfind(".");
-	if (int_tmp == std::string::npos)
+	size_t intTmp = path.rfind(".");
+	if (intTmp == std::string::npos)
 		return ("text/plain");
-	std::string ending = path.substr(int_tmp);
-	std::map<std::string, std::string>::iterator it = _mime_types.find(ending);
-	if(it != _mime_types.end())
+	std::string ending = path.substr(intTmp);
+	std::map<std::string, std::string>::iterator it = _mimeTypes.find(ending);
+	if(it != _mimeTypes.end())
 		return (it->second);
 	return ("text/plain");
 }

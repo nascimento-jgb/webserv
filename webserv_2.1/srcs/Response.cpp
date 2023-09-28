@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:58:47 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/27 18:08:36 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/28 18:11:43 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,6 +58,7 @@ void	Response::startCgiResponse(Request& request, std::vector<pollfd> &pollFd, n
 
 	_rootErrorPages = request.getRootErrorPages();
 	returnValue = cgiInstance.cgiInitialization(request, pollFd);
+	std::cout << returnValue << std::endl;
 	switch (returnValue)
 	{
 		case NOTFOUND:
@@ -141,7 +142,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap, std::string &s
 	_absoluteServerRoot = serverLocation;
 	_relativeServerRoot = absoluteToRelativePath(_absoluteServerRoot, _rootOfRequest);
 
-	if(_responseCode == 302)
+	if (_responseCode == 302)
 	{
     	Error errors;
 		std::cout << "\033[1;33m[" << _responseCode << "][" << errors.getErrorMsg(_responseCode) << "] " << "we redirecting here" << "\033[0m" << std::endl;
@@ -149,12 +150,12 @@ void	Response::makeResponse(Request& request, numbermap errorMap, std::string &s
 		_responseString.append(request.getRelativePath()).append("\r\n\r\n");
 		return ;
 	}
-	if(_responseCode >= 400)
+	if (_responseCode >= 400)
 	{
 		printErrorAndRedirect(request.getRequestErrorMessage(), _responseCode, errorMap, _responseString);
 		return ;
 	}
-	if(request.getMethod() == GET)
+	if (request.getMethod() == GET)
 	{
 		std::string path;
 		std::time_t	cur_time = std::time(NULL);
@@ -162,52 +163,53 @@ void	Response::makeResponse(Request& request, numbermap errorMap, std::string &s
 		char buffer[80];
 
 		std::strftime(buffer, sizeof(buffer), "%a, %d %b %Y %H:%M:%S GMT", local_time);
-		if(request.getPath()[0] == '/')
+		if (request.getPath()[0] == '/')
 		{
 			path = request.getPath();
 			struct stat pathType;
-			if(stat(path.c_str(), &pathType) == 0)
+			if (stat(path.c_str(), &pathType) == 0)
 			{
-				if(S_ISDIR(pathType.st_mode))
+				if (S_ISDIR(pathType.st_mode))
 				{
-					if(request.getConfigMap().find("index") != request.getConfigMap().end())
+					if (request.getConfigMap().find("index") != request.getConfigMap().end())
 					{
 						std::string indexPath;
 						Error errors;
 						_responseString = "HTTP/1.1 " + ft_itoa(_responseCode) + " " + errors.getErrorMsg(_responseCode);
-						if(path != "/")
+						if (path != "/")
 							indexPath = path+"/"+request.getConfigMap().find("index")->second;
 						else
 							indexPath = request.getConfigMap().find("index")->second;
-						if(!loadFile(indexPath))
+						if (!loadFile(indexPath))
 							_responseString.clear();
 						else
 							return ;
 					}
 					DIR				*tmp;
 					struct dirent	*entry;
-					if((tmp = opendir(path.c_str())) == NULL || request.getConfigMap().find("autoindex")->second.find("on") == std::string::npos)
+					if ((tmp = opendir(path.c_str())) == NULL || request.getConfigMap().find("autoindex")->second.find("on") == std::string::npos)
 					{
 						printErrorAndRedirect("Error", 404, errorMap, _responseString);
 						return ;
 					}
 					std::string message;
-					while((entry = readdir(tmp)))
+					while ((entry = readdir(tmp)))
 					{
-						if(!strncmp(entry->d_name, ".", 1))
-							continue;
+						if (!strncmp(entry->d_name, ".", 1))
+							continue ;
 						message.append("<h3><a href=\"").append(absoluteToRelativePath(_rootOfRequest, path)).append("/").append(entry->d_name).append("\">");
 						message.append(entry->d_name);
 						message.append("</a></h3>");
 					}
 					_responseString = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: "
 						+ request.ft_itoa(message.size()) + "\r\nServer: JLC\r\n\r\n" + message;
+					closedir(tmp);
 					return ;
 				}
 				else
 				{
 					std::ifstream file(path.c_str());
-					if(file.bad())
+					if (file.bad())
 					{
 						printErrorAndRedirect("File not found", 404, errorMap, _responseString);
 						return ;
@@ -234,11 +236,11 @@ void	Response::makeResponse(Request& request, numbermap errorMap, std::string &s
 			}
 		}
 	}
-	else if(request.getMethod() == POST)
+	else if (request.getMethod() == POST)
 	{
-		if(request.isFileUpload())
+		if (request.isFileUpload())
 		{
-			if(_mimes.getMimeType(request.getFileName()) == "text/html")
+			if (_mimes.getMimeType(request.getFileName()) == "text/html")
 			{
 				printErrorAndRedirect("Sorry we do not allow user to POST Html files", 400, errorMap, _responseString);
 				return ;
@@ -249,7 +251,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap, std::string &s
 				pathAndSource.append("/");
 				pathAndSource.append(request.getFileName());
 				pathAndSource = pathAndSource.substr(1, pathAndSource.length());
-				if(saveImageToFile(pathAndSource, request.getImageData()))
+				if (saveImageToFile(pathAndSource, request.getImageData()))
 					printErrorAndRedirect("Failed to save the File.", 400, errorMap, _responseString);
 				else
 				{
@@ -262,7 +264,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap, std::string &s
 		else
 			printErrorAndRedirect("Error in POST body.", 400, errorMap, _responseString);
 	}
-	else if(request.getMethod() == DELETE)
+	else if (request.getMethod() == DELETE)
 	{
 		std::string path = request.getPath().substr(1, request.getPath().size());
 		path = _relativeServerRoot + "/" + absoluteToRelativePath(request.getRoot(), path);
@@ -289,7 +291,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap, std::string &s
 	}
 	return ;
 }
-bool Response::fileExists (const std::string& f)
+bool Response::fileExists(const std::string& f)
 {
     std::ifstream file(f.c_str());
     return (file.good());
@@ -342,7 +344,7 @@ void    Response::printErrorAndRedirect(std::string msg, int errorCode, numberma
     std::cout << "\033[1;31m[" << errorCode << "][" << errors.getErrorMsg(errorCode) << "] " << msg << "\033[0m" << std::endl;
     response = "HTTP/1.1 302 Redirect\r\nLocation: ";
 
-    if(errorMap.find(errorCode) != errorMap.end() && _responseMethod != POST && _responseMethod != DELETE)
+    if (errorMap.find(errorCode) != errorMap.end() && _responseMethod != POST && _responseMethod != DELETE)
     {
         response.append(absoluteToRelativePath(_rootErrorPages, errorMap.find(errorCode)->second)).append("\r\n\r\n");
 		return ;
@@ -355,10 +357,10 @@ void    Response::printErrorAndRedirect(std::string msg, int errorCode, numberma
 
 int	Response::loadFile(std::string path)
 {
-	if(path.empty())
+	if (path.empty())
 		return (0);
 	std::ifstream file(path.c_str());
-	if(file.bad() || file.fail())
+	if (file.bad() || file.fail())
 		return (0);
 	std::stringstream	buffer;
 

@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/25 09:24:38 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/12 12:53:23 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/28 17:08:23 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ class Mime
 {
 	private:
 
-		std::map<std::string, std::string> _mime_types;
+		std::map<std::string, std::string> _mimeTypes;
 
 		Mime(Mime const &rhs);
 

@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/25 09:54:01 by jonascim          #+#    #+#             */
-/*   Updated: 2023/09/01 15:21:28 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/28 18:02:34 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,16 +18,16 @@
 class Server
 {
 	private:
-		struct sockaddr_in 			_server_address;
+		struct sockaddr_in 			_serverAddress;
 		uint16_t					_port;
 		in_addr_t					_host;
-		std::string					_server_name;
+		std::string					_serverName;
 		std::string					_root;
 		std::string					_index;
 		mainmap						_config;
 		submap						_cgi;
 		numbermap					_error;
-		unsigned long				_max_body_size;
+		unsigned long				_maxBodySize;
 		bool						_autoindex;
 		int							_listen_fd;
 

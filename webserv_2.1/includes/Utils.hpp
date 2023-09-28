@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/22 09:21:24 by jonascim          #+#    #+#             */
-/*   Updated: 2023/09/07 12:47:02 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/28 17:38:54 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@
 int							ft_stoi(std::string str);
 std::string					ft_itoa(int integer);
 unsigned int				fromHexToDec(const std::string& nb);
-void						to_lower(std::string &str);
+void						toLower(std::string &str);
 size_t						findPosChar(std::string const &input, char c, size_t n);
 std::vector<std::string>	ft_split(std::string const &input, char c);
 std::vector<std::string>	ft_split(std::string const &input, std::string const &needle);

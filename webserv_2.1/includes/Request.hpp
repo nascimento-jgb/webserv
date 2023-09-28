@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:59:33 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/04 17:28:26 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/28 17:37:02 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,13 +52,13 @@ class Request
         std::string		_bodyStr;
 		std::string 	_fileData;
 		std::string		_targetfile;
-		std::string		_request_path;
+		std::string		_requestPath;
 		std::string		_query;
 		std::string		_filename;
 		std::string		_location;
 		HttpMethod		_httpmethod;
 		BodyType		_bodyType;
-		size_t			_header_max_body_len;
+		size_t			_headerMaxBodyLen;
 		size_t			_totalBodySize;
 		size_t			_maxBodySizeFromConfigFile;
 		bool			_isBoundary;
@@ -76,17 +76,16 @@ class Request
 		int 			_validChar(int c);
 		int 			_checkUri(std::string line);
 		int				_saveQuery(std::string line, int i);
-		void			_clearRequest();
 		int				_validHttp(std::string line);
-		int				_printRequestErrorMsg(std::string msg, int error_code);
+		int				_printRequestErrorMsg(std::string msg, int errorCode);
 		BodyType		_checkBodyType();
 		HttpMethod		_checkMethod(std::string line);
 		void			_findLocationMap(mainmap &config);
-		int 			_checkMethodInLocation(void);
+		int 			_checkMethodInLocation();
 		void			_trimString(std::string &temp);
 		std::string 	_removeBoundary(std::string &body, std::string &boundary);
-		int				_plainBodySave(int body_size);
-		int 			_chunkedBodySave(int body_size);
+		int				_plainBodySave(int bodySize);
+		int 			_chunkedBodySave(int bodySize);
 		int 			_parseData();
 
 	public:
@@ -102,7 +101,6 @@ class Request
 
 		int				getCode();
 		bool			isFileUpload();
-		bool			invalidHost();
 		size_t			getBodyLen();
 		std::string		getRequestErrorMessage();
 		std::string		getBody();

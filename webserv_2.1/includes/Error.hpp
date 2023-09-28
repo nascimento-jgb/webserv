@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Error.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/25 16:40:11 by leklund           #+#    #+#             */
-/*   Updated: 2023/08/22 09:34:02 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/28 17:05:19 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,11 +20,15 @@ class Error
 	private:
 		std::map<int, std::string> _errors;
 
+		Error(Error const &rhs);
+
+		Error	&operator=(Error const &rhs);
+
 	public:
 		Error();
 		~Error();
 
-		std::string getErrorMsg(int error_value);
+		std::string getErrorMsg(int errorValue);
 };
 
 #endif

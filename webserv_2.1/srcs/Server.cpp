@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 13:06:16 by jonascim          #+#    #+#             */
-/*   Updated: 2023/09/28 12:29:08 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/28 18:03:47 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,10 +16,10 @@ Server::Server()
 {
 	_port = 0;
 	_host = 0;
-	_server_name = "";
+	_serverName = "";
 	_root = "";
 	_index = "";
-	_max_body_size = 9999999999; //create a macro or pass it
+	_maxBodySize = 9999999999; //create a macro or pass it
 	_autoindex = false;
 	_listen_fd = 0;
 }
@@ -30,15 +30,15 @@ Server::Server(const Server &other)
 {
 	if (this != &other)
 	{
-		this->_server_name = other._server_name;
+		this->_serverName = other._serverName;
 		this->_root = other._root;
 		this->_host = other._host;
 		this->_port = other._port;
-		this->_max_body_size = other._max_body_size;
+		this->_maxBodySize = other._maxBodySize;
 		this->_index = other._index;
 		this->_listen_fd = other._listen_fd;
 		this->_autoindex = other._autoindex;
-		this->_server_address = other._server_address;
+		this->_serverAddress = other._serverAddress;
 		this->_config =  other._config;
 		this->_cgi = other._cgi;
 		this->_error = other._error;
@@ -50,15 +50,15 @@ Server &Server::operator=(const Server &other)
 {
 	if (this != &other)
 	{
-		this->_server_name = other._server_name;
+		this->_serverName = other._serverName;
 		this->_root = other._root;
 		this->_host = other._host;
 		this->_port = other._port;
-		this->_max_body_size = other._max_body_size;
+		this->_maxBodySize = other._maxBodySize;
 		this->_index = other._index;
 		this->_listen_fd = other._listen_fd;
 		this->_autoindex = other._autoindex;
-		this->_server_address = other._server_address;
+		this->_serverAddress = other._serverAddress;
 		this->_config =  other._config;
 		this->_cgi = other._cgi;
 		this->_error = other._error;
@@ -71,7 +71,7 @@ Server &Server::operator=(const Server &other)
 //Getters
 struct sockaddr_in const	&Server::getServerAddress(void) const
 {
-	return (_server_address);
+	return (_serverAddress);
 }
 
 uint16_t const		&Server::getPort(void) const
@@ -86,7 +86,7 @@ in_addr_t const		&Server::getHost(void) const
 
 std::string const	&Server::getServerName(void) const
 {
-	return (_server_name);
+	return (_serverName);
 }
 
 std::string const	&Server::getRoot(void) const
@@ -101,7 +101,7 @@ std::string const	&Server::getIndex(void) const
 
 unsigned long const	&Server::getMaxBodySize(void) const
 {
-	return (_max_body_size);
+	return (_maxBodySize);
 }
 
 bool const	&Server::getAutoIndex(void) const
@@ -136,20 +136,20 @@ void	Server::setupServer(mainmap &config, size_t &port, submap &cgi, numbermap &
 	_cgi = cgi;
 	_error = error;
 	_host = ft_inet_addr(_config.find("/")->second.find("host")->second);
-	_server_name = _config.find("/")->second.find("name")->second;
+	_serverName = _config.find("/")->second.find("name")->second;
 	_root =  _config.find("/")->second.find("root")->second;
 	_index = _config.find("/")->second.find("index")->second;
 	try
 	{
 		if ((_listen_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 			throw std::runtime_error("Error creating socket");
-		_server_address.sin_family = AF_INET;
-		_server_address.sin_addr.s_addr = _host;
-		_server_address.sin_port = htons(_port);
+		_serverAddress.sin_family = AF_INET;
+		_serverAddress.sin_addr.s_addr = _host;
+		_serverAddress.sin_port = htons(_port);
 		int	option_value = 1;
 		setsockopt(_listen_fd, SOL_SOCKET, SO_REUSEADDR, &option_value, sizeof(int));
-		std::memset(_server_address.sin_zero, '\0', sizeof(_server_address.sin_zero));
-		if (bind(_listen_fd, reinterpret_cast<struct sockaddr*>(&_server_address), sizeof(_server_address)) < 0)
+		std::memset(_serverAddress.sin_zero, '\0', sizeof(_serverAddress.sin_zero));
+		if (bind(_listen_fd, reinterpret_cast<struct sockaddr*>(&_serverAddress), sizeof(_serverAddress)) < 0)
 		{
 			std::cerr << "Error in bind: " << errno << " - " << strerror(errno) << std::endl;
 			throw std::runtime_error("Error in bind");
@@ -157,7 +157,7 @@ void	Server::setupServer(mainmap &config, size_t &port, submap &cgi, numbermap &
 	}
 	catch(const std::exception &e)
 	{
-		std::cerr << "Exception caught: " << e.what() << std::endl;
+		std::cerr << "Webserv: " << e.what() << std::endl;
 		std::exit(EXIT_FAILURE);
 	}
 }
