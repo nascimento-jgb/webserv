@@ -75,9 +75,16 @@ Request &Request::operator=(Request const &other)
 
 int	Request::_checkValidBodySize()
 {
-	_maxBodySizeFromConfigFile = ft_stoi(_configMap.find("client_max_body_size")->second);
-	size_t headerSize = ft_stoi(getHeader("content-length").c_str());
-
+	size_t headerSize;
+	try
+	{
+		_maxBodySizeFromConfigFile = ft_stoi(_configMap.find("client_max_body_size")->second);
+		headerSize = ft_stoi(getHeader("content-length").c_str());
+	}
+	catch(const std::exception& e)
+	{
+		return(_printRequestErrorMsg("Invalid bodysize header convertion", 400));
+	}
 	if(_totalBodySize > _maxBodySizeFromConfigFile)
 		return(_printRequestErrorMsg("Request body is larger than accepted size", 413));
 	else if(_totalBodySize > headerSize)
@@ -409,11 +416,6 @@ void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap 
 			return ;
 		}
 	}
-	if(invalidHost() == true)
-	{
-		_printRequestErrorMsg("Invalid hostname or IP address", 400);
-		return ;
-	}
 	_bodyType = _checkBodyType();
 	if(_bodyType)
 	{
@@ -592,18 +594,6 @@ int Request::_parseData()
 	if(_fileData.empty())
 		return (-1);
 	return (0);
-}
-
-bool	Request::invalidHost()
-{
-	std::string host = getHeader("Host");
-	std::string confHost = _serverMap.find("/")->second.find("host")->second;
-	std::string confName = _serverMap.find("/")->second.find("name")->second;
-	std::string confPort = _serverMap.find("/")->second.find("listen")->second;
-	if (host == confHost || host == confHost + ":" + confPort
-		|| host == confName || host == confName + ":" + confPort)
-		return false;
-	return true;
 }
 
 void	Request::setBodySize(size_t maxBodySizeFromConfigFile)
