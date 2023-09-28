@@ -254,7 +254,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap, std::string &s
 				else
 				{
 					std::string message = "upload successful";
-					_responseString = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: "
+					_responseString = "HTTP/1.1 201 OK\r\nContent-Type: text/plain\r\nContent-Length: "
 						+ request.ft_itoa(message.size()) + "\r\nServer: CLJ\r\n\r\n" + message;
 				}
 			}
