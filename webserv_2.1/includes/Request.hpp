@@ -122,6 +122,8 @@ class Request
 		submap			getConfigMap();
 		const submap	getCgiMap() const;
 		submap			getCgiMap();
+		BodyType		getBodyType();
+
 
 		void			clearRequest();
 		std::string		ft_itoa(int integer);
