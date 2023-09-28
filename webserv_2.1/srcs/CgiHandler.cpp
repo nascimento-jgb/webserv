@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:33:04 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/27 19:05:34 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/28 12:28:45 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -273,7 +273,7 @@ int	CgiHandler::_fillMap(Request &request)
 	if (_getPathTranslated(tempPath, this->_envVariables["PATH_TRANSLATED"])) // Come back later
 		return (-1);
 	this->_envVariables["SCRIPT_FILENAME"] = _pathCgiScript;
-	this->_envVariables["SERVER_NAME"] = request.getServerMap().find("/")->second.find("server_name")->second;
+	this->_envVariables["SERVER_NAME"] = request.getServerMap().find("/")->second.find("name")->second;
 	this->_envVariables["SERVER_PORT"] = request.getServerMap().find("/")->second.find("listen")->second;
 	this->_envVariables["SERVER_PROTOCOL"] = "HTTP/1.1";
 	this->_envVariables["SERVER_SOFTWARE"] = "Webserv_CLJ/1.0";

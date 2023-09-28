@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/01 11:30:33 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/20 17:14:35 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/28 11:06:08 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,8 +56,8 @@ private:
 	int							_checkPathsDirectories(std::string const &key, mainmap &tempMap);
 	int							_checkRootAlias(std::string const &key, mainmap &tempMap);
 	int							_checkKeys(std::string const &name, submap &seccion);
-	int							_checkIp(std::string const &key, mainmap &tempMap);
-	int							_checkWebpage(std::string const &key, mainmap &tempMap);
+	int							_checkIpAndServerName(std::string const &key, mainmap &tempMap);
+	int							_checkServerIp(std::string const &key, mainmap &tempMap);
 	int							_findIp(std::vector<std::string> &ips, const char *str);
 	int							_checkAmmountValues(void);
 	int							_checkErrorPages(void);

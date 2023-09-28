@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/04 17:14:34 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/21 12:27:58 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/28 12:43:37 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -211,7 +211,7 @@ int	ConfigurationFile::_checkInputConfFile(void)
 				return (1);
 			if (!it->first.compare("/cgi-bin"))
 				_tempMap[it->first]["server_path"] = _serverExecutionPath;
-			if (!it->first.compare("/") && _checkIp(it->first, _tempMap) == -1)
+			if (!it->first.compare("/") && _checkIpAndServerName(it->first, _tempMap) == -1)
 				return (1);
 		}
 		if (_tempMap.find("/cgi-bin") != _tempMap.end())
@@ -639,10 +639,10 @@ void	ConfigurationFile::_setupMandatory(std::string const &superkey)
 	{
 		if (it->second.find("listen") == it->second.end() || !it->second["listen"].compare("default"))
 			_tempMap["/"]["listen"] = "8080";
-		if (it->second.find("host") == it->second.end() || !it->second["host"].compare("default") || !it->second["host"].compare("localhost"))
+		if (it->second.find("host") == it->second.end() || !it->second["host"].compare("default"))
 			_tempMap["/"]["host"] = "127.0.0.1";
-		if (it->second.find("server_name") == it->second.end() || !it->second["server_name"].compare("default"))
-			_tempMap["/"]["server_name"] = "Webserv_JLC";
+		if (it->second.find("name") == it->second.end() || !it->second["name"].compare("default"))
+			_tempMap["/"]["name"] = "localhost";
 		if (it->second.find("error_page") == it->second.end() || !it->second["error_page"].compare("default"))
 			_tempMap[superkey]["error_page"] = "404 error_pages/404.html";
 	}
@@ -773,7 +773,7 @@ int	ConfigurationFile::_checkKeys(std::string const &name, submap &seccion)
 	{
 		keys.push_back("listen");
 		keys.push_back("host");
-		keys.push_back("server_name");
+		keys.push_back("name");
 		keys.push_back("error_page");
 	}
 	keys.push_back("alias");
@@ -809,7 +809,7 @@ int	ConfigurationFile::_checkKeys(std::string const &name, submap &seccion)
 	return (0);
 }
 
-int	ConfigurationFile::_checkIp(std::string const &key, mainmap &tempMap)
+int	ConfigurationFile::_checkIpAndServerName(std::string const &key, mainmap &tempMap)
 {
 	std::vector<std::string>	split;
 	iter						it;
@@ -829,28 +829,29 @@ int	ConfigurationFile::_checkIp(std::string const &key, mainmap &tempMap)
 			}
 			catch(const std::exception &e)
 			{
-				break ;
+				return (-1);
 			}
 			if (result < 0 || result > 255)
-				break ;
+				return (-1);
+			it++;
 		}
-		if (it == split.end())
-			return (0);
 	}
-	if (_checkWebpage(key, tempMap) == -1)
+	else
+		return (-1);
+	if (_checkServerIp(key, tempMap) == -1)
 		return (-1);
 	return (0);
 }
 
-int	ConfigurationFile::_checkWebpage(std::string const &key, mainmap &tempMap)
+int	ConfigurationFile::_checkServerIp(std::string const &key, mainmap &tempMap)
 {
-	char						buffer[READ_MAX];
+//	char						buffer[READ_MAX];
 	std::vector<std::string>	ips;
-	std::string					ipHostname;
+//	std::string					ipHostname;
 	std::string					ipConfig;
 	iter						it;
 
-	memset(buffer, '\0', sizeof(buffer));
+	/*memset(buffer, '\0', sizeof(buffer));
 	if (gethostname(buffer, sizeof(buffer)) == -1)
 		return (-1);
 	if (_findIp(ips, buffer) == -1)
@@ -860,15 +861,15 @@ int	ConfigurationFile::_checkWebpage(std::string const &key, mainmap &tempMap)
 	{
 		tempMap[key]["host"] = ipHostname;
 		return (0);
-	}
+	}*/
 	ips.clear();
-	if (_findIp(ips, tempMap.find(key)->second.find("host")->second.c_str()) == -1)
+	if (_findIp(ips, tempMap.find(key)->second.find("name")->second.c_str()) == -1)
 		return (-1);
 	it = ips.begin();
 	ipConfig.clear();
 	while (it != ips.end())
 	{
-		if ((!(*it).compare("127.0.0.1")) || (!((*it).compare(ipHostname))))
+		if (!((*it).compare(tempMap.find(key)->second.find("host")->second)))
 		{
 			ipConfig.append((*it));
 			break ;
@@ -877,7 +878,7 @@ int	ConfigurationFile::_checkWebpage(std::string const &key, mainmap &tempMap)
 	}
 	if (ipConfig.empty() == true)
 		return (-1);
-	tempMap[key]["host"] = ipConfig;
+	/*tempMap[key]["host"] = ipConfig;*/
 	return (0);
 }
 

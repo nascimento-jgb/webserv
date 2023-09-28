@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 13:06:16 by jonascim          #+#    #+#             */
-/*   Updated: 2023/09/15 14:53:42 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/28 12:29:08 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -136,7 +136,7 @@ void	Server::setupServer(mainmap &config, size_t &port, submap &cgi, numbermap &
 	_cgi = cgi;
 	_error = error;
 	_host = ft_inet_addr(_config.find("/")->second.find("host")->second);
-	_server_name = _config.find("/")->second.find("server_name")->second;
+	_server_name = _config.find("/")->second.find("name")->second;
 	_root =  _config.find("/")->second.find("root")->second;
 	_index = _config.find("/")->second.find("index")->second;
 	try
