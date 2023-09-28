@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/01 11:30:33 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/28 11:06:08 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/28 15:14:02 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,7 @@ private:
 	int							_checkIpAndServerName(std::string const &key, mainmap &tempMap);
 	int							_checkServerIp(std::string const &key, mainmap &tempMap);
 	int							_findIp(std::vector<std::string> &ips, const char *str);
+	int							_checkBodySize(submap &seccion);
 	int							_checkAmmountValues(void);
 	int							_checkErrorPages(void);
 	int							_checkRepeatedCodes(std::vector<std::string> &split);

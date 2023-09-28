@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/04 17:14:34 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/28 12:43:37 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/28 15:23:56 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -212,6 +212,8 @@ int	ConfigurationFile::_checkInputConfFile(void)
 			if (!it->first.compare("/cgi-bin"))
 				_tempMap[it->first]["server_path"] = _serverExecutionPath;
 			if (!it->first.compare("/") && _checkIpAndServerName(it->first, _tempMap) == -1)
+				return (1);
+			if (_checkBodySize(_tempMap.find(it->first)->second) == -1)
 				return (1);
 		}
 		if (_tempMap.find("/cgi-bin") != _tempMap.end())
@@ -845,23 +847,10 @@ int	ConfigurationFile::_checkIpAndServerName(std::string const &key, mainmap &te
 
 int	ConfigurationFile::_checkServerIp(std::string const &key, mainmap &tempMap)
 {
-//	char						buffer[READ_MAX];
 	std::vector<std::string>	ips;
-//	std::string					ipHostname;
 	std::string					ipConfig;
 	iter						it;
 
-	/*memset(buffer, '\0', sizeof(buffer));
-	if (gethostname(buffer, sizeof(buffer)) == -1)
-		return (-1);
-	if (_findIp(ips, buffer) == -1)
-		return (-1);
-	ipHostname = ips[0];
-	if (!tempMap.find(key)->second.find("host")->second.compare(buffer))
-	{
-		tempMap[key]["host"] = ipHostname;
-		return (0);
-	}*/
 	ips.clear();
 	if (_findIp(ips, tempMap.find(key)->second.find("name")->second.c_str()) == -1)
 		return (-1);
@@ -878,7 +867,6 @@ int	ConfigurationFile::_checkServerIp(std::string const &key, mainmap &tempMap)
 	}
 	if (ipConfig.empty() == true)
 		return (-1);
-	/*tempMap[key]["host"] = ipConfig;*/
 	return (0);
 }
 
@@ -925,6 +913,25 @@ int	ConfigurationFile::_findIp(std::vector<std::string> &ips, const char *str)
 	freeaddrinfo(result);
 	result = NULL;
 	if (ips.size() == 0)
+		return (-1);
+	return (0);
+}
+
+int	ConfigurationFile::_checkBodySize(submap &seccion)
+{
+	int	result;
+
+	if (seccion.find("client_max_body_size") == seccion.end())
+		return (0);
+	try
+	{
+		result = ft_stoi(seccion.find("client_max_body_size")->second);
+	}
+	catch(const std::exception& e)
+	{
+		return (-1);
+	}
+	if (result == 0)
 		return (-1);
 	return (0);
 }
