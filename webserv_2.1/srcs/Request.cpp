@@ -409,6 +409,11 @@ void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap 
 			return ;
 		}
 	}
+	if(invalidHost() == true)
+	{
+		_printRequestErrorMsg("Invalid hostname or IP address", 400);
+		return ;
+	}
 	_bodyType = _checkBodyType();
 	if(_bodyType)
 	{
@@ -589,6 +594,18 @@ int Request::_parseData()
 	return (0);
 }
 
+bool	Request::invalidHost()
+{
+	std::string host = getHeader("Host");
+	std::string confHost = _serverMap.find("/")->second.find("host")->second;
+	std::string confName = _serverMap.find("/")->second.find("name")->second;
+	std::string confPort = _serverMap.find("/")->second.find("listen")->second;
+	if (host == confHost || host == confHost + ":" + confPort
+		|| host == confName || host == confName + ":" + confPort)
+		return false;
+	return true;
+}
+
 void	Request::setBodySize(size_t maxBodySizeFromConfigFile)
 {
 	_maxBodySizeFromConfigFile = maxBodySizeFromConfigFile;
@@ -629,7 +646,6 @@ std::string		Request::getRootErrorPages()
 {
 	return(_rootErrorPages);
 }
-
 
 
 std::string		Request::getBody()

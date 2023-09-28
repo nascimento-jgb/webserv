@@ -102,6 +102,7 @@ class Request
 
 		int				getCode();
 		bool			isFileUpload();
+		bool			invalidHost();
 		size_t			getBodyLen();
 		std::string		getRequestErrorMessage();
 		std::string		getBody();
