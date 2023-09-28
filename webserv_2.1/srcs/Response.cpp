@@ -144,7 +144,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap, std::string &s
 	if(_responseCode == 302)
 	{
     	Error errors;
-		std::cout << "\033[1;31m[" << _responseCode << "][" << errors.getErrorMsg(_responseCode) << "] " << "we redirecting here" << "\033[0m" << std::endl;
+		std::cout << "\033[1;33m[" << _responseCode << "][" << errors.getErrorMsg(_responseCode) << "] " << "we redirecting here" << "\033[0m" << std::endl;
 		_responseString = "HTTP/1.1 302 Redirect\r\nLocation: ";
 		_responseString.append(request.getRelativePath()).append("\r\n\r\n");
 		return ;
@@ -254,7 +254,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap, std::string &s
 				else
 				{
 					std::string message = "upload successful";
-					_responseString = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: "
+					_responseString = "HTTP/1.1 201 OK\r\nContent-Type: text/plain\r\nContent-Length: "
 						+ request.ft_itoa(message.size()) + "\r\nServer: CLJ\r\n\r\n" + message;
 				}
 			}

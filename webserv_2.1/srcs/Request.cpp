@@ -86,18 +86,6 @@ int	Request::_checkValidBodySize()
 		return (1);
 	else
 		return (0);
-
-	//totalsize > ConfigSize. return error
-	//totalSize > header size. return error
-	//totalSize < header size. return 0
-	//totalSize == header size. status code ok and return.
-	// if(_maxBodySizeFromConfigFile < read)
-	// 	return(_printRequestErrorMsg("Request body is larger than accepted size", 413));
-	// if(read > len)
-	// 	return(_printRequestErrorMsg("Request body is too short or missing.", 400));
-	// else if(read < len)
-	// 	return(_printRequestErrorMsg("Request body is too long.", 413));
-	// return(0);
 }
 
 BodyType	Request::_checkBodyType()
@@ -331,7 +319,7 @@ void	Request::_trimString(std::string &temp)
 
 void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap &cgi)
 {
-	//std::cout << "size: " << size << "\nBuffer: " << buffer << std::endl;
+	// std::cout << "size: " << size << "\nBuffer: " << buffer << std::endl;
 	if(_bodyType == CHUNKED)
 	{
 		_rawBody = buffer;
