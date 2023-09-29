@@ -349,6 +349,7 @@ void    Response::printErrorAndSetupCode(std::string msg, int errorCode, numberm
             return ;
     }
     response.clear();
+	msg = ft_itoa(errorCode) + " " + msg;
     response = "HTTP/1.1 " + ft_itoa(errorCode) + " " + errors.getErrorMsg(errorCode);
     response.append("\r\nContent-Type: text/plain\r\nContent-Length: "
         + ft_itoa(msg.size()) + "\r\nServer: CLJ\r\n\r\n" + msg);
