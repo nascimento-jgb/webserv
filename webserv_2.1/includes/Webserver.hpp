@@ -3,33 +3,32 @@
 /*                                                        :::      ::::::::   */
 /*   Webserver.hpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 08:51:04 by jonascim          #+#    #+#             */
-/*   Updated: 2023/09/20 15:00:39 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/29 09:29:45 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef WEBSERV_HPP
 # define WEBSERV_HPP
 
-#define CONNECTION_TIMEOUT 60 //in seconds 219677  218777
-#define CGI_TIMEOUT 5
-#define INET_ADDRSTRLEN 16
-#define MESSAGE_BUFFER 1048576
-#define READ_MAX 4096
-
+#define CONNECTION_TIMEOUT	60
+#define CGI_TIMEOUT			5
+#define INET_ADDRSTRLEN		16
+#define MESSAGE_BUFFER		1048576
+#define READ_MAX			4096
 
 //STL CONTAINERS
+#include <algorithm>
+#include <list>
 #include <map>
 #include <vector>
-#include <list>
-#include <algorithm>
 
 //SOCKET
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
 
 //STREAM
 #include <iostream>
@@ -38,21 +37,20 @@
 #include <string>
 
 //RANDOM INCLUDES
-#include <errno.h>
 #include <signal.h>
-#include <string>
 #include <unistd.h>
+#include <fcntl.h>
+#include <cerrno>
 #include <cstdlib>
 #include <csignal>
 #include <ctime>
 #include <cstring>
-#include <fcntl.h>
+#include <dirent.h>
 #include <utility>
+#include <netdb.h>
+#include <poll.h>
 #include <stdexcept>
 #include <sys/stat.h>
-#include <dirent.h>
-#include <poll.h>
-#include <netdb.h>
 
 typedef std::vector<std::string>::iterator	iter;
 typedef std::map< std::string, std::map<std::string, std::string> >	mainmap;

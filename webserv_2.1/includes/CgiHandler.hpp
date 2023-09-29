@@ -6,7 +6,7 @@
 /*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:34:03 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/19 11:33:28 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/29 09:09:04 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,6 @@ class	CgiHandler
 		int		_getPathInfo(std::string &fullPath, std::string &toWrite);
 		int		_getPathTranslated(std::string &fullPath, std::string &toWrite);
 		int		_createPipes(std::vector<pollfd> &pollFd);
-		pollfd	&_findFdInPoll(const int fd, std::vector<pollfd> &pollFd);
 		void	_addToSetCgi(const int i, std::vector<pollfd> &pollFd, int event);
 		void	_removeFromSetCgi(const int i, std::vector<pollfd> &pollFd);
 		void	_timerCgi(int &status);

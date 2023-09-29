@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 09:36:40 by jonascim          #+#    #+#             */
-/*   Updated: 2023/09/18 14:44:00 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/29 09:10:31 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,13 +61,6 @@ class Client
 		//Methods
 		void				updateTime();
 		void				clearClient();
-
-		//Exceptions
-		class InitializationException : public std::exception
-		{
-			public:
-				virtual const char *what() const throw();
-		};
 };
 
 #endif

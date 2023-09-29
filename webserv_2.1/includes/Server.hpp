@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/25 09:54:01 by jonascim          #+#    #+#             */
-/*   Updated: 2023/09/01 15:21:28 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/29 09:19:09 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,18 +18,18 @@
 class Server
 {
 	private:
-		struct sockaddr_in 			_server_address;
+		struct sockaddr_in 			_serverAddress;
 		uint16_t					_port;
 		in_addr_t					_host;
-		std::string					_server_name;
+		std::string					_serverName;
 		std::string					_root;
 		std::string					_index;
 		mainmap						_config;
 		submap						_cgi;
 		numbermap					_error;
-		unsigned long				_max_body_size;
+		unsigned long				_maxBodySize;
 		bool						_autoindex;
-		int							_listen_fd;
+		int							_listenFd;
 
 	public:
 
@@ -38,16 +38,8 @@ class Server
 		Server(const Server &other);
 		Server &operator=(const Server &other);
 
-		//Setters (needs to wait for Carlos format)
-		void						setServerAddress();
-		void						setPort();
-		void						setHost();
-		void						setServerName();
-		void						setRoot();
-		void						setIndex();
-		void						setMaxBodySize();
-		void						setAutoIndex();
-		void						setListenFd();
+		//Methods
+		void						setupServer(mainmap &config, size_t &port, submap &cgi, numbermap &error);
 
 		//Getters
 		struct sockaddr_in const	&getServerAddress(void) const;
@@ -63,8 +55,6 @@ class Server
 		numbermap					&getErrorMap(void);
 		int							getListenFd(void);
 
-		//Methods
-		void	setupServer(mainmap &config, size_t &port, submap &cgi, numbermap &error);
 };
 
 #endif

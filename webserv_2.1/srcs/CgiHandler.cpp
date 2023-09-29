@@ -6,7 +6,7 @@
 /*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/27 10:33:04 by corellan          #+#    #+#             */
-/*   Updated: 2023/09/28 12:28:45 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/28 16:55:11 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -269,9 +269,9 @@ int	CgiHandler::_fillMap(Request &request)
 		this->_envVariables["REQUEST_METHOD"] = "DELETE";
 	this->_envVariables["GATEWAY_INTERFACE"] = "CGI/1.1";
 	if (_getPathInfo(tempPath, this->_envVariables["PATH_INFO"])) //Come back later
-		return (-1);
+		return (NOPERMISSION);
 	if (_getPathTranslated(tempPath, this->_envVariables["PATH_TRANSLATED"])) // Come back later
-		return (-1);
+		return (NOPERMISSION);
 	this->_envVariables["SCRIPT_FILENAME"] = _pathCgiScript;
 	this->_envVariables["SERVER_NAME"] = request.getServerMap().find("/")->second.find("name")->second;
 	this->_envVariables["SERVER_PORT"] = request.getServerMap().find("/")->second.find("listen")->second;
@@ -302,7 +302,7 @@ int	CgiHandler::_getPathInfo(std::string &fullPath, std::string &toWrite) // I N
 	return (OK);
 }
 
-int	CgiHandler::_getPathTranslated(std::string &fullPath, std::string &toWrite) //I NEED TO COMEBACK TO THIS FUNCTION
+int	CgiHandler::_getPathTranslated(std::string &fullPath, std::string &toWrite)
 {
 	std::string	pre;
 	std::string	post;
@@ -323,11 +323,11 @@ int	CgiHandler::_getPathTranslated(std::string &fullPath, std::string &toWrite) 
 	return (0);
 }
 
-int	CgiHandler::_checkAccess(void) //I NEED TO COMEBACK TO THIS FUNCTION.
+int	CgiHandler::_checkAccess(void)
 {
 	if (!access(this->_path, X_OK) && !access(this->_path, F_OK))
-		return (0);
-	return (-1);
+		return (OK);
+	return (NOPERMISSION);
 }
 
 char	**CgiHandler::_getEnvInChar(void)

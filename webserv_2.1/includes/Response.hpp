@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:58:58 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/18 15:21:45 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/29 09:16:23 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,6 @@ class CgiHandler;
 class Response
 {
 	private:
-		long int			_contentLength;
 		std::string			_contentType;
 		std::string			_httpRes;
 		std::string			_responseString;
@@ -34,6 +33,7 @@ class Response
 		std::string			_relativeServerRoot;
 		std::string			_absoluteServerRoot;
 		int					_responseCode;
+		long int			_contentLength;
 		Mime				_mimes;
 		HttpMethod			_responseMethod;
 
@@ -45,14 +45,14 @@ class Response
 
 		CgiHandler			cgiInstance;
 
-		void				printErrorAndRedirect(std::string msg, int errorCode, numbermap errorMap, std::string &response);
-		int					loadFile(std::string path);
 		void				makeResponse(Request &request, numbermap errorMap, std::string &serverLocation);
+		void				printErrorAndRedirect(std::string msg, int errorCode, numbermap errorMap, std::string &response);
 		void				startCgiResponse(Request& request, std::vector<pollfd> &pollFd, numbermap &errorMap);
 		void				finishCgiResponse(Request& request, std::vector<pollfd> &pollFd, numbermap &errorMap);
+		bool				fileExists (const std::string& f);
+		int					loadFile(std::string path);
 		int	 				saveImageToFile(const std::string& filename, const std::string& imageData);
 		void 				clearResponse();
-		bool				fileExists (const std::string& f);
 
 		std::string const	getResponseString(void) const;
 		std::string const	getCgiResponseString(void) const;

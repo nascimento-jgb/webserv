@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerManager.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/09 11:26:08 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/19 11:37:18 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/28 18:13:42 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -238,14 +238,14 @@ void	ServerManager::_writeToClient(const int fd, Client &client)
 	if (client.getCgiFlag() == 1)
 	{
 		sentBytes = send(fd, client.response.getCgiResponseString().data(), client.response.getCgiResponseString().size(), 0);
-
-		if (sentBytes == -1) {
+		if (sentBytes == -1) 
 			std::cout << "webserv: Error sending CGI response to client " << fd << ": " << strerror(errno) << std::endl;
-		} else if (sentBytes == 0) {
+		else if (sentBytes == 0) 
+		{
 			std::cout << "webserv: Client " << fd << " closed connection." << std::endl;
 			client.clearClient();
 			_closeConnection(fd);
-			return;
+			return ;
 		}
 		client.setCgiFlag(0);
 	}
@@ -253,9 +253,10 @@ void	ServerManager::_writeToClient(const int fd, Client &client)
 	{
 		sentBytes = send(fd, client.response.getResponseString().data(), client.response.getResponseString().size(), 0);
 
-		if (sentBytes == -1) {
+		if (sentBytes == -1) 
 			std::cout << "webserv: Error sending response to client " << fd << ": " << strerror(errno) << std::endl;
-		} else if (sentBytes == 0) {
+		else if (sentBytes == 0) 
+		{
 			std::cout << "webserv: Client " << fd << " closed connection." << std::endl;
 			client.clearClient();
 			_closeConnection(fd);

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Error.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/25 16:40:30 by leklund           #+#    #+#             */
-/*   Updated: 2023/08/24 07:10:56 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/28 17:04:17 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,9 +79,9 @@ Error::Error()
 
 Error::~Error() {}
 
-std::string Error::getErrorMsg(int error_value)
+std::string Error::getErrorMsg(int errorValue)
 {
-	std::map<int, std::string>::iterator it = _errors.find(error_value);
+	std::map<int, std::string>::iterator it = _errors.find(errorValue);
 	if(it != _errors.end())
 		return it->second;
 	return "ERROR no string";

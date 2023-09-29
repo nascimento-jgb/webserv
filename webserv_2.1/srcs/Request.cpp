@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/25 10:24:25 by jonascim          #+#    #+#             */
-/*   Updated: 2023/09/27 19:04:53 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/29 09:01:36 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,13 +30,13 @@ Request::Request(Request const &other)
 		_bodyStr = other._bodyStr;
 		_fileData = other._fileData;
 		_targetfile = other._targetfile;
-		_request_path = other._request_path;
+		_requestPath = other._requestPath;
 		_query = other._query;
 		_filename = other._filename;
 		_location = other._location;
 		_httpmethod = other._httpmethod;
 		_bodyType = other._bodyType;
-		_header_max_body_len = other._header_max_body_len;
+		_headerMaxBodyLen = other._headerMaxBodyLen;
 		_totalBodySize = other._totalBodySize;
 		_maxBodySizeFromConfigFile = other._maxBodySizeFromConfigFile;
 		_isBoundary = other._isBoundary;
@@ -55,13 +55,13 @@ Request &Request::operator=(Request const &other)
 		_bodyStr = other._bodyStr;
 		_fileData = other._fileData;
 		_targetfile = other._targetfile;
-		_request_path = other._request_path;
+		_requestPath = other._requestPath;
 		_query = other._query;
 		_filename = other._filename;
 		_location = other._location;
 		_httpmethod = other._httpmethod;
 		_bodyType = other._bodyType;
-		_header_max_body_len = other._header_max_body_len;
+		_headerMaxBodyLen = other._headerMaxBodyLen;
 		_totalBodySize = other._totalBodySize;
 		_maxBodySizeFromConfigFile = other._maxBodySizeFromConfigFile;
 		_isBoundary = other._isBoundary;
@@ -83,12 +83,12 @@ int	Request::_checkValidBodySize()
 	}
 	catch(const std::exception& e)
 	{
-		return(_printRequestErrorMsg("Invalid bodysize header convertion", 400));
+		return (_printRequestErrorMsg("Invalid bodysize header convertion", 400));
 	}
 	if(_totalBodySize > _maxBodySizeFromConfigFile)
-		return(_printRequestErrorMsg("Request body is larger than accepted size", 413));
+		return (_printRequestErrorMsg("Request body is larger than accepted size", 413));
 	else if(_totalBodySize > headerSize)
-		return(_printRequestErrorMsg("Request body is too long.", 413));
+		return (_printRequestErrorMsg("Request body is too long.", 413));
 	else if(_totalBodySize < headerSize)
 		return (1);
 	else
@@ -100,12 +100,12 @@ BodyType	Request::_checkBodyType()
 	_isBoundary = false;
 	if(HTTPMap.count("transfer-encoding"))
 	{
-		if(_httpmethod == GET)
+		if (_httpmethod == GET)
 		{
 			_printRequestErrorMsg("GET does not allow body", 400);
-			return(INVALID);
+			return (INVALID);
 		}
-		if(HTTPMap["transfer-encoding"].find("chunked") != std::string::npos)
+		if (HTTPMap["transfer-encoding"].find("chunked") != std::string::npos)
 		{
 			if(getHeader("content-type").find("multipart/form-data") != std::string::npos)
 				_isBoundary = true;
@@ -114,17 +114,17 @@ BodyType	Request::_checkBodyType()
 		else
 		{
 			_printRequestErrorMsg("we dont handle this encoding", 501);
-			return(INVALID);
+			return (INVALID);
 		}
 	}
-	else if(HTTPMap.count("content-type") && HTTPMap.count("content-length"))
+	else if ( HTTPMap.count("content-type") && HTTPMap.count("content-length"))
 	{
-		if(_httpmethod == GET)
+		if (_httpmethod == GET)
 		{
 			_printRequestErrorMsg("GET does not allow body", 400);
-			return(INVALID);
+			return (INVALID);
 		}
-		if(getHeader("content-type").find("multipart/form-data") != std::string::npos)
+		if (getHeader("content-type").find("multipart/form-data") != std::string::npos)
 			_isBoundary = true;
 		return (PLAIN);
 	}
@@ -134,7 +134,7 @@ BodyType	Request::_checkBodyType()
 
 int Request::_saveQuery(std::string line, int i)
 {
-	while(line[i] && line[i] != ' ' && line[i] != '\t')
+	while (line[i] && line[i] != ' ' && line[i] != '\t')
 	{
 		_query += line[i];
 		i++;
@@ -147,14 +147,15 @@ int Request::_saveQuery(std::string line, int i)
 int	Request::_checkHeaders(std::string &key, std::string &value)
 {
 	unsigned int i = 0;
-	for(i = 0; i < key.length(); i++)
+
+	for (i = 0; i < key.length(); i++)
 	{
 		if(!((key[i] >= 33 && key[i] <= 39) || isalnum(key[i]) || (key[i] >= 42 && key[i] <= 46) || (key[i] >= 94 && key[i] <= 96) || key[i] == 124 ||  key[i] == 126))
 		{
-			return(_printRequestErrorMsg("Invalid header key", 400));
+			return (_printRequestErrorMsg("Invalid header key", 400));
 		}
 	}
-	while(i > 0 && key[i] == ' ')
+	while (i > 0 && key[i] == ' ')
 	{
 		i--;
 	}
@@ -166,15 +167,15 @@ int	Request::_checkHeaders(std::string &key, std::string &value)
 	}
 	value = value.substr(i, value.length());
 	i = 0;
-	for(i = 0; i < value.length(); i++)
+	for (i = 0; i < value.length(); i++)
 	{
 		if(value[i] == 127)
 		{
-			return(_printRequestErrorMsg("Invaid header value", 400));
+			return (_printRequestErrorMsg("Invaid header value", 400));
 		}
 	}
-	if(value[value.length() - 1] != '\r')
-		return(_printRequestErrorMsg("Invalid header value: newline characters are not allowed in the middle of a header field value.", 400));
+	if (value[value.length() - 1] != '\r')
+		return (_printRequestErrorMsg("Invalid header value: newline characters are not allowed in the middle of a header field value.", 400));
 	else
 		value = value.substr(0,value.length() - 1);
 	return (0);
@@ -190,76 +191,77 @@ int Request::_validChar(int c)
 
 int Request::_validHttp(std::string line)
 {
-	if(line.compare("HTTP/1.1\r"))
-		return(_printRequestErrorMsg("Invalid HTTP request", 505));
+	if (line.compare("HTTP/1.1\r"))
+		return (_printRequestErrorMsg("Invalid HTTP request", 505));
 	return (0);
 }
 
 int Request::_checkUri(std::string line)
 {
 	int i = 0;
-	if(!line.compare(0, 1, "/"))
+
+	if (!line.compare(0, 1, "/"))
 	{
-		_request_path += line[i];
+		_requestPath += line[i];
 		i++;
-		while(line[i] && line[i] != ' ' && line[i] != '\t')
+		while (line[i] && line[i] != ' ' && line[i] != '\t')
 		{
-			if(_validChar(line[i]))
-				_request_path += line[i];
+			if (_validChar(line[i]))
+				_requestPath += line[i];
 			else
 			{
-				if(line[i] == '?')
+				if (line[i] == '?')
 				{
 					_query += line[i];
 					i++;
 					i = _saveQuery(line, i);
-					break;
+					break ;
 				}
-				if(line[i] != '%' || !line[i+1] || !line[i+2] || !std::isxdigit(line[i+1]) || !std::isxdigit(line[i+2]))
+				if (line[i] != '%' || !line[i+1] || !line[i+2] || !std::isxdigit(line[i+1]) || !std::isxdigit(line[i+2]))
 				{
-					return(_printRequestErrorMsg("Invalid chars in URI", 400));
+					return (_printRequestErrorMsg("Invalid chars in URI", 400));
 				}
 				else
 				{
-					_request_path += fromHexToDec(line.substr(i+1, 2));
+					_requestPath += fromHexToDec(line.substr(i+1, 2));
 					i += 2;
 				}
 			}
 			i++;
 		}
-		if(!line[i] || line[i] == '\t')
+		if (!line[i] || line[i] == '\t')
 			return (1);
-		return(_validHttp(line.substr(i+1)));
+		return (_validHttp(line.substr(i+1)));
 	}
-	return(_printRequestErrorMsg("Invalid request", 400));
+	return (_printRequestErrorMsg("Invalid request", 400));
 }
 
 
 HttpMethod Request::_checkMethod(std::string line)
 {
 	std::cout << "\n\n=============================================\n" << line << std::endl;
-	if(!line.compare(0, 4, "GET "))
+	if (!line.compare(0, 4, "GET "))
 	{
-		if(_checkUri(line.substr(4)))
+		if (_checkUri(line.substr(4)))
 			return(UNKNOWN);
 		return (GET);
 	}
-	else if(!line.compare(0, 5, "POST "))
+	else if (!line.compare(0, 5, "POST "))
 	{
-		if(_checkUri(line.substr(5)))
-			return(UNKNOWN);
+		if (_checkUri(line.substr(5)))
+			return (UNKNOWN);
 		return (POST);
 	}
-	else if(!line.compare(0, 7, "DELETE "))
+	else if (!line.compare(0, 7, "DELETE "))
 	{
-		if(_checkUri(line.substr(7)))
-			return(UNKNOWN);
+		if (_checkUri(line.substr(7)))
+			return (UNKNOWN);
 		return (DELETE);
 	}
 	else
 	{
 		_printRequestErrorMsg("We dont support this Method", 405);
-		return(UNKNOWN);
+		return (UNKNOWN);
 	}
 }
 
@@ -268,12 +270,12 @@ void	Request::_findLocationMap(mainmap &config)
 	std::string			temp;
 	mainmap::iterator	it;
 
-	if (_request_path.size() == 0)
+	if (_requestPath.size() == 0)
 	{
 		_location = "/";
 		return ;
 	}
-	temp = _request_path;
+	temp = _requestPath;
 	while (1)
 	{
 		it = config.find(temp);
@@ -286,7 +288,7 @@ void	Request::_findLocationMap(mainmap &config)
 	return ;
 }
 
-int	Request::_checkMethodInLocation(void)
+int	Request::_checkMethodInLocation()
 {
 	std::string	placeholder;
 
@@ -326,8 +328,7 @@ void	Request::_trimString(std::string &temp)
 
 void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap &cgi)
 {
-	// std::cout << "size: " << size << "\nBuffer: " << buffer << std::endl;
-	if(_bodyType == CHUNKED)
+	if (_bodyType == CHUNKED)
 	{
 		_rawBody = buffer;
 		if(_chunkedBodySave(size))
@@ -336,7 +337,7 @@ void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap 
 			_parseData();
 		return ;
 	}
-	else if(_bodyType == PLAIN)
+	else if (_bodyType == PLAIN)
 	{
 		_rawBody.append(buffer);
 		_totalBodySize += size;
@@ -365,7 +366,7 @@ void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap 
 	_configMap = config.find(_location)->second;
 	_rootRequest = _configMap.find("root")->second;
 	_rootErrorPages = config.find("/")->second.find("root")->second;
-	if(_httpmethod == UNKNOWN)
+	if (_httpmethod == UNKNOWN)
 		return ;
 	if (!_location.compare("/cgi-bin"))
 		setRequestStatus(CGI);
@@ -373,23 +374,23 @@ void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap 
 		return ;
 
 
-	if(_configMap.find("return") != _configMap.end())
+	if (_configMap.find("return") != _configMap.end())
 	{
-		_request_path = _rootRequest + "/" + _configMap.find("return")->second;
-		_relativePathRequest = absoluteToRelativePath(_rootRequest, _request_path);
+		_requestPath = _rootRequest + "/" + _configMap.find("return")->second;
+		_relativePathRequest = absoluteToRelativePath(_rootRequest, _requestPath);
 		_requestCode = 302;
 		return ;
 	}
-	else if(_configMap.find("alias") != _configMap.end())
+	else if (_configMap.find("alias") != _configMap.end())
 	{
-		_request_path = _request_path.substr(_location.length());
-		_request_path = _configMap.find("path")->second + _request_path;
-		_relativePathRequest = absoluteToRelativePath(_rootRequest, _request_path);
+		_requestPath = _requestPath.substr(_location.length());
+		_requestPath = _configMap.find("path")->second + _requestPath;
+		_relativePathRequest = absoluteToRelativePath(_rootRequest, _requestPath);
 	}
-	else if(_configMap.find("root") != _configMap.end())
+	else if (_configMap.find("root") != _configMap.end())
 	{
-		_request_path = _rootRequest + _request_path;
-		_relativePathRequest = absoluteToRelativePath(_rootRequest, _request_path);
+		_requestPath = _rootRequest + _requestPath;
+		_relativePathRequest = absoluteToRelativePath(_rootRequest, _requestPath);
 	}
 
 	//goes trough each headerline
@@ -399,14 +400,14 @@ void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap 
 		std::istringstream lineStream(line);
 		std::string key;
 		std::string value;
-		if(std::getline(lineStream, key,':') && std::getline(lineStream, value))
+		if (std::getline(lineStream, key,':') && std::getline(lineStream, value))
 		{
-			if(_checkHeaders(key, value))
+			if (_checkHeaders(key, value))
 				return ;
-			to_lower(key);
+			toLower(key);
 			HTTPMap.insert(std::pair<std::string, std::string>(key, value));
 		}
-		else if(line == "\r")
+		else if (line == "\r")
 		{
 			break;
 		}
@@ -417,29 +418,29 @@ void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap 
 		}
 	}
 	_bodyType = _checkBodyType();
-	if(_bodyType)
+	if (_bodyType)
 	{
-		if(_bodyType == INVALID)
+		if (_bodyType == INVALID)
 			return ;
 		std::string content;
 		std::streampos pos = iss.tellg();
 		int tot = static_cast<int>(pos);
 		_totalBodySize = size - tot;
 		_rawBody = buffer.substr(tot);
-		if(_bodyType == PLAIN)
+		if (_bodyType == PLAIN)
 		{
-			if(_checkValidBodySize())
+			if (_checkValidBodySize())
 				return ;
 			_plainBodySave(_totalBodySize);
 			_requestCode = 200;
-			if(_isBoundary && _parseData() == -1)
+			if (_isBoundary && _parseData() == -1)
 				return ;
 		}
 		else
 		{
-			if(_chunkedBodySave(_totalBodySize))
+			if (_chunkedBodySave(_totalBodySize))
 				return ;
-			if(_isBoundary && !_bodyType)
+			if (_isBoundary && !_bodyType)
 				_parseData();
 			return ;
 
@@ -448,25 +449,25 @@ void	Request::parseCreate(std::string buffer, int size, mainmap &config, submap 
 	_requestCode = 200;
 }
 
-int Request::_chunkedBodySave(int body_size)
+int Request::_chunkedBodySave(int bodySize)
 {
-
 	int i = 0;
-	std::string chunking;
 	int	chunk = 0;
-	while(i < body_size)
+	std::string chunking;
+
+	while (i < bodySize)
 	{
-		if(!std::isxdigit(_rawBody[i]))
+		if (!std::isxdigit(_rawBody[i]))
 		{
-			if(_rawBody[i] != '\r' && i+1 < body_size && _rawBody[i+1] != '\n')
+			if (_rawBody[i] != '\r' && i+1 < bodySize && _rawBody[i+1] != '\n')
 				return (_printRequestErrorMsg("badly formated chunked-data", 422));
 			else
 			{
 				i += 2;
-				if(chunking == "0")
+				if (chunking == "0")
 					break ;
 				chunk = fromHexToDec(chunking);
-				while(chunk && i < body_size)
+				while (chunk && i < bodySize)
 				{
 					chunk--;
 					_bodyVector.push_back(_rawBody[i]);
@@ -481,7 +482,7 @@ int Request::_chunkedBodySave(int body_size)
 			chunking += _rawBody[i];
 		i++;
 	}
-	if(chunking == "0")
+	if (chunking == "0")
 	{
 		_bodyStr = std::string(_bodyVector.begin(), _bodyVector.end());
 		_bodyType = NONE;
@@ -503,7 +504,7 @@ std::string Request::_removeBoundary(std::string &body, std::string &boundary)
 		for (size_t i = 0; i < body.size(); i++)
 		{
 			buffer.clear();
-			while(body[i] != '\n')
+			while (body[i] != '\n')
 			{
 				buffer += body[i];
 				i++;
@@ -567,10 +568,10 @@ std::string Request::_removeBoundary(std::string &body, std::string &boundary)
 	return (uploadData);
 }
 
-int Request::_plainBodySave(int body_size)
+int Request::_plainBodySave(int bodySize)
 {
 	_bodyVector.clear();
-	_bodyVector.resize(body_size);
+	_bodyVector.resize(bodySize);
 	for (unsigned int i = 0; i < _bodyVector.size(); i++)
 	{
 		_bodyVector[i] = _rawBody[i];
@@ -582,16 +583,16 @@ int Request::_plainBodySave(int body_size)
 int Request::_parseData()
 {
 	std::string boundary = getHeader("content-type");
-
 	int tmp = boundary.find("--");
-	if(tmp == -1)
+
+	if (tmp == -1)
 	{
 		_printRequestErrorMsg("No boundary", 400);
 		return (-1);
 	}
 	boundary = boundary.substr(tmp);
 	_fileData = _removeBoundary(_bodyStr, boundary);
-	if(_fileData.empty())
+	if (_fileData.empty())
 		return (-1);
 	return (0);
 }
@@ -667,7 +668,7 @@ std::string	Request::getQuery()
 
 std::string	Request::getPath()
 {
-	return(_request_path);
+	return(_requestPath);
 }
 
 std::string	Request::getLocation() const
@@ -708,7 +709,7 @@ submap	Request::getCgiMap()
 std::string Request::getHeader(std::string header)
 {
 	std::string header_lower = header;
-	to_lower(header_lower);
+	toLower(header_lower);
 	if(HTTPMap.count(header_lower))
 		return (HTTPMap[header_lower]);
 	return("");
@@ -724,12 +725,11 @@ size_t	Request::getBodyLen(void)
 	return(_totalBodySize);
 }
 
-int	Request::_printRequestErrorMsg(std::string msg, int error_code)
+int	Request::_printRequestErrorMsg(std::string msg, int errorCode)
 {
-	Error errors;
-	_requestCode = error_code;
+	_requestCode = errorCode;
 	_requestErrorMessage = msg;
-	return(error_code);
+	return (errorCode);
 }
 
 std::string	Request::ft_itoa(int integer)
@@ -746,7 +746,7 @@ void Request::clearRequest()
 	_bodyStr.clear();
 	_fileData.clear();
 	_targetfile.clear();
-	_request_path.clear();
+	_requestPath.clear();
 	_query.clear();
 	_filename.clear();
 	_location.clear();
@@ -754,7 +754,7 @@ void Request::clearRequest()
 	_httpmethod = UNKNOWN;
 	_bodyType = NONE;
 
-	_header_max_body_len = 0;
+	_headerMaxBodyLen = 0;
 	_totalBodySize = 0;
 	_maxBodySizeFromConfigFile = 0;
 	_isBoundary = false;

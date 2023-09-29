@@ -45,7 +45,7 @@ unsigned int	fromHexToDec(const std::string& nb)
 	return (x);
 }
 
-void	to_lower(std::string &str)
+void	toLower(std::string &str)
 {
 	for (unsigned int i = 0; i < str.length(); i++)
 	{
