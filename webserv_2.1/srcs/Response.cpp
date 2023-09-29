@@ -58,7 +58,6 @@ void	Response::startCgiResponse(Request& request, std::vector<pollfd> &pollFd, n
 
 	_rootErrorPages = request.getRootErrorPages();
 	returnValue = cgiInstance.cgiInitialization(request, pollFd);
-	std::cout << returnValue << std::endl;
 	switch (returnValue)
 	{
 		case NOTFOUND:
@@ -180,7 +179,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap, std::string &s
 							indexPath = path+"/"+request.getConfigMap().find("index")->second;
 						else
 							indexPath = request.getConfigMap().find("index")->second;
-						if (!loadFile(indexPath))
+						if (!loadFile(indexPath, _responseString))
 							_responseString.clear();
 						else
 							return ;
@@ -336,26 +335,26 @@ void Response::clearResponse()
 
 
 
-void	Response::printErrorAndRedirect(std::string msg, int errorCode, numbermap errorMap, std::string &response)
+void    Response::printErrorAndRedirect(std::string msg, int errorCode, numbermap errorMap, std::string &response)
 {
-	Error errors;
+    Error errors;
 
-	_responseCode = errorCode;
-	std::cout << "\033[1;31m[" << errorCode << "][" << errors.getErrorMsg(errorCode) << "] " << msg << "\033[0m" << std::endl;
-	response = "HTTP/1.1 302 Redirect\r\nLocation: ";
+    _responseCode = errorCode;
+    std::cout << "\033[1;31m[" << errorCode << "][" << errors.getErrorMsg(errorCode) << "] " << msg << "\033[0m" << std::endl;
+    response = "HTTP/1.1 " + ft_itoa(errorCode) + " " + errors.getErrorMsg(errorCode);
 
-	if (errorMap.find(errorCode) != errorMap.end() && _responseMethod != POST && _responseMethod != DELETE)
-	{
-		response.append(absoluteToRelativePath(_rootErrorPages, errorMap.find(errorCode)->second)).append("\r\n\r\n");
-		return ;
-	}
-	response.clear();
-	response = "HTTP/1.1 " + ft_itoa(errorCode) + " " + errors.getErrorMsg(errorCode);
-	response.append("\r\nContent-Type: text/plain\r\nContent-Length: "
-		+ ft_itoa(msg.size()) + "\r\nServer: CLJ\r\n\r\n" + msg);
+    if (errorMap.find(errorCode) != errorMap.end() && _responseMethod != POST && _responseMethod != DELETE)
+    {
+        if (loadFile(errorMap.find(errorCode)->second, response))
+            return ;
+    }
+    response.clear();
+    response = "HTTP/1.1 " + ft_itoa(errorCode) + " " + errors.getErrorMsg(errorCode);
+    response.append("\r\nContent-Type: text/plain\r\nContent-Length: "
+        + ft_itoa(msg.size()) + "\r\nServer: CLJ\r\n\r\n" + msg);
 }
 
-int	Response::loadFile(std::string path)
+int	Response::loadFile(std::string path, std::string &response)
 {
 	if (path.empty())
 		return (0);
@@ -367,10 +366,10 @@ int	Response::loadFile(std::string path)
 	buffer << file.rdbuf();
 	std::string fileContents = buffer.str();
 
-	_responseString.append("\r\nContent-Type: ");
-	_responseString.append(_mimes.getMimeType(path));
-	_responseString.append("\r\nContent-Length: ");
-	_responseString.append(ft_itoa(fileContents.size()) + "\r\n\r\n" + fileContents);
+	response.append("\r\nContent-Type: ");
+	response.append(_mimes.getMimeType(path));
+	response.append("\r\nContent-Length: ");
+	response.append(ft_itoa(fileContents.size()) + "\r\n\r\n" + fileContents);
 	file.close();
 	return (1);
 }

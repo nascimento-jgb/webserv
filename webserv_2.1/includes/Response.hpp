@@ -50,7 +50,7 @@ class Response
 		void				startCgiResponse(Request& request, std::vector<pollfd> &pollFd, numbermap &errorMap);
 		void				finishCgiResponse(Request& request, std::vector<pollfd> &pollFd, numbermap &errorMap);
 		bool				fileExists (const std::string& f);
-		int					loadFile(std::string path);
+		int					loadFile(std::string path, std::string &response);
 		int	 				saveImageToFile(const std::string& filename, const std::string& imageData);
 		void 				clearResponse();
 
