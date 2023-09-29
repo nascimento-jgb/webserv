@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/23 06:58:58 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/29 09:16:23 by jonascim         ###   ########.fr       */
+/*   Updated: 2023/09/29 10:29:35 by corellan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,7 @@ class Response
 		CgiHandler			cgiInstance;
 
 		void				makeResponse(Request &request, numbermap errorMap, std::string &serverLocation);
-		void				printErrorAndRedirect(std::string msg, int errorCode, numbermap errorMap, std::string &response);
+		void				printErrorAndSetupCode(std::string msg, int errorCode, numbermap errorMap, std::string &response);
 		void				startCgiResponse(Request& request, std::vector<pollfd> &pollFd, numbermap &errorMap);
 		void				finishCgiResponse(Request& request, std::vector<pollfd> &pollFd, numbermap &errorMap);
 		bool				fileExists (const std::string& f);

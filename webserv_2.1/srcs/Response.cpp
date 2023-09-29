@@ -62,27 +62,27 @@ void	Response::startCgiResponse(Request& request, std::vector<pollfd> &pollFd, n
 	{
 		case NOTFOUND:
 		{
-			printErrorAndRedirect("PATH NOT FOUND", 404, errorMap, _responseCgiString);
+			printErrorAndSetupCode("PATH NOT FOUND", 404, errorMap, _responseCgiString);
 			break ;
 		}
 		case NOPERMISSION:
 		{
-			printErrorAndRedirect("PERMISSION DENIED", 403, errorMap, _responseCgiString);
+			printErrorAndSetupCode("PERMISSION DENIED", 403, errorMap, _responseCgiString);
 			break ;
 		}
 		case UNKNOWNMETHOD:
 		{
-			printErrorAndRedirect("UNKNOWN METHOD", 405, errorMap, _responseCgiString);
+			printErrorAndSetupCode("UNKNOWN METHOD", 405, errorMap, _responseCgiString);
 			break ;
 		}
 		case SERVERERROR:
 		{
-			printErrorAndRedirect("INTERNAL SERVER ERROR", 500, errorMap, _responseCgiString);
+			printErrorAndSetupCode("INTERNAL SERVER ERROR", 500, errorMap, _responseCgiString);
 			break ;
 		}
 		case NOTIMPLEMENTED:
 		{
-			printErrorAndRedirect("NOT IMPLEMENTED", 501, errorMap, _responseCgiString);
+			printErrorAndSetupCode("NOT IMPLEMENTED", 501, errorMap, _responseCgiString);
 			break ;
 		}
 		case OK:
@@ -91,7 +91,7 @@ void	Response::startCgiResponse(Request& request, std::vector<pollfd> &pollFd, n
 		}
 		default:
 		{
-			printErrorAndRedirect("TEAPOT", 418, errorMap, _responseCgiString);
+			printErrorAndSetupCode("TEAPOT", 418, errorMap, _responseCgiString);
 			break;
 		}
 	}
@@ -110,7 +110,7 @@ void	Response::finishCgiResponse(Request& request, std::vector<pollfd> &pollFd, 
 	{
 		case SERVERERROR:
 		{
-			printErrorAndRedirect("INTERNAL SERVER ERROR", 500, errorMap, _responseCgiString);
+			printErrorAndSetupCode("INTERNAL SERVER ERROR", 500, errorMap, _responseCgiString);
 			break ;
 		}
 		case OK:
@@ -120,12 +120,12 @@ void	Response::finishCgiResponse(Request& request, std::vector<pollfd> &pollFd, 
 				_responseCgiString = status + mimes + "\r\nContent-Length: " + \
 					ft_itoa(message.size()) + "\r\n\r\n" + message;
 			else //This else resolves when it fails the recognition of Content-Type seccion in the header of the CGI response.
-				printErrorAndRedirect("OUTPUT WITH INCORRECT FORMAT", 500, errorMap, _responseCgiString);
+				printErrorAndSetupCode("OUTPUT WITH INCORRECT FORMAT", 500, errorMap, _responseCgiString);
 			break ;
 		}
 		default:
 		{
-			printErrorAndRedirect("TEAPOT", 418, errorMap, _responseCgiString);
+			printErrorAndSetupCode("TEAPOT", 418, errorMap, _responseCgiString);
 			break;
 		}
 	}
@@ -152,7 +152,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap, std::string &s
 	}
 	if (_responseCode >= 400)
 	{
-		printErrorAndRedirect(request.getRequestErrorMessage(), _responseCode, errorMap, _responseString);
+		printErrorAndSetupCode(request.getRequestErrorMessage(), _responseCode, errorMap, _responseString);
 		return ;
 	}
 	if (request.getMethod() == GET)
@@ -188,7 +188,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap, std::string &s
 					struct dirent	*entry;
 					if ((tmp = opendir(path.c_str())) == NULL || request.getConfigMap().find("autoindex")->second.find("on") == std::string::npos)
 					{
-						printErrorAndRedirect("Error", 404, errorMap, _responseString);
+						printErrorAndSetupCode("Error", 404, errorMap, _responseString);
 						return ;
 					}
 					std::string message;
@@ -210,7 +210,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap, std::string &s
 					std::ifstream file(path.c_str());
 					if (file.bad())
 					{
-						printErrorAndRedirect("File not found", 404, errorMap, _responseString);
+						printErrorAndSetupCode("File not found", 404, errorMap, _responseString);
 						return ;
 					}
 					else
@@ -230,7 +230,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap, std::string &s
 			}
 			else
 			{
-				printErrorAndRedirect("path not found", 404, errorMap, _responseString);
+				printErrorAndSetupCode("path not found", 404, errorMap, _responseString);
 				return ;
 			}
 		}
@@ -241,7 +241,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap, std::string &s
 		{
 			if (_mimes.getMimeType(request.getFileName()) == "text/html")
 			{
-				printErrorAndRedirect("Sorry we do not allow user to POST Html files", 400, errorMap, _responseString);
+				printErrorAndSetupCode("Sorry we do not allow user to POST Html files", 400, errorMap, _responseString);
 				return ;
 			}
 			else
@@ -251,7 +251,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap, std::string &s
 				pathAndSource.append(request.getFileName());
 				pathAndSource = pathAndSource.substr(1, pathAndSource.length());
 				if (saveImageToFile(pathAndSource, request.getImageData()))
-					printErrorAndRedirect("Failed to save the File.", 400, errorMap, _responseString);
+					printErrorAndSetupCode("Failed to save the File.", 400, errorMap, _responseString);
 				else
 				{
 					std::string message = "upload successful";
@@ -261,7 +261,7 @@ void	Response::makeResponse(Request& request, numbermap errorMap, std::string &s
 			}
 		}
 		else
-			printErrorAndRedirect("Error in POST body.", 400, errorMap, _responseString);
+			printErrorAndSetupCode("Error in POST body.", 400, errorMap, _responseString);
 	}
 	else if (request.getMethod() == DELETE)
 	{
@@ -335,7 +335,7 @@ void Response::clearResponse()
 
 
 
-void    Response::printErrorAndRedirect(std::string msg, int errorCode, numbermap errorMap, std::string &response)
+void    Response::printErrorAndSetupCode(std::string msg, int errorCode, numbermap errorMap, std::string &response)
 {
     Error errors;
 
