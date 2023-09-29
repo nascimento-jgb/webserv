@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/25 10:24:25 by jonascim          #+#    #+#             */
-/*   Updated: 2023/09/28 17:40:59 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/29 09:01:36 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -727,8 +727,6 @@ size_t	Request::getBodyLen(void)
 
 int	Request::_printRequestErrorMsg(std::string msg, int errorCode)
 {
-	Error errors; //DO WE NEED THIS CLASS DECLARATION?
-
 	_requestCode = errorCode;
 	_requestErrorMessage = msg;
 	return (errorCode);

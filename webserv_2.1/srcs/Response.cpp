@@ -1,13 +1,13 @@
 /* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Response.cpp                                       :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/07/23 06:58:47 by leklund           #+#    #+#             */
-/*   Updated: 2023/09/28 18:11:43 by corellan         ###   ########.fr       */
-/*                                                                            */
+/*																			*/
+/*														:::	  ::::::::   */
+/*   Response.cpp									   :+:	  :+:	:+:   */
+/*													+:+ +:+		 +:+	 */
+/*   By: jonascim <jonascim@student.hive.fi>		+#+  +:+	   +#+		*/
+/*												+#+#+#+#+#+   +#+		   */
+/*   Created: 2023/07/23 06:58:47 by leklund		   #+#	#+#			 */
+/*   Updated: 2023/09/29 09:02:43 by jonascim		 ###   ########.fr	   */
+/*																			*/
 /* ************************************************************************** */
 
 #include "../includes/Response.hpp"
@@ -135,6 +135,8 @@ void	Response::finishCgiResponse(Request& request, std::vector<pollfd> &pollFd, 
 
 void	Response::makeResponse(Request& request, numbermap errorMap, std::string &serverLocation)
 {
+	Error	errors;
+
 	_responseCode = request.getCode();
 	_rootErrorPages = request.getRootErrorPages();
 	_responseMethod = request.getMethod();
@@ -144,7 +146,6 @@ void	Response::makeResponse(Request& request, numbermap errorMap, std::string &s
 
 	if (_responseCode == 302)
 	{
-    	Error errors;
 		std::cout << "\033[1;33m[" << _responseCode << "][" << errors.getErrorMsg(_responseCode) << "] " << "we redirecting here" << "\033[0m" << std::endl;
 		_responseString = "HTTP/1.1 302 Redirect\r\nLocation: ";
 		_responseString.append(request.getRelativePath()).append("\r\n\r\n");
@@ -174,7 +175,6 @@ void	Response::makeResponse(Request& request, numbermap errorMap, std::string &s
 					if (request.getConfigMap().find("index") != request.getConfigMap().end())
 					{
 						std::string indexPath;
-						Error errors;
 						_responseString = "HTTP/1.1 " + ft_itoa(_responseCode) + " " + errors.getErrorMsg(_responseCode);
 						if (path != "/")
 							indexPath = path+"/"+request.getConfigMap().find("index")->second;
@@ -270,21 +270,21 @@ void	Response::makeResponse(Request& request, numbermap errorMap, std::string &s
 		path = _relativeServerRoot + "/" + absoluteToRelativePath(request.getRoot(), path);
 		path = path.substr(1, request.getPath().size());
 		if (!fileExists(path.c_str()))
-        {
-            _responseCode = 204;
+		{
+			_responseCode = 204;
 			std::string message = "File not found";
 			_responseString = "HTTP/1.1 204 Not Found\r\nContent-Type: text/plain\r\nContent-Length: "
 				+ request.ft_itoa(message.size()) + "\r\nServer: CLJ\r\n\r\n" + message;
-            return ;
-        }
-        if (remove(path.c_str()) != 0 )
-        {
-            _responseCode = 500;
+			return ;
+		}
+		if (remove(path.c_str()) != 0 )
+		{
+			_responseCode = 500;
 			std::string message = "cant remove this file";
 			_responseString = "HTTP/1.1 500 Not Removable\r\nContent-Type: text/plain\r\nContent-Length: "
 				+ request.ft_itoa(message.size()) + "\r\nServer: CLJ\r\n\r\n" + message;
-            return ;
-        }
+			return ;
+		}
 		std::string message = "Delete done";
 			_responseString = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: "
 				+ request.ft_itoa(message.size()) + "\r\nServer: CLJ\r\n\r\n" + message;
@@ -293,8 +293,8 @@ void	Response::makeResponse(Request& request, numbermap errorMap, std::string &s
 }
 bool Response::fileExists(const std::string& f)
 {
-    std::ifstream file(f.c_str());
-    return (file.good());
+	std::ifstream file(f.c_str());
+	return (file.good());
 }
 
 
@@ -336,19 +336,19 @@ void Response::clearResponse()
 
 
 
-void    Response::printErrorAndRedirect(std::string msg, int errorCode, numbermap errorMap, std::string &response)
+void	Response::printErrorAndRedirect(std::string msg, int errorCode, numbermap errorMap, std::string &response)
 {
-    Error errors;
+	Error errors;
 
-    _responseCode = errorCode;
-    std::cout << "\033[1;31m[" << errorCode << "][" << errors.getErrorMsg(errorCode) << "] " << msg << "\033[0m" << std::endl;
-    response = "HTTP/1.1 302 Redirect\r\nLocation: ";
+	_responseCode = errorCode;
+	std::cout << "\033[1;31m[" << errorCode << "][" << errors.getErrorMsg(errorCode) << "] " << msg << "\033[0m" << std::endl;
+	response = "HTTP/1.1 302 Redirect\r\nLocation: ";
 
-    if (errorMap.find(errorCode) != errorMap.end() && _responseMethod != POST && _responseMethod != DELETE)
-    {
-        response.append(absoluteToRelativePath(_rootErrorPages, errorMap.find(errorCode)->second)).append("\r\n\r\n");
+	if (errorMap.find(errorCode) != errorMap.end() && _responseMethod != POST && _responseMethod != DELETE)
+	{
+		response.append(absoluteToRelativePath(_rootErrorPages, errorMap.find(errorCode)->second)).append("\r\n\r\n");
 		return ;
-    }
+	}
 	response.clear();
 	response = "HTTP/1.1 " + ft_itoa(errorCode) + " " + errors.getErrorMsg(errorCode);
 	response.append("\r\nContent-Type: text/plain\r\nContent-Length: "

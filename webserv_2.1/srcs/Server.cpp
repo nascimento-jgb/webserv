@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: corellan <corellan@student.hive.fi>        +#+  +:+       +#+        */
+/*   By: jonascim <jonascim@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/21 13:06:16 by jonascim          #+#    #+#             */
-/*   Updated: 2023/09/28 18:03:47 by corellan         ###   ########.fr       */
+/*   Updated: 2023/09/29 09:17:50 by jonascim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ Server::Server()
 	_index = "";
 	_maxBodySize = 9999999999; //create a macro or pass it
 	_autoindex = false;
-	_listen_fd = 0;
+	_listenFd = 0;
 }
 
 Server::~Server() {}
@@ -36,7 +36,7 @@ Server::Server(const Server &other)
 		this->_port = other._port;
 		this->_maxBodySize = other._maxBodySize;
 		this->_index = other._index;
-		this->_listen_fd = other._listen_fd;
+		this->_listenFd = other._listenFd;
 		this->_autoindex = other._autoindex;
 		this->_serverAddress = other._serverAddress;
 		this->_config =  other._config;
@@ -56,7 +56,7 @@ Server &Server::operator=(const Server &other)
 		this->_port = other._port;
 		this->_maxBodySize = other._maxBodySize;
 		this->_index = other._index;
-		this->_listen_fd = other._listen_fd;
+		this->_listenFd = other._listenFd;
 		this->_autoindex = other._autoindex;
 		this->_serverAddress = other._serverAddress;
 		this->_config =  other._config;
@@ -111,7 +111,7 @@ bool const	&Server::getAutoIndex(void) const
 
 int	Server::getListenFd(void)
 {
-	return (this->_listen_fd);
+	return (this->_listenFd);
 }
 
 mainmap		&Server::getConfigMap(void)
@@ -141,15 +141,15 @@ void	Server::setupServer(mainmap &config, size_t &port, submap &cgi, numbermap &
 	_index = _config.find("/")->second.find("index")->second;
 	try
 	{
-		if ((_listen_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+		if ((_listenFd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 			throw std::runtime_error("Error creating socket");
 		_serverAddress.sin_family = AF_INET;
 		_serverAddress.sin_addr.s_addr = _host;
 		_serverAddress.sin_port = htons(_port);
 		int	option_value = 1;
-		setsockopt(_listen_fd, SOL_SOCKET, SO_REUSEADDR, &option_value, sizeof(int));
+		setsockopt(_listenFd, SOL_SOCKET, SO_REUSEADDR, &option_value, sizeof(int));
 		std::memset(_serverAddress.sin_zero, '\0', sizeof(_serverAddress.sin_zero));
-		if (bind(_listen_fd, reinterpret_cast<struct sockaddr*>(&_serverAddress), sizeof(_serverAddress)) < 0)
+		if (bind(_listenFd, reinterpret_cast<struct sockaddr*>(&_serverAddress), sizeof(_serverAddress)) < 0)
 		{
 			std::cerr << "Error in bind: " << errno << " - " << strerror(errno) << std::endl;
 			throw std::runtime_error("Error in bind");
